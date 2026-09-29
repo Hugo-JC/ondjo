@@ -1,31 +1,49 @@
 @import "tailwindcss";
 
 @theme {
+  /* Identidade */
   --color-ondjo-navy: #0b3b78;
-  --color-ondjo-blue: #1457a6;
-  --color-ondjo-green: #15803d;
+  --color-ondjo-navy-deep: #071a33; /* superfícies escuras: painel de auth, cartão de preço */
+  --color-ondjo-blue: #1457a6; /* ações secundárias, links, seleção */
+  --color-ondjo-green: #15803d; /* ação principal e "verificado" */
+  --color-ondjo-green-dark: #106430; /* hover do verde */
   --color-ondjo-green-soft: #eaf7ef;
+
+  /* Neutros */
   --color-ondjo-ink: #111827;
   --color-ondjo-muted: #667085;
   --color-ondjo-border: #e4e7ec;
   --color-ondjo-surface: #ffffff;
   --color-ondjo-bg: #f7f8fa;
+
+  /* Foco (teclado) */
+  --color-ondjo-focus: #2563eb;
+
+  /* Estados: solid = botões/ícones com texto branco; soft = fundo; border; text = texto sobre soft */
+  --color-ondjo-success: #15803d;
+  --color-ondjo-success-soft: #eaf7ef;
+  --color-ondjo-success-border: #b7e4c7;
+  --color-ondjo-success-text: #166534;
+
+  --color-ondjo-warning: #b54708;
+  --color-ondjo-warning-soft: #fffaeb;
+  --color-ondjo-warning-border: #fec84b;
+  --color-ondjo-warning-text: #93370d;
+
+  --color-ondjo-danger: #d92d20;
+  --color-ondjo-danger-soft: #fef3f2;
+  --color-ondjo-danger-border: #fda29b;
+  --color-ondjo-danger-text: #b42318;
+
   --font-sans:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
 }
 
 :root {
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-  color: #111827;
-  background: #f7f8fa;
+  font-family: var(--font-sans);
+  color: var(--color-ondjo-ink);
+  background: var(--color-ondjo-bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -41,7 +59,7 @@ html {
 body {
   margin: 0;
   min-width: 320px;
-  background: #f7f8fa;
+  background: var(--color-ondjo-bg);
 }
 
 button,
@@ -56,7 +74,7 @@ button {
 
 ::selection {
   background: #dceaff;
-  color: #0b3b78;
+  color: var(--color-ondjo-navy);
 }
 
 img {
@@ -64,9 +82,15 @@ img {
   max-width: 100%;
 }
 
+/*
+  Foco por teclado: UMA única regra, fora de @layer para ganhar a
+  utilitários como `outline-none`. O anel branco interior garante
+  contraste também sobre fundos escuros (painel de auth, galeria).
+*/
 .focus-ring:focus-visible {
-  outline: 3px solid #8fc2ff;
+  outline: 2px solid var(--color-ondjo-focus);
   outline-offset: 2px;
+  box-shadow: 0 0 0 4px #fff;
 }
 
 .hide-scrollbar {
@@ -103,8 +127,7 @@ img {
   background-color: #a4adba;
 }
 
-/* Variante mais discreta, usada na navegação da sidebar:
-   fica invisível em repouso e só aparece ao passar o rato */
+/* Variante discreta para a navegação da sidebar */
 .scrollbar-subtle {
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
@@ -140,6 +163,7 @@ img {
   *,
   *::before,
   *::after {
+    scroll-behavior: auto !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -148,23 +172,6 @@ img {
 
 @layer components {
   .filter-input {
-    @apply h-11 w-full rounded-xl border border-ondjo-border bg-white px-3 text-sm font-medium text-ondjo-ink outline-none transition placeholder:text-slate-400 focus:border-ondjo-blue focus:ring-4 focus:ring-blue-100;
-  }
-}
-/* ADICIONE ao seu src/index.css atual. */
-@layer utilities {
-  .focus-ring:focus-visible {
-    outline: 2px solid rgb(37 99 235);
-    outline-offset: 2px;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
+    @apply h-11 w-full rounded-xl border border-ondjo-border bg-white px-3 text-sm font-medium text-ondjo-ink outline-none transition placeholder:text-slate-500 focus:border-ondjo-blue focus:ring-4 focus:ring-blue-100;
   }
 }
