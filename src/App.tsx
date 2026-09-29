@@ -42,7 +42,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-slate-50">
       <Sidebar />
-      <div className="min-w-0 lg:pl-[72px]">
+      <div className="min-w-0 lg:pl-18">
         <Header />
         {children}
       </div>

@@ -1,8 +1,9 @@
-import { ArrowRight, MapPin, ShieldCheck } from "lucide-react"; //Search,
+import { ArrowRight, ShieldCheck } from "lucide-react"; //Search,
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { properties, locations } from "../data/properties";
 import { navigate } from "../hooks/useHashRoute";
+import { ZoneSection } from "../components/ZoneSection";
 import { PropertyCard } from "../components/PropertyCard";
 import {
   SearchBar,
@@ -117,51 +118,7 @@ export function Home() {
           Ver todos os imóveis <ArrowRight size={16} />
         </button>
 
-        <div className="mt-14">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ondjo-green">
-                Explore por zona
-              </p>
-              <h2 className="mt-1 text-2xl font-black tracking-tight text-ondjo-ink">
-                Onde quer procurar?
-              </h2>
-            </div>
-            <MapPin className="hidden text-ondjo-blue sm:block" />
-          </div>
-          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {locations.slice(0, 8).map((location, index) => (
-              <button
-                key={location}
-                onClick={() => {
-                  setFilters({ ...defaultSearchFilters(), location });
-                  navigate(
-                    `pesquisar?location=${encodeURIComponent(location)}`,
-                  );
-                }}
-                className="focus-ring group rounded-2xl border border-ondjo-border bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
-              >
-                <span className="flex items-center justify-between">
-                  <span className="text-sm font-extrabold text-ondjo-ink">
-                    {location}
-                  </span>
-                  <ArrowRight
-                    size={15}
-                    className="text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-ondjo-blue"
-                  />
-                </span>
-                <span className="mt-1 block text-xs text-ondjo-muted">
-                  {properties.filter((p) => p.neighborhood === location).length}{" "}
-                  imóveis
-                </span>
-                <span
-                  className="mt-3 block h-1 w-8 rounded-full bg-ondjo-green/70"
-                  style={{ opacity: 1 - index * 0.07 }}
-                />
-              </button>
-            ))}
-          </div>
-        </div>
+        <ZoneSection />
 
         <div className="mt-14">
           <TrustStrip />
