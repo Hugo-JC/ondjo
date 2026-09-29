@@ -46,6 +46,7 @@ export function SearchBar({
 }: SearchBarProps) {
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [locationOpen, setLocationOpen] = useState(false);
+  const [textoBotao, setTextoBotao] = useState("Mais Filtros");
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -171,12 +172,17 @@ export function SearchBar({
 
       <div className="mt-2 flex items-center justify-between px-1 sm:px-2">
         <button
-          onClick={() => setAdvancedOpen((v) => !v)}
+          onClick={() => {
+            setAdvancedOpen((v) => !v);
+            setTextoBotao((v) =>
+              v === "Mais Filtros" ? "Menos Filtros" : "Mais Filtros",
+            );
+          }}
           className="focus-ring flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-bold text-ondjo-blue hover:bg-blue-50"
           aria-expanded={advancedOpen}
         >
           <SlidersHorizontal size={16} />
-          Mais filtros
+          {textoBotao}
           {activeCount > 0 && (
             <span className="grid min-w-5 place-items-center rounded-full bg-ondjo-blue px-1.5 py-0.5 text-[11px] text-white">
               {activeCount}

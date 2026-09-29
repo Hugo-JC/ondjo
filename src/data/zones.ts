@@ -3,14 +3,9 @@ import { locations, properties } from "./properties";
 export interface ZoneSummary {
   name: string;
   count: number;
-  /** Preço mais baixo entre os imóveis da zona. `null` se não houver imóveis. */
   minPrice: number | null;
 }
 
-/**
- * Deriva contagem e preço mínimo directamente dos imóveis disponíveis,
- * para que os números nunca fiquem desalinhados com a pesquisa.
- */
 export function getZoneSummaries(): ZoneSummary[] {
   return locations.map((name) => {
     const inZone = properties.filter((p) => p.neighborhood === name);

@@ -2,11 +2,6 @@ import { ArrowRight, MapPin } from "lucide-react";
 import { formatKz } from "../data/properties";
 import { formatCount, type ZoneSummary } from "../data/zones";
 
-/**
- * Cartão de zona. Deve ser usado dentro de um <ul>, envolvido em <li>.
- * - Com imóveis: é um <a> real (abre em novo separador, funciona por teclado).
- * - Sem imóveis: não é link, não tem hover nem seta, para não parecer clicável.
- */
 export function ZoneCard({ zone }: { zone: ZoneSummary }) {
   const { name, count, minPrice } = zone;
 
