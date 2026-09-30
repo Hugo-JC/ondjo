@@ -1,40 +1,44 @@
-import { Compass, Eye, ShieldCheck, SlidersHorizontal } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
+
+import {
+  Compass,
+  Eye,
+  ShieldCheck,
+  SlidersHorizontal,
+  type LucideIcon,
+} from "lucide-react";
 
 type Tone = "state" | "info";
 
 interface TrustItem {
-  icon: typeof ShieldCheck;
+  icon: LucideIcon;
   title: string;
   text: string;
-  /** state = sinal de verificação (verde); info = informação (azul suave). */
   tone: Tone;
 }
 
-// Cada mensagem corresponde a algo que existe hoje na aplicação.
 const items: TrustItem[] = [
   {
     icon: ShieldCheck,
     title: "Anúncios verificados",
-    text: "Reconheça-os pelo selo Verificado",
+    text: "Identifique os anúncios com o selo Verificado.",
     tone: "state",
   },
   {
     icon: Eye,
-    title: "Transparência",
-    text: "Preço e características à vista",
+    title: "Informação transparente",
+    text: "Consulte preços e características com clareza.",
     tone: "info",
   },
   {
     icon: SlidersHorizontal,
     title: "Pesquisa simples",
-    text: "Filtre por zona, preço e quartos",
+    text: "Encontre opções por zona, preço e quartos.",
     tone: "info",
   },
   {
     icon: Compass,
-    title: "Explore à vontade",
-    text: "Não precisa de criar conta",
+    title: "Explore ao seu ritmo",
+    text: "Descubra imóveis sem precisar de criar conta.",
     tone: "info",
   },
 ];
@@ -45,59 +49,53 @@ const toneClass: Record<Tone, string> = {
 };
 
 export function TrustStrip() {
-  const reduceMotion = useReducedMotion();
-
   return (
     <section
-      aria-labelledby="confianca-titulo"
-      className="rounded-3xl bg-ondjo-navy text-white"
+      aria-labelledby="trust-strip-title"
+      className="rounded-2xl border border-ondjo-border bg-ondjo-surface p-5 sm:p-7"
     >
-      <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.6fr)] lg:items-center lg:gap-12 lg:p-10">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-blue-200">
-            Porquê a ONDJO
-          </p>
-          <h2
-            id="confianca-titulo"
-            className="mt-2 text-2xl font-black leading-tight tracking-tight sm:text-3xl"
-          >
-            Informação clara para escolher com calma.
-          </h2>
-          <p className="mt-3 max-w-md text-sm leading-6 text-blue-100/85">
-            A ONDJO foi pensada para tornar a procura de imóveis mais simples
-            e transparente.
-          </p>
-        </div>
+      <div className="mb-6 max-w-2xl">
+        <span className="inline-flex items-center rounded-full bg-ondjo-blue-soft px-3 py-1 text-xs font-bold tracking-wide text-ondjo-blue">
+          PORQUÊ A ONDJO
+        </span>
 
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {items.map(({ icon: Icon, title, text, tone }, index) => (
-            <motion.li
-              key={title}
-              initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "0px 0px -40px" }}
-              transition={{
-                duration: 0.28,
-                delay: reduceMotion ? 0 : Math.min(index * 0.05, 0.15),
-              }}
-              className="flex items-start gap-3.5 rounded-2xl border border-white/10 bg-white/6 p-4"
-            >
+        <h2
+          id="trust-strip-title"
+          className="mt-3 text-xl font-extrabold tracking-tight text-ondjo-navy sm:text-2xl"
+        >
+          Encontre o seu próximo imóvel com confiança.
+        </h2>
+
+        <p className="mt-2 text-sm leading-6 text-ondjo-muted sm:text-base">
+          Informação clara e ferramentas simples para ajudar
+          na sua procura, ao seu ritmo.
+        </p>
+      </div>
+
+      <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+        {items.map(({ icon: Icon, title, text, tone }) => (
+          <li key={title} className="min-w-0">
+            <div className="group flex h-full items-start gap-3 rounded-xl p-3 transition-colors duration-200 hover:bg-ondjo-bg sm:p-4">
               <span
                 aria-hidden="true"
                 className={`grid size-11 shrink-0 place-items-center rounded-xl ${toneClass[tone]}`}
               >
-                <Icon size={20} />
+                <Icon size={20} strokeWidth={1.8} />
               </span>
-              <div className="min-w-0">
-                <p className="text-[15px] font-extrabold text-white">{title}</p>
-                <p className="mt-0.5 text-sm leading-5 text-blue-100/85">
+
+              <div className="min-w-0 pt-0.5">
+                <h3 className="text-sm font-bold leading-5 text-ondjo-ink">
+                  {title}
+                </h3>
+
+                <p className="mt-1 text-sm leading-5 text-ondjo-muted">
                   {text}
                 </p>
               </div>
-            </motion.li>
-          ))}
-        </ul>
-      </div>
+            </div>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
