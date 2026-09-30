@@ -22,7 +22,7 @@ export default function Header() {
 
         <nav className="ml-auto flex items-center gap-1">
           <a
-            href="#/login"
+            href="#/favoritos"
             aria-label="Favoritos"
             className="focus-ring hidden size-11 place-items-center rounded-xl text-slate-600 hover:bg-slate-100 sm:grid"
           >
