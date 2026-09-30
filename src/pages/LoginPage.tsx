@@ -13,7 +13,7 @@ export default function LoginPage() {
     <AuthLayout
       eyebrow="Bem-vindo de volta"
       title="Entrar na sua conta"
-      description="Aceda aos seus favoritos, mensagens, agendamentos e imóveis guardados."
+      description="Aceda aos seus favoritos, mensagens, agendamentos eh imóveis guardados."
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         {submitted ? (
