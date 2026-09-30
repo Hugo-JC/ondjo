@@ -238,7 +238,7 @@ export function SearchBar({
                         });
                         setLocationOpen(false);
                       }}
-                      className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-ondjo-ink transition hover:bg-ondjo-bg focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ondjo-blue"
+                      className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-ondjo-ink transition hover:bg-ondjo-bg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ondjo-blue"
                     >
                       <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-ondjo-blue-soft text-ondjo-blue">
                         <MapPin size={16} aria-hidden="true" />

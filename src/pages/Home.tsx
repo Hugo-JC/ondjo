@@ -62,9 +62,9 @@ export function Home() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
         >
-          <div className="absolute -right-40 -top-48 size-[460px] rounded-full bg-ondjo-blue/25 blur-3xl sm:size-[600px]" />
+          <div className="absolute -right-40 -top-48 size-115 rounded-full bg-ondjo-blue/25 blur-3xl sm:size-150" />
 
-          <div className="absolute -bottom-64 -left-40 size-[420px] rounded-full bg-ondjo-green/15 blur-3xl sm:size-[520px]" />
+          <div className="absolute -bottom-64 -left-40 size-105 rounded-full bg-ondjo-green/15 blur-3xl sm:size-130" />
 
           <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(16,42,67,0.15),transparent_55%,rgba(23,78,166,0.12))]" />
         </div>
@@ -114,7 +114,7 @@ export function Home() {
               <button
                 type="button"
                 onClick={() => navigate("pesquisar")}
-                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/[0.06] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:w-auto"
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/6 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:w-auto"
               >
                 Explorar todos os imóveis
               </button>
@@ -179,7 +179,7 @@ export function Home() {
                         "min-h-10 rounded-full border px-3.5 py-2 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
                         selected
                           ? "border-white bg-white text-ondjo-navy"
-                          : "border-white/20 bg-white/[0.05] text-white hover:border-white/40 hover:bg-white/10",
+                          : "border-white/20 bg-white/5 text-white hover:border-white/40 hover:bg-white/10",
                       ].join(" ")}
                     >
                       {location}
