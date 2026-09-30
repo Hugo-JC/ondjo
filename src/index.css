@@ -2,38 +2,36 @@
 
 @theme {
   /* Identidade */
-  --color-ondjo-navy: #0b3b78;
-  --color-ondjo-navy-deep: #071a33; /* superfícies escuras: painel de auth, cartão de preço */
-  --color-ondjo-blue: #1457a6; /* ações secundárias, links, seleção */
-  --color-ondjo-green: #15803d; /* ação principal e "verificado" */
-  --color-ondjo-green-dark: #106430; /* hover do verde */
-  --color-ondjo-green-soft: #eaf7ef;
+  --color-ondjo-navy: #102a43; /* logótipo, hero, superfícies escuras */
+  --color-ondjo-blue: #174ea6; /* ÚNICA cor de ação: botões, links, seleção, foco */
+  --color-ondjo-blue-dark: #113e85; /* hover da ação (derivada, não vem da paleta) */
+  --color-ondjo-blue-soft: #dce7f5; /* seleção e fundos azuis */
+
+  /* Verde = estado (verificado, sucesso), nunca ação */
+  --color-ondjo-green: #176b52;
+  --color-ondjo-green-soft: #e8f4ef; /* Mint Mist: fundos de ícones e etiquetas */
 
   /* Neutros */
-  --color-ondjo-ink: #111827;
-  --color-ondjo-muted: #667085;
-  --color-ondjo-border: #e4e7ec;
+  --color-ondjo-ink: #243b53;
+  --color-ondjo-muted: #526579;
+  --color-ondjo-border: #dde5ee; /* derivada, não vem da paleta */
   --color-ondjo-surface: #ffffff;
-  --color-ondjo-bg: #f7f8fa;
+  --color-ondjo-bg: #f4f7fb;
 
-  /* Foco (teclado) */
-  --color-ondjo-focus: #2563eb;
+  /* Estados. A cor base serve para texto, ícones e botões (texto branco);
+     soft = fundo; border = contorno. Soft/border de warning e danger e o
+     border de success são derivados. */
+  --color-ondjo-success: #176b52;
+  --color-ondjo-success-soft: #dcece5; /* Green Soft */
+  --color-ondjo-success-border: #a9d1c0;
 
-  /* Estados: solid = botões/ícones com texto branco; soft = fundo; border; text = texto sobre soft */
-  --color-ondjo-success: #15803d;
-  --color-ondjo-success-soft: #eaf7ef;
-  --color-ondjo-success-border: #b7e4c7;
-  --color-ondjo-success-text: #166534;
+  --color-ondjo-warning: #854d0e;
+  --color-ondjo-warning-soft: #fdf4e3;
+  --color-ondjo-warning-border: #e9c27e;
 
-  --color-ondjo-warning: #b54708;
-  --color-ondjo-warning-soft: #fffaeb;
-  --color-ondjo-warning-border: #fec84b;
-  --color-ondjo-warning-text: #93370d;
-
-  --color-ondjo-danger: #d92d20;
+  --color-ondjo-danger: #b42318;
   --color-ondjo-danger-soft: #fef3f2;
   --color-ondjo-danger-border: #fda29b;
-  --color-ondjo-danger-text: #b42318;
 
   --font-sans:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
@@ -73,7 +71,7 @@ button {
 }
 
 ::selection {
-  background: #dceaff;
+  background: var(--color-ondjo-blue-soft);
   color: var(--color-ondjo-navy);
 }
 
@@ -88,7 +86,7 @@ img {
   contraste também sobre fundos escuros (painel de auth, galeria).
 */
 .focus-ring:focus-visible {
-  outline: 2px solid var(--color-ondjo-focus);
+  outline: 2px solid var(--color-ondjo-blue);
   outline-offset: 2px;
   box-shadow: 0 0 0 4px #fff;
 }

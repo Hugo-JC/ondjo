@@ -2,15 +2,20 @@ import { ArrowRight, MapPin } from "lucide-react";
 import { formatKz } from "../data/properties";
 import { formatCount, type ZoneSummary } from "../data/zones";
 
+/**
+ * Cartão de zona. Deve ser usado dentro de um <ul>, envolvido em <li>.
+ * - Com imóveis: é um <a> real (abre em novo separador, funciona por teclado).
+ * - Sem imóveis: não é link, não tem hover nem seta, para não parecer clicável.
+ */
 export function ZoneCard({ zone }: { zone: ZoneSummary }) {
   const { name, count, minPrice } = zone;
 
   if (count === 0 || minPrice === null) {
     return (
-      <div className="flex min-h-18 items-center gap-3 rounded-2xl border border-dashed border-ondjo-border bg-transparent px-4 py-3">
+      <div className="flex min-h-[72px] items-center gap-3 rounded-2xl border border-dashed border-ondjo-border bg-transparent px-4 py-3">
         <span
           aria-hidden="true"
-          className="grid size-10 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-400"
+          className="grid size-10 shrink-0 place-items-center rounded-full bg-slate-100 text-ondjo-muted"
         >
           <MapPin size={19} />
         </span>
@@ -29,11 +34,11 @@ export function ZoneCard({ zone }: { zone: ZoneSummary }) {
   return (
     <a
       href={`#/pesquisar?location=${encodeURIComponent(name)}`}
-      className="focus-ring group flex min-h-18 items-center gap-3 rounded-2xl border border-ondjo-border bg-white px-4 py-3 shadow-[0_5px_18px_rgba(16,24,40,0.045)] transition duration-200 hover:-translate-y-0.5 hover:border-ondjo-blue hover:shadow-[0_14px_34px_rgba(16,24,40,0.10)] motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+      className="focus-ring group flex min-h-[72px] items-center gap-3 rounded-2xl border border-ondjo-border bg-white px-4 py-3 shadow-[0_5px_18px_rgba(16,24,40,0.045)] transition duration-200 hover:-translate-y-0.5 hover:border-ondjo-blue hover:shadow-[0_14px_34px_rgba(16,24,40,0.10)] motion-reduce:transition-none motion-reduce:hover:translate-y-0"
     >
       <span
         aria-hidden="true"
-        className="grid size-10 shrink-0 place-items-center rounded-full bg-ondjo-green-soft text-ondjo-green"
+        className="grid size-10 shrink-0 place-items-center rounded-full bg-ondjo-blue-soft text-ondjo-blue"
       >
         <MapPin size={19} />
       </span>
@@ -45,7 +50,7 @@ export function ZoneCard({ zone }: { zone: ZoneSummary }) {
         <span className="mt-0.5 block text-xs font-semibold text-ondjo-muted">
           {formatCount(count)}
         </span>
-        <span className="block text-xs font-bold text-ondjo-green">
+        <span className="block text-xs font-bold text-ondjo-ink">
           desde {formatKz(minPrice)}
         </span>
       </span>

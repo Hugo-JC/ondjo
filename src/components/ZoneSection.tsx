@@ -7,7 +7,7 @@ export function ZoneSection() {
 
   return (
     <section aria-labelledby="zonas-titulo" className="mt-14">
-      <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ondjo-green">
+      <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ondjo-muted">
         Explore por zona
       </p>
       <h2
