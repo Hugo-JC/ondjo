@@ -4,7 +4,6 @@ import {
   ArrowRight,
   Building2,
   Check,
-  CheckCircle2,
   Eye,
   EyeOff,
   Home,
@@ -12,8 +11,7 @@ import {
   Mail,
   UserRound,
   Phone,
-  ShieldCheck,
-  Sparkles,
+  AlertCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AuthInput from "../components/auth/AuthInput";
