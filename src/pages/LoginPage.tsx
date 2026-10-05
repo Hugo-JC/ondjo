@@ -1,5 +1,5 @@
 import { useState, useId } from "react";
-import { Eye, EyeOff, LockKeyhole, Mail, ArrowRight, ShieldCheck, CheckCircle2, AlertCircle, X } from "lucide-react";
+import { Eye, EyeOff, LockKeyhole, Mail, ArrowRight, CheckCircle2, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AuthInput from "../components/auth/AuthInput";
 import AuthLayout from "../components/auth/AuthLayout";
