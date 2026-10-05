@@ -1,8 +1,19 @@
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
-  Building2, CalendarDays, ChevronLeft, CircleHelp,
-  Heart, Home, Search, LogIn, Mail, Plus, Settings2, X, Sparkles,
+  Building2,
+  CalendarDays,
+  ChevronLeft,
+  CircleHelp,
+  Heart,
+  Home,
+  Search,
+  LogIn,
+  Mail,
+  Plus,
+  Settings2,
+  X,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 
@@ -32,17 +43,21 @@ interface SidebarProps {
   onExpandedChange?: (expanded: boolean) => void;
 }
 
-export default function Sidebar({ expanded: controlledExpanded, onExpandedChange }: SidebarProps = {}) {
+export default function Sidebar({
+  expanded: controlledExpanded,
+  onExpandedChange,
+}: SidebarProps = {}) {
   const [internalExpanded, setInternalExpanded] = useState(() => {
     if (typeof window === "undefined") return false;
     return window.localStorage.getItem("ondjo-sidebar-expanded") === "true";
   });
 
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [hash, setHash] = useState(() => (typeof window !== "undefined" ? window.location.hash || "#/" : "#/"));
+  const [hash, setHash] = useState(() =>
+    typeof window !== "undefined" ? window.location.hash || "#/" : "#/",
+  );
   const [favoritesCount, setFavoritesCount] = useState(0);
 
-  const shouldReduceMotion = useReducedMotion();
   const isControlled = controlledExpanded !== undefined;
   const expanded = controlledExpanded ?? internalExpanded;
   const wide = expanded || mobileOpen;
@@ -93,7 +108,9 @@ export default function Sidebar({ expanded: controlledExpanded, onExpandedChange
   }, [expanded, isControlled]);
 
   useEffect(() => {
-    const button = document.querySelector<HTMLButtonElement>("[data-sidebar-toggle]");
+    const button = document.querySelector<HTMLButtonElement>(
+      "[data-sidebar-toggle]",
+    );
     if (!button) return;
     const openMenu = () => setMobileOpen(true);
     button.addEventListener("click", openMenu);
@@ -114,82 +131,59 @@ export default function Sidebar({ expanded: controlledExpanded, onExpandedChange
     return href === "#/" ? currentPath === "#/" : currentPath === href;
   }
 
-  // Transições spring
-  const springTransition = shouldReduceMotion
-    ? { duration: 0.1 }
-    : { type: "spring" as const, stiffness: 320, damping: 32 };
-
   return (
     <>
-      {/* Backdrop Mobile com fade + blur */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-40 bg-ondjo-navy/40 backdrop-blur-sm lg:hidden"
-            onClick={() => setMobileOpen(false)}
-            aria-hidden="true"
-          />
-        )}
-      </AnimatePresence>
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-ondjo-navy/40 backdrop-blur-sm lg:hidden"
+          onClick={() => setMobileOpen(false)}
+          aria-hidden="true"
+        />
+      )}
 
       <aside
         aria-label="Menu lateral ONDJO"
         data-expanded={expanded}
         className={[
-          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-ondjo-border bg-ondjo-surface shadow-xs",
-          "transition-[width] duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] motion-reduce:transition-none",
+          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-ondjo-border bg-ondjo-surface shadow-sm",
+          "transition-[width,transform] duration-200 ease-out motion-reduce:transition-none",
           expanded ? "lg:w-64" : "lg:w-20",
           "w-72 max-w-[85vw]",
           mobileOpen
             ? "translate-x-0 shadow-2xl shadow-ondjo-navy/20"
             : "-translate-x-full lg:translate-x-0",
-          "transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] lg:transition-none",
+          "lg:translate-x-0",
         ].join(" ")}
       >
         {/* Topo / Brand Header */}
         <div
           className={[
             "flex min-h-20 shrink-0 border-b border-ondjo-border/80 px-4",
-            wide ? "items-center justify-between" : "flex-col items-center justify-center gap-2 py-3",
+            wide
+              ? "items-center justify-between"
+              : "flex-col items-center justify-center gap-2 py-3",
           ].join(" ")}
         >
-          <a
-            href="#/"
-            aria-label="ONDJO — página inicial"
-            onClick={() => setMobileOpen(false)}
-            className="group flex min-w-0 items-center gap-3 select-none"
-          >
-            <motion.span
-              whileHover={shouldReduceMotion ? undefined : { scale: 1.06, rotate: -2 }}
-              whileTap={shouldReduceMotion ? undefined : { scale: 0.94 }}
-              className="grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-ondjo-navy to-ondjo-ink text-white shadow-sm ring-1 ring-white/10"
+          {wide && (
+            <a
+              href="#/"
+              aria-label="ONDJO — página inicial"
+              onClick={() => setMobileOpen(false)}
+              className="group flex min-w-0 items-center gap-3 select-none"
             >
-              <Building2 size={21} strokeWidth={2.2} aria-hidden="true" />
-            </motion.span>
-
-            <AnimatePresence initial={false}>
-              {wide && (
-                <motion.div
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -8 }}
-                  transition={{ duration: 0.2 }}
-                  className="min-w-0 overflow-hidden"
-                >
-                  <span className="block text-lg font-black tracking-tight text-ondjo-navy group-hover:text-ondjo-blue transition-colors">
-                    ONDJO
-                  </span>
-                  <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-ondjo-muted truncate">
-                    Encontre o seu lugar
-                  </span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </a>
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-ondjo-navy text-white shadow-sm">
+                <Building2 size={21} strokeWidth={2.2} aria-hidden="true" />
+              </span>
+              <div className="min-w-0 overflow-hidden">
+                <span className="block text-lg font-black tracking-tight text-ondjo-navy transition-colors group-hover:text-ondjo-blue">
+                  ONDJO
+                </span>
+                <span className="block truncate text-[10px] font-semibold uppercase tracking-[0.16em] text-ondjo-muted">
+                  Encontre o seu lugar
+                </span>
+              </div>
+            </a>
+          )}
 
           {/* Botão fechar mobile */}
           <button
@@ -202,27 +196,28 @@ export default function Sidebar({ expanded: controlledExpanded, onExpandedChange
           </button>
 
           {/* Botão alternar expandido (desktop) com animação suave */}
-          <motion.button
+          <button
             type="button"
-            aria-label={expanded ? "Recolher menu lateral" : "Expandir menu lateral"}
+            aria-label={
+              expanded ? "Recolher menu lateral" : "Expandir menu lateral"
+            }
             aria-expanded={expanded}
             onClick={() => changeExpanded(!expanded)}
-            whileHover={shouldReduceMotion ? undefined : { scale: 1.08 }}
-            whileTap={shouldReduceMotion ? undefined : { scale: 0.92 }}
-            className="focus-ring hidden size-8 shrink-0 place-items-center rounded-xl border border-ondjo-border/80 bg-ondjo-surface text-ondjo-muted transition-colors hover:bg-ondjo-bg hover:text-ondjo-ink lg:grid shadow-xs"
+            className="focus-ring hidden size-9 shrink-0 place-items-center rounded-xl border border-ondjo-border bg-ondjo-surface text-ondjo-muted transition-colors hover:bg-ondjo-bg hover:text-ondjo-ink lg:grid"
           >
-            <motion.span
-              animate={{ rotate: expanded ? 0 : 180 }}
-              transition={springTransition}
-              className="grid place-items-center"
+            <span
+              className={`grid place-items-center transition-transform duration-200 motion-reduce:transition-none ${expanded ? "" : "rotate-180"}`}
             >
               <ChevronLeft size={16} strokeWidth={2.2} aria-hidden="true" />
-            </motion.span>
-          </motion.button>
+            </span>
+          </button>
         </div>
 
         {/* Navegação Principal */}
-        <nav aria-label="Navegação principal" className="scrollbar-subtle flex-1 overflow-y-auto px-3 py-5">
+        <nav
+          aria-label="Navegação principal"
+          className="scrollbar-subtle flex-1 overflow-y-auto px-3 py-5"
+        >
           <NavSectionLabel expanded={wide}>Descobrir</NavSectionLabel>
           <ul className="space-y-1">
             {mainItems.map((item) => (
@@ -231,9 +226,10 @@ export default function Sidebar({ expanded: controlledExpanded, onExpandedChange
                   item={item}
                   expanded={wide}
                   active={isActive(item.href)}
-                  badgeCount={item.badge === "favorites" ? favoritesCount : undefined}
+                  badgeCount={
+                    item.badge === "favorites" ? favoritesCount : undefined
+                  }
                   onNavigate={() => setMobileOpen(false)}
-                  shouldReduceMotion={!!shouldReduceMotion}
                 />
               </li>
             ))}
@@ -250,7 +246,6 @@ export default function Sidebar({ expanded: controlledExpanded, onExpandedChange
                   expanded={wide}
                   active={isActive(item.href)}
                   onNavigate={() => setMobileOpen(false)}
-                  shouldReduceMotion={!!shouldReduceMotion}
                 />
               </li>
             ))}
@@ -265,70 +260,60 @@ export default function Sidebar({ expanded: controlledExpanded, onExpandedChange
                 expanded={wide}
                 active={false}
                 onNavigate={() => setMobileOpen(false)}
-                shouldReduceMotion={!!shouldReduceMotion}
               />
             </li>
             <li>
               <SidebarItem
-                item={{ label: "Definições", href: "#/login", icon: Settings2, private: true }}
+                item={{
+                  label: "Definições",
+                  href: "#/login",
+                  icon: Settings2,
+                  private: true,
+                }}
                 expanded={wide}
                 active={false}
                 onNavigate={() => setMobileOpen(false)}
-                shouldReduceMotion={!!shouldReduceMotion}
               />
             </li>
           </ul>
 
-          {/* Card Proativo / Anúncio com expansão animada */}
-          <AnimatePresence initial={false}>
-            {wide && (
-              <motion.div
-                initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                animate={{ opacity: 1, height: "auto", marginTop: 24 }}
-                exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                transition={springTransition}
-                className="overflow-hidden"
-              >
-                <div className="relative rounded-2xl border border-ondjo-blue-soft bg-gradient-to-b from-ondjo-blue-soft/40 to-ondjo-bg p-4 shadow-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="grid size-8 place-items-center rounded-lg bg-ondjo-blue text-white shadow-xs">
-                      <Sparkles size={15} aria-hidden="true" />
-                    </span>
-                    <span className="text-xs font-bold uppercase tracking-wider text-ondjo-blue">
-                      Proprietários
-                    </span>
-                  </div>
-
-                  <p className="mt-2.5 text-sm font-bold text-ondjo-navy">
-                    Tem um imóvel?
-                  </p>
-                  <p className="mt-1 text-xs leading-relaxed text-ondjo-muted">
-                    Anuncie no ONDJO e alcance milhares de compradores em Angola.
-                  </p>
-
-                  <motion.a
-                    href="#/login"
-                    onClick={() => setMobileOpen(false)}
-                    whileHover={shouldReduceMotion ? undefined : { scale: 1.02, y: -1 }}
-                    whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
-                    className="focus-ring mt-3.5 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-ondjo-blue px-3 text-sm font-bold text-white shadow-xs transition-colors hover:bg-ondjo-blue-dark active:bg-ondjo-navy"
-                  >
-                    <Plus size={16} strokeWidth={2.4} aria-hidden="true" />
-                    Publicar imóvel
-                  </motion.a>
+          {wide && (
+            <div className="mt-6">
+              <div className="relative rounded-2xl border border-ondjo-blue-soft bg-ondjo-blue-soft/35 p-4">
+                <div className="flex items-center gap-2">
+                  <span className="grid size-8 place-items-center rounded-lg bg-ondjo-blue text-white shadow-xs">
+                    <Sparkles size={15} aria-hidden="true" />
+                  </span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-ondjo-blue">
+                    Proprietários
+                  </span>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+
+                <p className="mt-2.5 text-sm font-bold text-ondjo-navy">
+                  Tem um imóvel?
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-ondjo-muted">
+                  Anuncie no ONDJO e alcance milhares de compradores em Angola.
+                </p>
+
+                <a
+                  href="#/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="focus-ring mt-3.5 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-ondjo-blue px-3 text-sm font-bold text-white transition-colors hover:bg-ondjo-blue-dark active:bg-ondjo-navy"
+                >
+                  <Plus size={16} strokeWidth={2.4} aria-hidden="true" />
+                  Publicar imóvel
+                </a>
+              </div>
+            </div>
+          )}
         </nav>
 
         {/* Rodapé / Perfil & CTA */}
         <div className="shrink-0 border-t border-ondjo-border/80 p-3 bg-ondjo-surface/80 backdrop-blur-xs">
-          <motion.a
+          <a
             href="#/login"
             onClick={() => setMobileOpen(false)}
-            whileHover={shouldReduceMotion ? undefined : { scale: 1.01 }}
-            whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
             className={[
               "group focus-ring relative flex min-h-12 items-center gap-3 rounded-xl border border-ondjo-border/80 bg-ondjo-bg px-3",
               "text-sm font-bold text-ondjo-navy transition-all duration-200 hover:border-ondjo-blue-soft hover:bg-ondjo-blue-soft/30 hover:text-ondjo-blue",
@@ -345,17 +330,12 @@ export default function Sidebar({ expanded: controlledExpanded, onExpandedChange
                 Entrar / Criar conta
               </span>
             )}
-          </motion.a>
+          </a>
 
           {wide && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.15 }}
-              className="mt-2.5 px-1 text-center text-[11px] font-medium text-ondjo-muted/80"
-            >
+            <p className="mt-2.5 px-1 text-center text-[11px] font-medium text-ondjo-muted/80">
               O seu próximo lar começa aqui.
-            </motion.p>
+            </p>
           )}
         </div>
       </aside>
@@ -363,7 +343,13 @@ export default function Sidebar({ expanded: controlledExpanded, onExpandedChange
   );
 }
 
-function NavSectionLabel({ expanded, children }: { expanded: boolean; children: string }) {
+function NavSectionLabel({
+  expanded,
+  children,
+}: {
+  expanded: boolean;
+  children: string;
+}) {
   return (
     <p
       className={[
@@ -382,21 +368,50 @@ function SidebarItem({
   active,
   badgeCount,
   onNavigate,
-  shouldReduceMotion,
 }: {
   item: Item;
   expanded: boolean;
   active: boolean;
   badgeCount?: number;
   onNavigate: () => void;
-  shouldReduceMotion: boolean;
 }) {
   const Icon = item.icon;
   const [isHovered, setIsHovered] = useState(false);
+  const anchorRef = useRef<HTMLAnchorElement>(null);
+  const tooltipId = useId();
+  const [tooltipPosition, setTooltipPosition] = useState<{
+    left: number;
+    top: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (expanded || !isHovered || !anchorRef.current) {
+      setTooltipPosition(null);
+      return;
+    }
+
+    const updatePosition = () => {
+      const bounds = anchorRef.current?.getBoundingClientRect();
+      if (!bounds) return;
+      setTooltipPosition({
+        left: bounds.right + 14,
+        top: bounds.top + bounds.height / 2,
+      });
+    };
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [expanded, isHovered]);
 
   return (
     <div className="relative">
       <a
+        ref={anchorRef}
         href={item.href}
         onClick={onNavigate}
         onMouseEnter={() => setIsHovered(true)}
@@ -404,75 +419,59 @@ function SidebarItem({
         onFocus={() => setIsHovered(true)}
         onBlur={() => setIsHovered(false)}
         aria-current={active ? "page" : undefined}
+        aria-label={expanded ? undefined : item.label}
+        aria-describedby={tooltipPosition ? tooltipId : undefined}
         className={[
           "group relative flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold select-none focus-ring",
           "transition-colors duration-200",
           expanded ? "" : "justify-center",
-          active ? "text-ondjo-blue font-bold" : "text-ondjo-muted hover:text-ondjo-ink",
+          active
+            ? "text-ondjo-blue font-bold"
+            : "text-ondjo-muted hover:text-ondjo-ink",
         ].join(" ")}
       >
-        {/* Fundo magnético animado compartilhado (layoutId) quando ativo */}
         {active && (
-          <motion.div
-            layoutId="activeSidebarIndicator"
-            transition={shouldReduceMotion ? { duration: 0.1 } : { type: "spring", stiffness: 380, damping: 30 }}
-            className="absolute inset-0 rounded-xl bg-ondjo-blue-soft border border-ondjo-blue/15 shadow-xs"
+          <span
+            className="absolute inset-0 rounded-xl border border-ondjo-blue/15 bg-ondjo-blue-soft shadow-xs"
             aria-hidden="true"
           />
         )}
 
-        {/* Barrinha lateral esquerda de destaque */}
         {active && (
-          <motion.span
-            layoutId="activeSidebarPill"
-            transition={shouldReduceMotion ? { duration: 0.1 } : { type: "spring", stiffness: 400, damping: 32 }}
+          <span
             aria-hidden="true"
             className="absolute bottom-2.5 left-0 top-2.5 w-[3.5px] rounded-r-full bg-ondjo-blue shadow-xs"
           />
         )}
 
-        {/* Ícone com micro-interação */}
-        <motion.div
-          animate={active ? { scale: 1.05 } : { scale: 1 }}
-          whileHover={shouldReduceMotion ? undefined : { scale: 1.15, rotate: active ? 0 : -4 }}
-          whileTap={shouldReduceMotion ? undefined : { scale: 0.9 }}
-          transition={{ type: "spring", stiffness: 450, damping: 25 }}
-          className="relative z-10 shrink-0 grid place-items-center"
-        >
+        <span className="relative z-10 shrink-0 grid place-items-center">
           <Icon
             size={19}
             strokeWidth={active ? 2.3 : 1.9}
-            className={active ? "text-ondjo-blue" : "text-ondjo-muted group-hover:text-ondjo-ink transition-colors"}
+            className={
+              active
+                ? "text-ondjo-blue"
+                : "text-ondjo-muted group-hover:text-ondjo-ink transition-colors"
+            }
             aria-hidden="true"
           />
 
-          {/* Badge de favoritos no modo recolhido */}
           {!expanded && badgeCount !== undefined && badgeCount > 0 && (
-            <motion.span
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 500, damping: 25 }}
-              className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-ondjo-blue px-1 text-[9px] font-black text-white shadow-xs"
-            >
+            <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-ondjo-blue px-1 text-[9px] font-black text-white shadow-xs">
               {badgeCount > 9 ? "9+" : badgeCount}
-            </motion.span>
+            </span>
           )}
-        </motion.div>
+        </span>
 
-        {/* Label com animação e badge */}
         {expanded && (
           <span className="relative z-10 flex min-w-0 flex-1 items-center justify-between gap-2">
             <span className="truncate">{item.label}</span>
 
             {/* Contador de favoritos no modo expandido */}
             {badgeCount !== undefined && badgeCount > 0 && (
-              <motion.span
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="flex h-5 min-w-5 items-center justify-center rounded-full bg-ondjo-blue/10 px-1.5 text-[11px] font-bold text-ondjo-blue"
-              >
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-ondjo-blue/10 px-1.5 text-[11px] font-bold text-ondjo-blue">
                 {badgeCount}
-              </motion.span>
+              </span>
             )}
 
             {/* Tag de secção restrita */}
@@ -485,15 +484,13 @@ function SidebarItem({
         )}
       </a>
 
-      {/* Tooltip flutuante elegante quando recolhido (Desktop) */}
-      <AnimatePresence>
-        {!expanded && isHovered && (
-          <motion.div
-            initial={{ opacity: 0, x: -8, scale: 0.94 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: -4, scale: 0.96 }}
-            transition={{ duration: 0.16, ease: "easeOut" }}
-            className="pointer-events-none absolute left-full top-1/2 z-50 ml-3.5 -translate-y-1/2 whitespace-nowrap rounded-xl bg-ondjo-navy px-3 py-1.5 text-xs font-semibold text-white shadow-xl shadow-ondjo-navy/25"
+      {tooltipPosition &&
+        createPortal(
+          <div
+            id={tooltipId}
+            role="tooltip"
+            className="pointer-events-none fixed z-[60] -translate-y-1/2 whitespace-nowrap rounded-xl bg-ondjo-navy px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-ondjo-navy/25"
+            style={{ left: tooltipPosition.left, top: tooltipPosition.top }}
           >
             <div className="flex items-center gap-2">
               <span>{item.label}</span>
@@ -509,9 +506,9 @@ function SidebarItem({
               className="absolute right-full top-1/2 -mr-[1px] -translate-y-1/2 border-4 border-transparent border-r-ondjo-navy"
               aria-hidden="true"
             />
-          </motion.div>
+          </div>,
+          document.body,
         )}
-      </AnimatePresence>
     </div>
   );
 }
