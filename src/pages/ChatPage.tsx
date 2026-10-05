@@ -259,9 +259,9 @@ export function ChatPage() {
     }
     return DEFAULT_CONVERSATIONS;
   });
+  return DEFAULT_CONVERSATIONS[0].id;
 
   const [activeChatId, setActiveChatId] = useState<string>(() => {
-    return DEFAULT_CONVERSATIONS[0].id;
   });
 
   const [searchQuery, setSearchQuery] = useState("");

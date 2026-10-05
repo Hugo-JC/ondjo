@@ -1,42 +1,13 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { Building2, ChevronLeft, Plus, Sparkles, X } from "lucide-react";
 import {
-  Building2,
-  CalendarDays,
-  ChevronLeft,
-  CircleHelp,
-  Heart,
-  Home,
-  Search,
-  LogIn,
-  Mail,
-  Plus,
-  Settings2,
-  X,
-  Sparkles,
-  type LucideIcon,
-} from "lucide-react";
-
-type Item = {
-  label: string;
-  href: string;
-  icon: LucideIcon;
-  private?: boolean;
-  badge?: "favorites";
-};
-
-const mainItems: Item[] = [
-  { label: "Início", href: "#/", icon: Home },
-  { label: "Pesquisar imóveis", href: "#/pesquisar", icon: Search },
-  { label: "Favoritos", href: "#/favoritos", icon: Heart, badge: "favorites" },
-  { label: "Mensagens", href: "#/mensagens", icon: Mail },
-  { label: "Agendamentos", href: "#/login", icon: CalendarDays, private: true },
-];
-
-const ownerItems: Item[] = [
-  { label: "Meus imóveis", href: "#/login", icon: Building2, private: true },
-  { label: "Publicar imóvel", href: "#/login", icon: Plus, private: true },
-];
+  accountNavigation,
+  mainNavigation,
+  ownerNavigation,
+  secondaryNavigation,
+  type NavigationItem,
+} from "../config/navigation";
 
 interface SidebarProps {
   expanded?: boolean;
@@ -220,7 +191,7 @@ export default function Sidebar({
         >
           <NavSectionLabel expanded={wide}>Descobrir</NavSectionLabel>
           <ul className="space-y-1">
-            {mainItems.map((item) => (
+            {mainNavigation.map((item) => (
               <li key={item.label}>
                 <SidebarItem
                   item={item}
@@ -239,7 +210,7 @@ export default function Sidebar({
 
           <NavSectionLabel expanded={wide}>Área pessoal</NavSectionLabel>
           <ul className="space-y-1">
-            {ownerItems.map((item) => (
+            {ownerNavigation.map((item) => (
               <li key={item.label}>
                 <SidebarItem
                   item={item}
@@ -254,27 +225,16 @@ export default function Sidebar({
           <div className="my-5 h-px bg-ondjo-border/80" />
 
           <ul className="space-y-1">
-            <li>
-              <SidebarItem
-                item={{ label: "Ajuda", href: "#/", icon: CircleHelp }}
-                expanded={wide}
-                active={false}
-                onNavigate={() => setMobileOpen(false)}
-              />
-            </li>
-            <li>
-              <SidebarItem
-                item={{
-                  label: "Definições",
-                  href: "#/login",
-                  icon: Settings2,
-                  private: true,
-                }}
-                expanded={wide}
-                active={false}
-                onNavigate={() => setMobileOpen(false)}
-              />
-            </li>
+            {secondaryNavigation.map((item) => (
+              <li key={item.label}>
+                <SidebarItem
+                  item={item}
+                  expanded={wide}
+                  active={isActive(item.href)}
+                  onNavigate={() => setMobileOpen(false)}
+                />
+              </li>
+            ))}
           </ul>
 
           {wide && (
@@ -312,7 +272,7 @@ export default function Sidebar({
         {/* Rodapé / Perfil & CTA */}
         <div className="shrink-0 border-t border-ondjo-border/80 p-3 bg-ondjo-surface/80 backdrop-blur-xs">
           <a
-            href="#/login"
+            href={accountNavigation.href}
             onClick={() => setMobileOpen(false)}
             className={[
               "group focus-ring relative flex min-h-12 items-center gap-3 rounded-xl border border-ondjo-border/80 bg-ondjo-bg px-3",
@@ -320,14 +280,14 @@ export default function Sidebar({
               wide ? "" : "justify-center",
             ].join(" ")}
           >
-            <LogIn
+            <accountNavigation.icon
               size={19}
               className="shrink-0 text-ondjo-muted transition-colors group-hover:text-ondjo-blue"
               aria-hidden="true"
             />
             {wide && (
               <span className="min-w-0 flex-1 truncate">
-                Entrar / Criar conta
+                {accountNavigation.label}
               </span>
             )}
           </a>
@@ -369,7 +329,7 @@ function SidebarItem({
   badgeCount,
   onNavigate,
 }: {
-  item: Item;
+  item: NavigationItem;
   expanded: boolean;
   active: boolean;
   badgeCount?: number;

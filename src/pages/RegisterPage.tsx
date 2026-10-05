@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
+  AlertCircle,
   Building2,
   Check,
   Eye,
@@ -11,7 +12,6 @@ import {
   Mail,
   UserRound,
   Phone,
-  AlertCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AuthInput from "../components/auth/AuthInput";

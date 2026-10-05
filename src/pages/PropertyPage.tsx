@@ -187,7 +187,7 @@ export function PropertyPage({ id }: { id: string }) {
               {property.title}
             </h1>
 
-            <div className="mt-5 rounded-2xl bg-[#071A33] p-4 text-white sm:p-5">
+            <div className="mt-5 rounded-2xl bg-ondjo-navy-deep p-4 text-white sm:p-5">
               <span className="block text-[11px] font-bold uppercase tracking-[.14em] text-blue-200">
                 Preço anunciado
               </span>
@@ -218,7 +218,7 @@ export function PropertyPage({ id }: { id: string }) {
             </div>
 
             <div className="mt-5 grid gap-2 sm:grid-cols-2">
-              <button className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-ondjo-green px-4 text-sm font-extrabold text-white shadow-sm hover:bg-green-700">
+              <button className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-ondjo-blue px-4 text-sm font-extrabold text-white shadow-sm transition-colors hover:bg-ondjo-blue-dark">
                 <MessageCircle size={17} /> Contactar
               </button>
               <button className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-ondjo-blue bg-white px-4 text-sm font-extrabold text-ondjo-blue hover:bg-blue-50">
@@ -333,7 +333,7 @@ export function PropertyPage({ id }: { id: string }) {
             <Heart size={17} fill={favorite ? "currentColor" : "none"} />{" "}
             {favorite ? "Guardado" : "Guardar"}
           </button>
-          <button className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-ondjo-green text-sm font-extrabold text-white">
+          <button className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-ondjo-blue text-sm font-extrabold text-white transition-colors hover:bg-ondjo-blue-dark">
             <MessageCircle size={17} /> Contactar proprietário
           </button>
         </div>

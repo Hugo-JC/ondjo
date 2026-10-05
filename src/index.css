@@ -7,6 +7,17 @@
   --color-ondjo-blue-dark: #113e85; /* hover da ação (derivada, não vem da paleta) */
   --color-ondjo-blue-soft: #dce7f5; /* seleção e fundos azuis */
 
+  /* Superfícies escuras: preparadas para painéis e um futuro modo escuro. */
+  --color-ondjo-navy-deep: #071a33;
+  --color-ondjo-dark-bg: #0b1626;
+  --color-ondjo-dark-surface: #12243a;
+  --color-ondjo-dark-elevated: #19314b;
+  --color-ondjo-dark-border: #2b4663;
+  --color-ondjo-dark-ink: #edf4fb;
+  --color-ondjo-dark-muted: #b4c5d6;
+  --color-ondjo-dark-blue: #8ab4f8;
+  --color-ondjo-dark-success: #7fc5ad;
+
   /* Verde = estado (verificado, sucesso), nunca ação */
   --color-ondjo-green: #176b52;
   --color-ondjo-green-soft: #e8f4ef; /* Mint Mist: fundos de ícones e etiquetas */

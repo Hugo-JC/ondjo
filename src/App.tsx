@@ -26,26 +26,63 @@ export default function App() {
   if (hash.startsWith("#/cadastro")) return <RegisterPage />;
 
   const propertyMatch = hash.match(/^#\/imovel\/([^?]+)/);
-  if (propertyMatch) return <AppShell><PropertyPage id={propertyMatch[1]} /></AppShell>;
-  if (hash.startsWith("#/pesquisar")) return <AppShell><SearchPage /></AppShell>;
-  if (hash.startsWith("#/favoritos")) return <AppShell><FavoritesPage /></AppShell>;
-  if (hash.startsWith("#/mensagens") || hash.startsWith("#/chat")) return <AppShell><ChatPage /></AppShell>;
-  return <AppShell><Home /></AppShell>;
+  if (propertyMatch)
+    return (
+      <AppShell>
+        <PropertyPage id={propertyMatch[1]} />
+      </AppShell>
+    );
+  if (hash.startsWith("#/pesquisar"))
+    return (
+      <AppShell>
+        <SearchPage />
+      </AppShell>
+    );
+  if (hash.startsWith("#/favoritos"))
+    return (
+      <AppShell>
+        <FavoritesPage />
+      </AppShell>
+    );
+  if (hash.startsWith("#/mensagens") || hash.startsWith("#/chat"))
+    return (
+      <AppShell>
+        <ChatPage />
+      </AppShell>
+    );
+  return (
+    <AppShell>
+      <Home />
+    </AppShell>
+  );
 }
 
 function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarExpanded, setSidebarExpanded] = useState(
-    () => typeof window !== "undefined" && window.localStorage.getItem("ondjo-sidebar-expanded") === "true",
+    () =>
+      typeof window !== "undefined" &&
+      window.localStorage.getItem("ondjo-sidebar-expanded") === "true",
   );
 
   useEffect(() => {
-    window.localStorage.setItem("ondjo-sidebar-expanded", String(sidebarExpanded));
+    window.localStorage.setItem(
+      "ondjo-sidebar-expanded",
+      String(sidebarExpanded),
+    );
   }, [sidebarExpanded]);
 
   return (
     <div className="min-h-screen bg-ondjo-bg">
-      <Sidebar expanded={sidebarExpanded} onExpandedChange={setSidebarExpanded} />
-      <div className={["min-w-0 transition-[padding] duration-200 ease-out motion-reduce:transition-none", sidebarExpanded ? "lg:pl-64" : "lg:pl-20"].join(" ")}>
+      <Sidebar
+        expanded={sidebarExpanded}
+        onExpandedChange={setSidebarExpanded}
+      />
+      <div
+        className={[
+          "min-w-0 transition-[padding] duration-200 ease-out motion-reduce:transition-none",
+          sidebarExpanded ? "lg:pl-64" : "lg:pl-20",
+        ].join(" ")}
+      >
         <Header />
         {children}
       </div>

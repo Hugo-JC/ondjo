@@ -370,7 +370,7 @@ function FilterPanel({
       </label>
       <button
         onClick={onApply}
-        className="focus-ring w-full rounded-xl bg-ondjo-green py-3 text-sm font-extrabold text-white hover:bg-green-700"
+        className="focus-ring w-full rounded-xl bg-ondjo-blue py-3 text-sm font-extrabold text-white transition-colors hover:bg-ondjo-blue-dark"
       >
         Aplicar filtros
       </button>

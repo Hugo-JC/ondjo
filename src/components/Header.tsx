@@ -15,7 +15,7 @@ export default function Header() {
 
         <a
           href="#/"
-          className="text-xl font-black tracking-tight text-[#071A33]"
+          className="text-xl font-black tracking-tight text-ondjo-navy-deep"
         >
           ONDJO
         </a>
