@@ -449,7 +449,7 @@ function SidebarItem({
           <div
             id={tooltipId}
             role="tooltip"
-            className="pointer-events-none fixed z-[60] -translate-y-1/2 whitespace-nowrap rounded-xl bg-ondjo-navy px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-ondjo-navy/25"
+            className="pointer-events-none fixed z-60 -translate-y-1/2 whitespace-nowrap rounded-xl bg-ondjo-navy px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-ondjo-navy/25"
             style={{ left: tooltipPosition.left, top: tooltipPosition.top }}
           >
             <div className="flex items-center gap-2">
@@ -463,7 +463,7 @@ function SidebarItem({
 
             {/* Pequena setinha apontando para o ícone */}
             <span
-              className="absolute right-full top-1/2 -mr-[1px] -translate-y-1/2 border-4 border-transparent border-r-ondjo-navy"
+              className="absolute right-full top-1/2 -mr-px -translate-y-1/2 border-4 border-transparent border-r-ondjo-navy"
               aria-hidden="true"
             />
           </div>,

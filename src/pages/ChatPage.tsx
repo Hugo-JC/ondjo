@@ -224,9 +224,15 @@ function formatTimestamp(): string {
 
 // Síntese sutil de som de notificação (sem depender de assets externos)
 function playNotificationChime() {
+  if (typeof window === "undefined") return;
+
   try {
-    const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const AudioContextClass =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+
     if (!AudioContextClass) return;
+
     const ctx = new AudioContextClass();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -251,18 +257,21 @@ function playNotificationChime() {
 
 export function ChatPage() {
   const [conversations, setConversations] = useState<Conversation[]>(() => {
+    if (typeof window === "undefined") return DEFAULT_CONVERSATIONS;
+
     try {
       const stored = window.localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (stored) return JSON.parse(stored);
+      if (!stored) return DEFAULT_CONVERSATIONS;
+
+      const parsed = JSON.parse(stored);
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_CONVERSATIONS;
     } catch (e) {
       console.error("Falha ao ler conversas salvas:", e);
+      return DEFAULT_CONVERSATIONS;
     }
-    return DEFAULT_CONVERSATIONS;
   });
-  return DEFAULT_CONVERSATIONS[0].id;
 
-  const [activeChatId, setActiveChatId] = useState<string>(() => {
-  });
+  const [activeChatId, setActiveChatId] = useState<string>(() => DEFAULT_CONVERSATIONS[0]?.id ?? "");
 
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "agent" | "owner" | "assistant" | "unread">("all");
@@ -273,6 +282,8 @@ export function ChatPage() {
 
   // Som de novas mensagens
   const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+
     try {
       const stored = window.localStorage.getItem(SOUND_STORAGE_KEY);
       return stored !== null ? JSON.parse(stored) : true;
@@ -300,6 +311,8 @@ export function ChatPage() {
 
   // Guardar preferências de som
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     try {
       window.localStorage.setItem(SOUND_STORAGE_KEY, JSON.stringify(soundEnabled));
     } catch {
@@ -309,6 +322,8 @@ export function ChatPage() {
 
   // Sincronizar conversas com localStorage
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     try {
       window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(conversations));
     } catch (e) {
@@ -372,7 +387,8 @@ export function ChatPage() {
       }
 
       // Disparar se a janela estiver minimizada/em segundo plano ou se for outra conversa
-      const shouldNotify = document.hidden || activeChatIdRef.current !== convId;
+      const shouldNotify =
+        (typeof document !== "undefined" && document.hidden) || activeChatIdRef.current !== convId;
       if (!shouldNotify) return;
 
       try {
@@ -681,13 +697,17 @@ export function ChatPage() {
 
   // Restaurar dados originais de simulação
   function handleResetConversations() {
-    if (window.confirm("Deseja restaurar as conversas e mensagens de demonstração padrão do ONDJO?")) {
+    const canReset = typeof window !== "undefined" && window.confirm("Deseja restaurar as conversas e mensagens de demonstração padrão do ONDJO?");
+    if (!canReset) return;
+
+    if (typeof window !== "undefined") {
       window.localStorage.removeItem(LOCAL_STORAGE_KEY);
-      setConversations(DEFAULT_CONVERSATIONS);
-      setActiveChatId(DEFAULT_CONVERSATIONS[0].id);
-      setMobileView("list");
-      setNotification(null);
     }
+
+    setConversations(DEFAULT_CONVERSATIONS);
+    setActiveChatId(DEFAULT_CONVERSATIONS[0]?.id ?? "");
+    setMobileView("list");
+    setNotification(null);
   }
 
   // Renderizar ícone de status de leitura da mensagem
@@ -954,7 +974,7 @@ export function ChatPage() {
         </header>
 
         {/* Layout Split: Navegação Adaptável Desktop e Mobile */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[640px] max-h-[780px]">
+        <div className="grid grid-cols-1 lg:grid-cols-12 min-h-160 max-h-195">
           {/* ========================================================= */}
           {/* COLUNA 1: Lista de Chats (Master)                         */}
           {/* ========================================================= */}
@@ -1045,7 +1065,7 @@ export function ChatPage() {
                       {/* Avatar e Indicador de Presença */}
                       <div className="relative shrink-0">
                         {conv.category === "assistant" ? (
-                          <div className="grid size-11 place-items-center rounded-xl bg-gradient-to-br from-ondjo-navy to-ondjo-blue text-white shadow-xs">
+                          <div className="grid size-11 place-items-center rounded-xl bg-linear-to-br from-ondjo-navy to-ondjo-blue text-white shadow-xs">
                             <Sparkles size={19} />
                           </div>
                         ) : conv.avatarUrl ? (
@@ -1177,7 +1197,7 @@ export function ChatPage() {
                 {/* Avatar do Interlocutor */}
                 <div className="relative shrink-0">
                   {activeChat.category === "assistant" ? (
-                    <div className="grid size-9 sm:size-10 place-items-center rounded-xl bg-gradient-to-br from-ondjo-navy to-ondjo-blue text-white shadow-xs">
+                    <div className="grid size-9 sm:size-10 place-items-center rounded-xl bg-linear-to-br from-ondjo-navy to-ondjo-blue text-white shadow-xs">
                       <Bot size={18} />
                     </div>
                   ) : activeChat.avatarUrl ? (
@@ -1276,7 +1296,7 @@ export function ChatPage() {
             )}
 
             {/* Histórico de Mensagens com scroll */}
-            <div className="flex-1 overflow-y-auto p-3 sm:p-5 lg:p-6 space-y-3.5 bg-gradient-to-b from-ondjo-bg/25 to-ondjo-surface scrollbar-subtle">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-5 lg:p-6 space-y-3.5 bg-linear-to-b from-ondjo-bg/25 to-ondjo-surface scrollbar-subtle">
               {/* Divisor do Histórico Seguro */}
               <div className="relative my-2 flex items-center justify-center">
                 <div className="absolute inset-0 flex items-center">
@@ -1583,7 +1603,7 @@ export function ChatPage() {
                 <img
                   src={activeProperty.images[0]}
                   alt={activeProperty.title}
-                  className="aspect-16/9 w-full rounded-2xl object-cover ring-1 ring-ondjo-border"
+                  className="aspect-video w-full rounded-2xl object-cover ring-1 ring-ondjo-border"
                 />
 
                 <div className="mt-3">
