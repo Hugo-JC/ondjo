@@ -7,7 +7,6 @@ import {
   Eye,
   Heart,
   Home,
-  Info,
   Layers,
   RotateCcw,
   Scale,
