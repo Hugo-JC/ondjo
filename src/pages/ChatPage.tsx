@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
+  BellRing,
   Bot,
   Building2,
   CalendarCheck,
@@ -20,16 +21,21 @@ import {
   Send,
   ShieldCheck,
   Sparkles,
+  X,
+  Zap,
 } from "lucide-react";
 import { properties } from "../data/properties";
 import type { Property } from "../types";
+
+export type MessageStatus = "pending" | "sent" | "delivered" | "read";
+export type PresenceState = "online" | "away" | "offline";
 
 export interface ChatMessage {
   id: string;
   sender: "user" | "agent" | "system";
   text: string;
   timestamp: string;
-  status?: "sent" | "delivered" | "read";
+  status?: MessageStatus;
   visitProposal?: {
     date: string;
     time: string;
@@ -43,7 +49,8 @@ export interface Conversation {
   contactName: string;
   role: "Corretor verificado" | "Proprietário particular" | "Assistente Virtual ONDJO";
   avatarUrl?: string;
-  isOnline: boolean;
+  presence: PresenceState;
+  isTyping?: boolean;
   verified: boolean;
   propertyId?: string;
   unreadCount: number;
@@ -52,13 +59,20 @@ export interface Conversation {
   messages: ChatMessage[];
 }
 
+export interface InAppNotification {
+  id: string;
+  conversationId: string;
+  senderName: string;
+  text: string;
+}
+
 const DEFAULT_CONVERSATIONS: Conversation[] = [
   {
     id: "conv-1",
     contactName: "Mauro dos Santos",
     role: "Corretor verificado",
     avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&h=200&q=80",
-    isOnline: true,
+    presence: "online",
     verified: true,
     propertyId: "apartamento-t2-talatona",
     unreadCount: 1,
@@ -68,7 +82,7 @@ const DEFAULT_CONVERSATIONS: Conversation[] = [
       {
         id: "m-101",
         sender: "agent",
-        text: "Olá! Vi o seu interesse no Apartamento T2 em Talatona. O imóvel está disponível para arrendamento imediato com contrato anual.",
+        text: "Olá! Vi o seu interesse no Apartamento T2 em Talatona. O imóvel está disponível para arrendamento imediato com contrato anual registado.",
         timestamp: "10:14",
         status: "read",
       },
@@ -91,7 +105,7 @@ const DEFAULT_CONVERSATIONS: Conversation[] = [
         sender: "agent",
         text: "Podemos agendar uma visita presencial para conhecer o apartamento e as áreas comuns? Sugiro este horário:",
         timestamp: "10:22",
-        status: "read",
+        status: "delivered",
         visitProposal: {
           date: "Sábado, 11 de Outubro",
           time: "10:30",
@@ -106,7 +120,7 @@ const DEFAULT_CONVERSATIONS: Conversation[] = [
     contactName: "Assistente ONDJO",
     role: "Assistente Virtual ONDJO",
     avatarUrl: "",
-    isOnline: true,
+    presence: "online",
     verified: true,
     unreadCount: 0,
     lastActive: "Sempre ativo",
@@ -140,7 +154,7 @@ const DEFAULT_CONVERSATIONS: Conversation[] = [
     contactName: "Dona Kátia Silveira",
     role: "Proprietário particular",
     avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&h=200&q=80",
-    isOnline: false,
+    presence: "away",
     verified: true,
     propertyId: "moradia-t4-benfica",
     unreadCount: 0,
@@ -168,7 +182,7 @@ const DEFAULT_CONVERSATIONS: Conversation[] = [
     contactName: "Paulo de Carvalho",
     role: "Corretor verificado",
     avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&h=200&q=80",
-    isOnline: false,
+    presence: "offline",
     verified: false,
     propertyId: "casa-t3-maianga",
     unreadCount: 0,
@@ -190,11 +204,18 @@ const QUICK_QUESTIONS = [
   "O imóvel ainda se encontra disponível?",
   "Qual é a caução e adiantamento exigidos?",
   "Gostaria de agendar uma visita presencial.",
-  "O condomínio inclui segurança 24h e gerador?",
+  "O edifício tem gerador autónomo e água da rede?",
   "Qual a documentação necessária para fechar negócio?",
 ];
 
-const LOCAL_STORAGE_KEY = "ondjo-chat-conversations-v2";
+const LOCAL_STORAGE_KEY = "ondjo-chat-conversations-v3";
+
+function formatTimestamp(): string {
+  return new Intl.DateTimeFormat("pt-AO", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date());
+}
 
 export function ChatPage() {
   const [conversations, setConversations] = useState<Conversation[]>(() => {
@@ -207,26 +228,30 @@ export function ChatPage() {
     return DEFAULT_CONVERSATIONS;
   });
 
-  const [activeChatId, setActiveChatId] = useState<string>(DEFAULT_CONVERSATIONS[0].id);
+  const [activeChatId, setActiveChatId] = useState<string>(() => {
+    return DEFAULT_CONVERSATIONS[0].id;
+  });
+
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "agent" | "owner" | "assistant" | "unread">("all");
   const [inputText, setInputText] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
   const [propertyDrawerOpen, setPropertyDrawerOpen] = useState(false);
   const [mobileView, setMobileView] = useState<"list" | "chat">("list");
+  const [notification, setNotification] = useState<InAppNotification | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Sincronizar com localStorage
   useEffect(() => {
     try {
       window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(conversations));
     } catch (e) {
-      console.error("Falha ao salvar conversas:", e);
+      console.error("Falha ao guardar conversas:", e);
     }
   }, [conversations]);
 
-  // Conversa ativa
+  // Conversa ativa selecionada
   const activeChat = useMemo(() => {
     return conversations.find((c) => c.id === activeChatId) || conversations[0];
   }, [conversations, activeChatId]);
@@ -237,27 +262,48 @@ export function ChatPage() {
     return properties.find((p) => p.id === activeChat.propertyId);
   }, [activeChat]);
 
-  // Rolar para a última mensagem
+  // Total de mensagens não lidas globais
+  const totalUnreadCount = useMemo(() => {
+    return conversations.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
+  }, [conversations]);
+
+  // Total de não lidas fora da conversa ativa (para badge no botão de voltar mobile)
+  const otherUnreadCount = useMemo(() => {
+    return conversations
+      .filter((c) => c.id !== activeChatId)
+      .reduce((acc, c) => acc + (c.unreadCount || 0), 0);
+  }, [conversations, activeChatId]);
+
+  // Rolar para a última mensagem com suavidade
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [activeChat?.messages, isTyping]);
+  }, [activeChat?.messages, activeChat?.isTyping]);
 
-  // Marcar como lido ao abrir conversa
+  // Selecionar conversa e marcar como lida
   function selectConversation(id: string) {
     setActiveChatId(id);
     setMobileView("chat");
     setConversations((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, unreadCount: 0 } : c))
+      prev.map((c) => {
+        if (c.id !== id) return c;
+        // Marcar todas as mensagens de agentes/sistema como lidas
+        const updatedMsgs = c.messages.map((m) =>
+          m.sender !== "user" ? { ...m, status: "read" as MessageStatus } : m
+        );
+        return { ...c, unreadCount: 0, messages: updatedMsgs };
+      })
     );
   }
 
-  // Filtragem de conversas
+  // Filtragem e pesquisa de conversas
   const filteredConversations = useMemo(() => {
     return conversations.filter((conv) => {
+      const q = searchQuery.toLowerCase().trim();
       const matchesSearch =
-        conv.contactName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        conv.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        conv.messages.some((m) => m.text.toLowerCase().includes(searchQuery.toLowerCase()));
+        !q ||
+        conv.contactName.toLowerCase().includes(q) ||
+        conv.role.toLowerCase().includes(q) ||
+        conv.messages.some((m) => m.text.toLowerCase().includes(q));
 
       if (!matchesSearch) return false;
 
@@ -267,56 +313,127 @@ export function ChatPage() {
     });
   }, [conversations, searchQuery, activeTab]);
 
-  // Enviar mensagem
+  // Enviar mensagem pelo usuário com simulação de leitura em tempo real
   function handleSendMessage(textToSend?: string) {
     const text = (textToSend || inputText).trim();
     if (!text || !activeChat) return;
 
+    const messageId = `m-${Date.now()}`;
+    const currentTime = formatTimestamp();
+
+    // 1. Mensagem começa com estado "pending"
     const userMessage: ChatMessage = {
-      id: `m-${Date.now()}`,
+      id: messageId,
       sender: "user",
       text,
-      timestamp: new Intl.DateTimeFormat("pt-AO", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }).format(new Date()),
-      status: "sent",
+      timestamp: currentTime,
+      status: "pending",
     };
 
     setConversations((prev) =>
       prev.map((c) =>
         c.id === activeChat.id
-          ? { ...c, messages: [...c.messages, userMessage], lastActive: "Agora" }
+          ? {
+              ...c,
+              messages: [...c.messages, userMessage],
+              lastActive: "Agora",
+              presence: "online",
+            }
           : c
       )
     );
     setInputText("");
 
-    // Simulação de resposta inteligente e realista
-    setIsTyping(true);
+    // 2. Transição para "sent" (enviado ao servidor após 400ms)
     setTimeout(() => {
-      setIsTyping(false);
+      setConversations((prev) =>
+        prev.map((c) => {
+          if (c.id !== activeChat.id) return c;
+          return {
+            ...c,
+            messages: c.messages.map((m) =>
+              m.id === messageId ? { ...m, status: "sent" } : m
+            ),
+          };
+        })
+      );
+    }, 450);
 
+    // 3. Transição para "delivered" (entregue no telemóvel do corretor após 1.1s)
+    setTimeout(() => {
+      setConversations((prev) =>
+        prev.map((c) => {
+          if (c.id !== activeChat.id) return c;
+          return {
+            ...c,
+            messages: c.messages.map((m) =>
+              m.id === messageId ? { ...m, status: "delivered" } : m
+            ),
+          };
+        })
+      );
+    }, 1100);
+
+    // 4. Corretor abre a mensagem (passa a "read" após 2.2s) e inicia digitação ("isTyping")
+    setTimeout(() => {
+      setConversations((prev) =>
+        prev.map((c) => {
+          if (c.id !== activeChat.id) return c;
+          return {
+            ...c,
+            presence: "online",
+            isTyping: true,
+            messages: c.messages.map((m) =>
+              m.id === messageId ? { ...m, status: "read" } : m
+            ),
+          };
+        })
+      );
+    }, 2200);
+
+    // 5. Corretor conclui a resposta inteligente e envia após 4.2s
+    setTimeout(() => {
       let replyText = "";
       if (activeChat.category === "assistant") {
         if (text.toLowerCase().includes("ipu") || text.toLowerCase().includes("imposto")) {
-          replyText = "O IPU (Imposto Predial Urbano) é obrigatório e incide sobre o rendimento das rendas ou o valor patrimonial. Exija sempre o DAR (Documento de Arrecadação de Receitas) pago pelo senhorio.";
+          replyText =
+            "O IPU (Imposto Predial Urbano) é anual e incide sobre o rendimento das rendas (habitualmente taxa efetiva entre 10% a 15%) ou sobre o valor patrimonial. Exija sempre o DAR (Documento de Arrecadação de Receitas) liquidado pelo senhorio na AGT.";
         } else if (text.toLowerCase().includes("visita") || text.toLowerCase().includes("agendar")) {
-          replyText = "Para agendar visitas, pode falar diretamente com o corretor ou proprietário na conversa específica do imóvel. O ONDJO não cobra nenhuma taxa pelo agendamento!";
+          replyText =
+            "Pode solicitar visitas diretamente nesta janela a qualquer corretor verificado do ONDJO. Não há cobrança de taxas de agendamento na nossa plataforma.";
         } else if (text.toLowerCase().includes("talatona") || text.toLowerCase().includes("zona")) {
-          replyText = "Talatona é uma das zonas nobres com maior procura em Luanda, com excelente oferta de condomínios fechados, segurança privada e geradores. As rendas médias para T2 variam entre 120.000 e 200.000 Kz/mês.";
+          replyText =
+            "Talatona e Benfica concentram grande procura residencial em Luanda, com forte segurança e autonomia de água e luz. Para T2, os valores situam-se em média entre 120.000 e 220.000 Kz/mês.";
         } else {
-          replyText = "Excelente questão! A nossa equipa de apoio ONDJO e corretores associados estão à disposição para garantir que o seu processo imobiliário seja seguro, transparente e sem burocracias desnecessárias.";
+          replyText =
+            "Informação registada! O assistente ONDJO recomenda sempre formalizar contratos por escrito e verificar a Certidão do Registo Predial antes de adiantar qualquer montante de caução.";
         }
       } else {
         if (text.toLowerCase().includes("disponível") || text.toLowerCase().includes("disponivel")) {
-          replyText = "Sim, confirmo que o imóvel ainda se encontra vago e pronto para ocupação! Quando teria disponibilidade para dar uma vista de olhos?";
-        } else if (text.toLowerCase().includes("caução") || text.toLowerCase().includes("valor") || text.toLowerCase().includes("preço")) {
-          replyText = "O valor é negociável consoante os meses adiantados. Com pagamento semestral ou anual conseguimos uma redução de até 10% no valor mensal.";
-        } else if (text.toLowerCase().includes("visita") || text.toLowerCase().includes("sábado")) {
-          replyText = "Combinado! Fica registado na minha agenda. Vou enviar-lhe a localização exata por WhatsApp ou via ONDJO 1 hora antes para facilitar o acesso pela portaria.";
+          replyText =
+            "Olá! Sim, confirmo que o imóvel continua totalmente disponível e vago para ocupação imediata. Tem disponibilidade para uma visita presencial nos próximos dias?";
+        } else if (
+          text.toLowerCase().includes("caução") ||
+          text.toLowerCase().includes("valor") ||
+          text.toLowerCase().includes("preço") ||
+          text.toLowerCase().includes("renda")
+        ) {
+          replyText =
+            "A caução base corresponde a 2 meses de renda com adiantamento semestral ou anual. Com adiantamento anual podemos negociar um desconto de até 10% com o senhorio.";
+        } else if (
+          text.toLowerCase().includes("gerador") ||
+          text.toLowerCase().includes("água") ||
+          text.toLowerCase().includes("agua") ||
+          text.toLowerCase().includes("luz")
+        ) {
+          replyText =
+            "O imóvel tem total autonomia: gerador automático para as áreas privativas e tanque de água subterrâneo de alta capacidade com bomba automática.";
+        } else if (text.toLowerCase().includes("visita") || text.toLowerCase().includes("sábado") || text.toLowerCase().includes("agenda")) {
+          replyText =
+            "Excelente! Fica pré-agendado. Envio-lhe a localização em tempo real e a confirmação para a portaria 1 hora antes da visita.";
         } else {
-          replyText = "Recebido com sucesso! Estou a analisar os detalhes com o proprietário e dou-lhe retorno completo dentro de instantes.";
+          replyText =
+            "Mensagem recebida com sucesso! Estou a verificar os apontamentos com os proprietários e dou-lhe retorno completo dentro de breves minutos.";
         }
       }
 
@@ -324,21 +441,74 @@ export function ChatPage() {
         id: `m-${Date.now() + 1}`,
         sender: "agent",
         text: replyText,
-        timestamp: new Intl.DateTimeFormat("pt-AO", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }).format(new Date()),
-        status: "read",
+        timestamp: formatTimestamp(),
+        status: "delivered",
       };
 
       setConversations((prev) =>
         prev.map((c) =>
           c.id === activeChat.id
-            ? { ...c, messages: [...c.messages, agentReply], lastActive: "Agora" }
+            ? {
+                ...c,
+                isTyping: false,
+                presence: "online",
+                lastActive: "Agora",
+                messages: [...c.messages, agentReply],
+              }
             : c
         )
       );
-    }, 1200);
+    }, 4400);
+  }
+
+  // Simular recebimento de mensagem em tempo real de outro corretor (demonstração interativa)
+  function handleTriggerIncomingSimulation() {
+    const candidateConvs = conversations.filter((c) => c.id !== activeChatId);
+    const target = candidateConvs[Math.floor(Math.random() * candidateConvs.length)] || conversations[0];
+
+    const sampleIncomingMessages = [
+      "Boa tarde! Temos uma atualização sobre o imóvel que consultou. O proprietário aceita adiantamento de 3 meses.",
+      "Olá! Acabou de entrar um novo apartamento T2 com gerador e piscina na mesma zona por um valor muito atrativo.",
+      "Confirmamos a documentação predial aprovada para visita amanhã à tarde. Gostaria de confirmar presença?",
+      "Olá! Um senhorio acabou de baixar a renda mensal em 15.000 Kz. Tem interesse em ver os detalhes?",
+    ];
+    const chosenText = sampleIncomingMessages[Math.floor(Math.random() * sampleIncomingMessages.length)];
+
+    const newMsg: ChatMessage = {
+      id: `m-sim-${Date.now()}`,
+      sender: "agent",
+      text: chosenText,
+      timestamp: formatTimestamp(),
+      status: "delivered",
+    };
+
+    setConversations((prev) =>
+      prev.map((c) => {
+        if (c.id !== target.id) return c;
+        return {
+          ...c,
+          unreadCount: c.id === activeChatId ? 0 : (c.unreadCount || 0) + 1,
+          lastActive: "Agora",
+          presence: "online",
+          messages: [...c.messages, newMsg],
+        };
+      })
+    );
+
+    // Notificação in-app se for outra conversa
+    if (target.id !== activeChatId) {
+      setNotification({
+        id: `notif-${Date.now()}`,
+        conversationId: target.id,
+        senderName: target.contactName,
+        text: chosenText,
+      });
+
+      // Auto-fechar toast após 5s
+      setTimeout(() => {
+        setNotification((curr) => (curr?.conversationId === target.id ? null : curr));
+      }, 5000);
+    }
   }
 
   // Confirmar proposta de visita
@@ -362,11 +532,8 @@ export function ChatPage() {
             {
               id: `m-${Date.now()}`,
               sender: "user",
-              text: "Confirmo a presença na visita agendada! Estarei no local no horário combinado.",
-              timestamp: new Intl.DateTimeFormat("pt-AO", {
-                hour: "2-digit",
-                minute: "2-digit",
-              }).format(new Date()),
+              text: "Visita presencial confirmada! Estarei no imóvel no horário e dia indicados.",
+              timestamp: formatTimestamp(),
               status: "sent",
             },
           ],
@@ -375,62 +542,203 @@ export function ChatPage() {
     );
   }
 
+  // Restaurar dados originais de simulação
   function handleResetConversations() {
     if (window.confirm("Deseja restaurar as conversas e mensagens de demonstração padrão do ONDJO?")) {
       window.localStorage.removeItem(LOCAL_STORAGE_KEY);
       setConversations(DEFAULT_CONVERSATIONS);
       setActiveChatId(DEFAULT_CONVERSATIONS[0].id);
+      setMobileView("list");
+      setNotification(null);
+    }
+  }
+
+  // Renderizar ícone de status de leitura da mensagem
+  function renderMessageStatusIcon(status?: MessageStatus) {
+    if (!status) return null;
+    switch (status) {
+      case "pending":
+        return (
+          <span title="A enviar...">
+            <Clock size={12} className="opacity-70 animate-pulse" />
+          </span>
+        );
+      case "sent":
+        return (
+          <span title="Enviada ao servidor">
+            <Check size={13} className="text-white/80" />
+          </span>
+        );
+      case "delivered":
+        return (
+          <span title="Entregue no destinatário">
+            <CheckCheck size={13} className="text-white/80" />
+          </span>
+        );
+      case "read":
+        return (
+          <span title="Lida pelo destinatário">
+            <CheckCheck size={13} className="text-ondjo-blue-soft" />
+          </span>
+        );
+    }
+  }
+
+  // Renderizar indicador de presença no avatar ou badge
+  function renderPresenceBadge(presence: PresenceState) {
+    switch (presence) {
+      case "online":
+        return (
+          <span
+            title="Online agora"
+            className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-white bg-ondjo-green"
+          >
+            <span className="absolute inset-0 size-full animate-ping rounded-full bg-ondjo-green opacity-40" />
+          </span>
+        );
+      case "away":
+        return (
+          <span
+            title="Ausente temporariamente"
+            className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-white bg-amber-400"
+          />
+        );
+      case "offline":
+      default:
+        return (
+          <span
+            title="Offline"
+            className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-white bg-ondjo-muted/50"
+          />
+        );
     }
   }
 
   return (
-    <div className="min-h-[calc(100vh-5rem)] bg-ondjo-bg p-3 sm:p-6 lg:p-8">
-      {/* Container Principal do Chat */}
+    <div className="min-h-[calc(100vh-4.5rem)] bg-ondjo-bg p-2 sm:p-5 lg:p-7">
+      {/* Notificação In-App de Nova Mensagem em Tempo Real */}
+      <AnimatePresence>
+        {notification && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className="fixed top-4 right-4 z-50 max-w-sm w-[calc(100vw-2rem)] rounded-2xl border border-ondjo-blue/30 bg-ondjo-surface p-3.5 shadow-lg ring-1 ring-ondjo-navy/5"
+          >
+            <div className="flex items-start gap-3">
+              <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-ondjo-blue text-white shadow-xs">
+                <BellRing size={18} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-bold text-ondjo-navy truncate">
+                    {notification.senderName}
+                  </p>
+                  <span className="text-[10px] font-semibold text-ondjo-blue uppercase">Agora</span>
+                </div>
+                <p className="mt-0.5 text-xs text-ondjo-ink line-clamp-2">
+                  {notification.text}
+                </p>
+                <div className="mt-2 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      selectConversation(notification.conversationId);
+                      setNotification(null);
+                    }}
+                    className="focus-ring rounded-lg bg-ondjo-blue px-2.5 py-1 text-xs font-bold text-white hover:bg-ondjo-blue-dark transition-colors"
+                  >
+                    Abrir conversa
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNotification(null)}
+                    className="focus-ring text-xs text-ondjo-muted hover:text-ondjo-ink px-1.5 py-1"
+                  >
+                    Ignorar
+                  </button>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setNotification(null)}
+                className="text-ondjo-muted hover:text-ondjo-ink p-1"
+                aria-label="Fechar notificação"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Caixa Central da Aplicação de Chat */}
       <div className="mx-auto max-w-7xl overflow-hidden rounded-2xl border border-ondjo-border bg-ondjo-surface shadow-xs">
-        {/* Cabeçalho da Página / Breadcrumb & Status */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ondjo-border/80 px-4 py-3.5 sm:px-6 bg-ondjo-surface">
-          <div className="flex items-center gap-2.5">
-            <div className="grid size-9 place-items-center rounded-xl bg-ondjo-blue-soft text-ondjo-blue">
-              <MessageSquare size={19} aria-hidden="true" />
+        {/* Barra Superior / Breadcrumb & Controlos de Simulação */}
+        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-ondjo-border/80 px-4 py-3 sm:px-6 bg-ondjo-surface">
+          <div className="flex items-center gap-3">
+            <div className="grid size-9 sm:size-10 place-items-center rounded-xl bg-ondjo-blue-soft text-ondjo-blue">
+              <MessageSquare size={20} aria-hidden="true" />
             </div>
             <div>
-              <h1 className="text-base font-bold text-ondjo-navy sm:text-lg">
-                Centro de Mensagens ONDJO
-              </h1>
-              <p className="text-xs text-ondjo-muted">
-                Comunicação segura e direta com corretores, proprietários e suporte em Angola.
+              <div className="flex items-center gap-2">
+                <h1 className="text-sm font-bold text-ondjo-navy sm:text-base">
+                  Conversas e Corretores
+                </h1>
+                {totalUnreadCount > 0 && (
+                  <span className="rounded-full bg-ondjo-blue px-2 py-0.5 text-[11px] font-bold text-white">
+                    {totalUnreadCount} nova{totalUnreadCount > 1 ? "s" : ""}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-ondjo-muted hidden sm:block">
+                Simulação em tempo real de mensagens com corretores, proprietários e suporte em Luanda.
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Botão de teste: simular nova mensagem recebida */}
+            <button
+              type="button"
+              onClick={handleTriggerIncomingSimulation}
+              title="Testar atualização em tempo real recebendo mensagem de um corretor"
+              className="focus-ring inline-flex items-center gap-1.5 rounded-xl border border-ondjo-blue/30 bg-ondjo-blue-soft/40 px-2.5 py-1.5 text-xs font-semibold text-ondjo-blue hover:bg-ondjo-blue hover:text-white transition-colors"
+            >
+              <Zap size={13} className="shrink-0" />
+              <span className="hidden sm:inline">Simular nova mensagem</span>
+              <span className="sm:hidden">Simular</span>
+            </button>
+
+            {/* Botão de repor conversas */}
             <button
               type="button"
               onClick={handleResetConversations}
-              title="Repor conversas padrão"
-              className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-ondjo-border px-2.5 py-1.5 text-xs font-semibold text-ondjo-muted hover:bg-ondjo-bg hover:text-ondjo-ink transition-colors"
+              title="Restaurar conversas de demonstração"
+              className="focus-ring inline-flex items-center gap-1 rounded-xl border border-ondjo-border px-2.5 py-1.5 text-xs font-semibold text-ondjo-muted hover:bg-ondjo-bg hover:text-ondjo-ink transition-colors"
             >
               <RotateCcw size={13} aria-hidden="true" />
-              <span className="hidden sm:inline">Restaurar conversas</span>
+              <span className="hidden md:inline">Restaurar</span>
             </button>
 
+            {/* Alternar Ficha do Imóvel no Desktop */}
             {activeProperty && (
               <button
                 type="button"
                 onClick={() => setPropertyDrawerOpen(!propertyDrawerOpen)}
-                className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-ondjo-border bg-ondjo-bg px-2.5 py-1.5 text-xs font-semibold text-ondjo-navy hover:bg-ondjo-blue-soft/50 hover:text-ondjo-blue transition-colors"
+                className="focus-ring hidden lg:inline-flex items-center gap-1.5 rounded-xl border border-ondjo-border bg-ondjo-bg px-2.5 py-1.5 text-xs font-semibold text-ondjo-navy hover:bg-ondjo-blue-soft/50 hover:text-ondjo-blue transition-colors"
               >
                 {propertyDrawerOpen ? <PanelRightClose size={14} /> : <PanelRightOpen size={14} />}
-                <span className="hidden sm:inline">Ficha do imóvel</span>
+                <span>Ficha do imóvel</span>
               </button>
             )}
           </div>
-        </div>
+        </header>
 
-        {/* Layout Split: Sidebar de Conversas + Janela Ativa + Painel do Imóvel */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[640px] max-h-[750px]">
+        {/* Layout Split: Navegação Adaptável Desktop e Mobile */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[640px] max-h-[780px]">
           {/* ========================================================= */}
-          {/* COLUNA 1: Lista de Conversas (Master)                     */}
+          {/* COLUNA 1: Lista de Chats (Master)                         */}
           {/* ========================================================= */}
           <aside
             aria-label="Lista de conversas"
@@ -439,11 +747,11 @@ export function ChatPage() {
               mobileView === "chat" ? "hidden lg:flex" : "flex",
             ].join(" ")}
           >
-            {/* Campo de Pesquisa de Conversas */}
-            <div className="p-3.5 border-b border-ondjo-border/60">
+            {/* Barra de Pesquisa */}
+            <div className="p-3 border-b border-ondjo-border/60">
               <div className="relative">
                 <Search
-                  size={16}
+                  size={15}
                   className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ondjo-muted"
                   aria-hidden="true"
                 />
@@ -451,12 +759,12 @@ export function ChatPage() {
                   type="search"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Procurar por nome, imóvel ou mensagem..."
+                  placeholder="Pesquisar corretor, imóvel..."
                   className="focus-ring w-full rounded-xl border border-ondjo-border bg-ondjo-bg py-2 pl-9 pr-3 text-xs font-medium text-ondjo-ink placeholder:text-ondjo-muted"
                 />
               </div>
 
-              {/* Filtros rápidos / Categorias */}
+              {/* Filtros em Abas de Categoria */}
               <div className="mt-2.5 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-subtle">
                 {(
                   [
@@ -493,7 +801,7 @@ export function ChatPage() {
                     Nenhuma conversa encontrada
                   </p>
                   <p className="mt-1 text-xs text-ondjo-muted">
-                    Tente outro termo de pesquisa ou limpe os filtros.
+                    Experimente limpar o filtro ou a barra de pesquisa.
                   </p>
                 </div>
               ) : (
@@ -513,14 +821,14 @@ export function ChatPage() {
                         "w-full text-left p-3.5 transition-colors focus-ring flex items-start gap-3 relative",
                         isCurrent
                           ? "bg-ondjo-blue-soft/40 border-l-4 border-l-ondjo-blue"
-                          : "hover:bg-ondjo-bg/80 border-l-4 border-l-transparent",
+                          : "hover:bg-ondjo-bg/70 border-l-4 border-l-transparent",
                       ].join(" ")}
                     >
-                      {/* Avatar com status de online */}
+                      {/* Avatar e Indicador de Presença */}
                       <div className="relative shrink-0">
                         {conv.category === "assistant" ? (
                           <div className="grid size-11 place-items-center rounded-xl bg-gradient-to-br from-ondjo-navy to-ondjo-blue text-white shadow-xs">
-                            <Sparkles size={20} />
+                            <Sparkles size={19} />
                           </div>
                         ) : conv.avatarUrl ? (
                           <img
@@ -534,15 +842,10 @@ export function ChatPage() {
                           </div>
                         )}
 
-                        {conv.isOnline && (
-                          <span
-                            title="Online agora"
-                            className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-white bg-ondjo-green"
-                          />
-                        )}
+                        {renderPresenceBadge(conv.presence)}
                       </div>
 
-                      {/* Conteúdo textual da conversa */}
+                      {/* Informações da conversa */}
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-1">
                           <div className="flex items-center gap-1.5 truncate">
@@ -550,7 +853,9 @@ export function ChatPage() {
                               {conv.contactName}
                             </span>
                             {conv.verified && (
-                              <span title="Identidade e credenciais verificadas pelo ONDJO"><ShieldCheck size={14} className="shrink-0 text-ondjo-green" /></span>
+                              <span title="Corretor verificado com licença ONDJO">
+                                <ShieldCheck size={14} className="shrink-0 text-ondjo-green" />
+                              </span>
                             )}
                           </div>
                           <span className="shrink-0 text-[10px] font-medium text-ondjo-muted">
@@ -558,7 +863,7 @@ export function ChatPage() {
                           </span>
                         </div>
 
-                        {/* Imóvel de referência se houver */}
+                        {/* Imóvel de referência */}
                         {linkedProp && (
                           <div className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-ondjo-blue truncate">
                             <Building2 size={11} className="shrink-0" />
@@ -566,17 +871,37 @@ export function ChatPage() {
                           </div>
                         )}
 
-                        {/* Última mensagem */}
+                        {/* Última Mensagem com indicador de leitura */}
                         <div className="mt-1 flex items-center justify-between gap-2">
-                          <p className="truncate text-xs text-ondjo-muted">
-                            {lastMessage?.sender === "user" && (
-                              <span className="text-ondjo-ink font-semibold">Você: </span>
+                          <div className="flex items-center gap-1 min-w-0 truncate text-xs text-ondjo-muted">
+                            {conv.isTyping ? (
+                              <span className="text-ondjo-blue font-semibold animate-pulse">
+                                A escrever...
+                              </span>
+                            ) : (
+                              <>
+                                {lastMessage?.sender === "user" && (
+                                  <span className="shrink-0 text-ondjo-muted">
+                                    {lastMessage.status === "read" ? (
+                                      <CheckCheck size={13} className="text-ondjo-blue inline" />
+                                    ) : lastMessage.status === "delivered" ? (
+                                      <CheckCheck size={13} className="text-ondjo-muted inline" />
+                                    ) : lastMessage.status === "sent" ? (
+                                      <Check size={13} className="text-ondjo-muted inline" />
+                                    ) : (
+                                      <Clock size={11} className="text-ondjo-muted inline" />
+                                    )}
+                                  </span>
+                                )}
+                                <span className="truncate">
+                                  {lastMessage?.text || "Sem mensagens anteriores."}
+                                </span>
+                              </>
                             )}
-                            {lastMessage?.text || "Nenhuma mensagem ainda."}
-                          </p>
+                          </div>
 
                           {conv.unreadCount > 0 && (
-                            <span className="grid h-4.5 min-w-4.5 place-items-center rounded-full bg-ondjo-blue px-1.5 text-[10px] font-bold text-white shadow-xs">
+                            <span className="grid h-5 min-w-5 place-items-center rounded-full bg-ondjo-blue px-1.5 text-[10px] font-bold text-white shadow-xs">
                               {conv.unreadCount}
                             </span>
                           )}
@@ -588,22 +913,22 @@ export function ChatPage() {
               )}
             </div>
 
-            {/* Dica de segurança no rodapé da lista */}
-            <div className="border-t border-ondjo-border/60 p-3 bg-ondjo-bg/50">
-              <div className="flex items-start gap-2 rounded-xl border border-ondjo-border/80 bg-ondjo-surface p-2.5 text-[11px] leading-relaxed text-ondjo-muted">
-                <ShieldCheck size={16} className="shrink-0 text-ondjo-green mt-0.5" />
+            {/* Rodapé da lista com dica ONDJO */}
+            <div className="border-t border-ondjo-border/60 p-3 bg-ondjo-bg/40">
+              <div className="flex items-center gap-2 rounded-xl border border-ondjo-border/80 bg-ondjo-surface p-2.5 text-[11px] text-ondjo-muted">
+                <ShieldCheck size={15} className="shrink-0 text-ondjo-green" />
                 <span>
-                  <strong>Dica ONDJO:</strong> Mensagens dentro da plataforma protegem o seu histórico de negociação.
+                  <strong>Garantia ONDJO:</strong> Histórico e propostas protegidos na plataforma.
                 </span>
               </div>
             </div>
           </aside>
 
           {/* ========================================================= */}
-          {/* COLUNA 2: Janela da Conversa Ativa (Detail)               */}
+          {/* COLUNA 2: Diálogo Ativo (Detail)                          */}
           {/* ========================================================= */}
           <main
-            aria-label="Conversa ativa"
+            aria-label="Diálogo ativo"
             className={[
               "flex flex-col bg-ondjo-surface overflow-hidden",
               propertyDrawerOpen
@@ -612,98 +937,101 @@ export function ChatPage() {
               mobileView === "list" ? "hidden lg:flex" : "flex",
             ].join(" ")}
           >
-            {/* Topbar da Conversa Ativa */}
-            <div className="flex items-center justify-between gap-3 border-b border-ondjo-border/80 px-4 py-3 bg-ondjo-surface shadow-xs">
-              <div className="flex items-center gap-3 min-w-0">
-                {/* Botão de voltar no mobile */}
+            {/* Topbar da Janela Ativa */}
+            <div className="flex items-center justify-between gap-2 sm:gap-3 border-b border-ondjo-border/80 px-3.5 py-2.5 sm:px-5 sm:py-3 bg-ondjo-surface shadow-xs">
+              <div className="flex items-center gap-2.5 min-w-0">
+                {/* Botão de Voltar Mobile: com badge de outras não lidas se houver */}
                 <button
                   type="button"
                   onClick={() => setMobileView("list")}
-                  className="focus-ring grid size-9 shrink-0 place-items-center rounded-xl border border-ondjo-border text-ondjo-muted hover:bg-ondjo-bg hover:text-ondjo-ink lg:hidden"
-                  aria-label="Voltar para lista de conversas"
+                  className="focus-ring flex items-center gap-1.5 rounded-xl border border-ondjo-border bg-ondjo-bg px-2.5 py-1.5 text-xs font-bold text-ondjo-navy hover:bg-ondjo-blue-soft/40 lg:hidden"
+                  aria-label="Voltar para a lista de conversas"
                 >
-                  <ArrowLeft size={18} />
+                  <ArrowLeft size={16} />
+                  <span>Chats</span>
+                  {otherUnreadCount > 0 && (
+                    <span className="grid size-4 place-items-center rounded-full bg-ondjo-blue text-[9px] font-black text-white">
+                      {otherUnreadCount}
+                    </span>
+                  )}
                 </button>
 
-                {/* Avatar */}
+                {/* Avatar do Interlocutor */}
                 <div className="relative shrink-0">
                   {activeChat.category === "assistant" ? (
-                    <div className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-ondjo-navy to-ondjo-blue text-white shadow-xs">
-                      <Bot size={20} />
+                    <div className="grid size-9 sm:size-10 place-items-center rounded-xl bg-gradient-to-br from-ondjo-navy to-ondjo-blue text-white shadow-xs">
+                      <Bot size={18} />
                     </div>
                   ) : activeChat.avatarUrl ? (
                     <img
                       src={activeChat.avatarUrl}
                       alt={activeChat.contactName}
-                      className="size-10 rounded-xl object-cover ring-1 ring-ondjo-border"
+                      className="size-9 sm:size-10 rounded-xl object-cover ring-1 ring-ondjo-border"
                     />
                   ) : (
-                    <div className="grid size-10 place-items-center rounded-xl bg-ondjo-blue-soft text-ondjo-blue font-bold">
+                    <div className="grid size-9 sm:size-10 place-items-center rounded-xl bg-ondjo-blue-soft text-ondjo-blue font-bold">
                       {activeChat.contactName.charAt(0)}
                     </div>
                   )}
 
-                  {activeChat.isOnline && (
-                    <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-white bg-ondjo-green" />
-                  )}
+                  {renderPresenceBadge(activeChat.presence)}
                 </div>
 
+                {/* Nome, Cargo e Indicador de Presença em tempo real */}
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <h2 className="truncate text-sm font-bold text-ondjo-navy">
+                    <h2 className="truncate text-xs sm:text-sm font-bold text-ondjo-navy">
                       {activeChat.contactName}
                     </h2>
                     {activeChat.verified && (
-                      <span className="inline-flex items-center gap-0.5 rounded-full border border-ondjo-success-border bg-ondjo-green-soft px-1.5 py-0.2 text-[10px] font-bold text-ondjo-green">
+                      <span className="inline-flex items-center gap-0.5 rounded-full border border-ondjo-success-border bg-ondjo-green-soft px-1.5 py-0.2 text-[9px] sm:text-[10px] font-bold text-ondjo-green">
                         <ShieldCheck size={11} />
                         Verificado
                       </span>
                     )}
                   </div>
-                  <p className="flex items-center gap-2 text-[11px] text-ondjo-muted">
-                    <span>{activeChat.role}</span>
+                  <p className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-ondjo-muted truncate">
+                    <span className="truncate">{activeChat.role}</span>
                     <span className="text-ondjo-border">•</span>
-                    <span className={activeChat.isOnline ? "text-ondjo-green font-medium" : ""}>
-                      {activeChat.isOnline ? "Online agora" : activeChat.lastActive}
-                    </span>
+                    {activeChat.isTyping ? (
+                      <span className="text-ondjo-blue font-bold animate-pulse">
+                        A escrever...
+                      </span>
+                    ) : activeChat.presence === "online" ? (
+                      <span className="text-ondjo-green font-medium">Online agora</span>
+                    ) : activeChat.presence === "away" ? (
+                      <span className="text-amber-600 font-medium">Ausente</span>
+                    ) : (
+                      <span>{activeChat.lastActive}</span>
+                    )}
                   </p>
                 </div>
               </div>
 
-              {/* Ações rápidas no cabeçalho */}
+              {/* Botões de Ação na Topbar */}
               <div className="flex items-center gap-1.5 shrink-0">
                 {activeProperty && (
-                  <a
-                    href={`#/imovel/${activeProperty.id}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="focus-ring hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-ondjo-border px-2.5 py-1.5 text-xs font-semibold text-ondjo-ink hover:bg-ondjo-bg transition-colors"
+                  <button
+                    type="button"
+                    onClick={() => setPropertyDrawerOpen(!propertyDrawerOpen)}
+                    className="focus-ring inline-flex items-center gap-1 rounded-xl border border-ondjo-border bg-ondjo-bg px-2.5 py-1.5 text-xs font-semibold text-ondjo-navy hover:bg-ondjo-blue-soft/50 hover:text-ondjo-blue transition-colors"
+                    title="Detalhes do imóvel associado"
                   >
-                    <span>Ver anúncio</span>
-                    <ExternalLink size={13} className="text-ondjo-muted" />
-                  </a>
+                    <Info size={15} />
+                    <span className="hidden sm:inline">Imóvel</span>
+                  </button>
                 )}
-
-                <button
-                  type="button"
-                  onClick={() => setPropertyDrawerOpen(!propertyDrawerOpen)}
-                  className="focus-ring grid size-9 place-items-center rounded-xl border border-ondjo-border text-ondjo-muted hover:bg-ondjo-bg hover:text-ondjo-ink"
-                  title="Ver detalhes do imóvel associado"
-                  aria-label="Ver detalhes do imóvel associado"
-                >
-                  <Info size={17} />
-                </button>
               </div>
             </div>
 
-            {/* Faixa / Card de Contexto do Imóvel no topo da conversa */}
+            {/* Faixa / Card de Contexto do Imóvel no topo da conversa ativa */}
             {activeProperty && (
-              <div className="flex items-center justify-between gap-3 border-b border-ondjo-border/60 bg-ondjo-bg/70 px-4 py-2.5">
+              <div className="flex items-center justify-between gap-3 border-b border-ondjo-border/60 bg-ondjo-bg/60 px-3.5 py-2 sm:px-5">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <img
                     src={activeProperty.images[0]}
                     alt={activeProperty.title}
-                    className="size-10 rounded-lg object-cover ring-1 ring-ondjo-border shrink-0"
+                    className="size-9 sm:size-10 rounded-lg object-cover ring-1 ring-ondjo-border shrink-0"
                   />
                   <div className="min-w-0">
                     <p className="truncate text-xs font-bold text-ondjo-navy">
@@ -711,7 +1039,10 @@ export function ChatPage() {
                     </p>
                     <p className="text-[11px] font-semibold text-ondjo-ink">
                       {new Intl.NumberFormat("pt-AO").format(activeProperty.price)} Kz
-                      <span className="font-normal text-ondjo-muted"> / mês • {activeProperty.neighborhood}, {activeProperty.city}</span>
+                      <span className="font-normal text-ondjo-muted">
+                        {" "}
+                        / mês • {activeProperty.neighborhood}, {activeProperty.city}
+                      </span>
                     </p>
                   </div>
                 </div>
@@ -720,25 +1051,25 @@ export function ChatPage() {
                   href={`#/imovel/${activeProperty.id}`}
                   className="focus-ring shrink-0 inline-flex items-center gap-1 text-xs font-bold text-ondjo-blue hover:text-ondjo-blue-dark"
                 >
-                  <span>Detalhes</span>
+                  <span>Anúncio</span>
                   <ExternalLink size={12} />
                 </a>
               </div>
             )}
 
-            {/* Histórico de Mensagens */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 bg-gradient-to-b from-ondjo-bg/30 to-ondjo-surface scrollbar-subtle">
-              {/* Separador de Data */}
-              <div className="relative my-3 flex items-center justify-center">
+            {/* Histórico de Mensagens com scroll */}
+            <div className="flex-1 overflow-y-auto p-3 sm:p-5 lg:p-6 space-y-3.5 bg-gradient-to-b from-ondjo-bg/25 to-ondjo-surface scrollbar-subtle">
+              {/* Divisor do Histórico Seguro */}
+              <div className="relative my-2 flex items-center justify-center">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-ondjo-border/80" />
+                  <div className="w-full border-t border-ondjo-border/70" />
                 </div>
-                <span className="relative rounded-full border border-ondjo-border bg-ondjo-surface px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ondjo-muted shadow-xs">
-                  Histórico oficial ONDJO
+                <span className="relative rounded-full border border-ondjo-border bg-ondjo-surface px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ondjo-muted shadow-2xs">
+                  Canal seguro ONDJO Angola
                 </span>
               </div>
 
-              {/* Mensagens */}
+              {/* Bolhas de Mensagem */}
               {activeChat.messages.map((message) => {
                 const isUser = message.sender === "user";
 
@@ -749,16 +1080,16 @@ export function ChatPage() {
                   >
                     <div
                       className={[
-                        "max-w-[85%] sm:max-w-[75%] rounded-2xl p-3.5 shadow-xs text-xs sm:text-sm leading-relaxed",
+                        "max-w-[88%] sm:max-w-[78%] rounded-2xl p-3 sm:p-3.5 shadow-2xs text-xs sm:text-sm leading-relaxed transition-all",
                         isUser
                           ? "bg-ondjo-blue text-white rounded-br-xs"
                           : "bg-ondjo-surface border border-ondjo-border text-ondjo-ink rounded-bl-xs",
                       ].join(" ")}
                     >
-                      {/* Texto da mensagem */}
+                      {/* Texto */}
                       <p className="whitespace-pre-line">{message.text}</p>
 
-                      {/* Card interativo de Proposta de Visita */}
+                      {/* Card interativo de Proposta de Visita ao Imóvel */}
                       {message.visitProposal && (
                         <div className="mt-3 rounded-xl border border-ondjo-blue/20 bg-ondjo-blue-soft/50 p-3 text-ondjo-navy">
                           <div className="flex items-center gap-2 text-xs font-bold text-ondjo-blue">
@@ -778,7 +1109,7 @@ export function ChatPage() {
                           </div>
 
                           {/* Ações da Proposta */}
-                          <div className="mt-3 pt-2.5 border-t border-ondjo-border/60 flex items-center gap-2">
+                          <div className="mt-3 pt-2.5 border-t border-ondjo-border/60 flex flex-wrap items-center gap-2">
                             {message.visitProposal.confirmed ? (
                               <div className="flex items-center gap-1.5 text-xs font-bold text-ondjo-green">
                                 <CalendarCheck size={15} />
@@ -796,10 +1127,14 @@ export function ChatPage() {
                                 </button>
                                 <button
                                   type="button"
-                                  onClick={() => handleSendMessage("Gostaria de propor um horário alternativo para a visita. Seria possível no período da tarde?")}
+                                  onClick={() =>
+                                    handleSendMessage(
+                                      "Gostaria de propor um horário alternativo para a visita. Seria possível no período da tarde?"
+                                    )
+                                  }
                                   className="focus-ring inline-flex items-center gap-1 rounded-lg border border-ondjo-border bg-ondjo-surface px-2.5 py-1.5 text-xs font-semibold text-ondjo-ink hover:bg-ondjo-bg transition-colors"
                                 >
-                                  Outro horário
+                                  Propor outro horário
                                 </button>
                               </>
                             )}
@@ -807,7 +1142,7 @@ export function ChatPage() {
                         </div>
                       )}
 
-                      {/* Metadados e carimbo de hora */}
+                      {/* Metadados: Hora e Estado de Leitura */}
                       <div
                         className={[
                           "mt-1.5 flex items-center justify-end gap-1 text-[10px]",
@@ -815,25 +1150,21 @@ export function ChatPage() {
                         ].join(" ")}
                       >
                         <span>{message.timestamp}</span>
-                        {isUser && (
-                          <span title="Mensagem entregue e visualizada">
-                            <CheckCheck size={13} className="text-white" />
-                          </span>
-                        )}
+                        {isUser && renderMessageStatusIcon(message.status)}
                       </div>
                     </div>
                   </div>
                 );
               })}
 
-              {/* Animação de digitação em tempo real */}
+              {/* Indicador de Digitação do Corretor */}
               <AnimatePresence>
-                {isTyping && (
+                {activeChat.isTyping && (
                   <motion.div
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 4 }}
-                    className="flex items-center gap-2 rounded-2xl border border-ondjo-border bg-ondjo-surface px-4 py-2.5 shadow-xs w-fit"
+                    className="flex items-center gap-2 rounded-2xl border border-ondjo-border bg-ondjo-surface px-3.5 py-2 shadow-2xs w-fit"
                   >
                     <span className="text-xs font-semibold text-ondjo-muted">
                       {activeChat.contactName} está a escrever
@@ -850,8 +1181,8 @@ export function ChatPage() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Chips de Sugestões de Perguntas Rápidas */}
-            <div className="border-t border-ondjo-border/60 bg-ondjo-bg/40 px-4 py-2">
+            {/* Chips de Perguntas Rápidas */}
+            <div className="border-t border-ondjo-border/60 bg-ondjo-bg/30 px-3 py-2 sm:px-4">
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-subtle">
                 <span className="shrink-0 text-[11px] font-bold text-ondjo-muted flex items-center gap-1 mr-1">
                   <Sparkles size={12} className="text-ondjo-blue" />
@@ -870,8 +1201,8 @@ export function ChatPage() {
               </div>
             </div>
 
-            {/* Área de Composição e Envio de Mensagem */}
-            <div className="border-t border-ondjo-border/80 p-3 sm:p-4 bg-ondjo-surface">
+            {/* Barra de Composição e Envio */}
+            <div className="border-t border-ondjo-border/80 p-2.5 sm:p-4 bg-ondjo-surface">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -881,18 +1212,19 @@ export function ChatPage() {
               >
                 <div className="relative flex-1">
                   <input
+                    ref={inputRef}
                     type="text"
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
                     placeholder={`Escreva uma mensagem para ${activeChat.contactName}...`}
-                    className="focus-ring w-full rounded-xl border border-ondjo-border bg-ondjo-bg px-4 py-2.5 text-xs sm:text-sm text-ondjo-ink placeholder:text-ondjo-muted"
+                    className="focus-ring w-full rounded-xl border border-ondjo-border bg-ondjo-bg px-3.5 py-2.5 sm:px-4 sm:py-2.5 text-xs sm:text-sm text-ondjo-ink placeholder:text-ondjo-muted"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={!inputText.trim()}
-                  className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-ondjo-blue px-4 text-xs sm:text-sm font-bold text-white shadow-xs transition-colors hover:bg-ondjo-blue-dark active:bg-ondjo-navy disabled:opacity-40 disabled:pointer-events-none"
+                  className="focus-ring inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-xl bg-ondjo-blue px-4 text-xs sm:text-sm font-bold text-white shadow-xs transition-colors hover:bg-ondjo-blue-dark active:bg-ondjo-navy disabled:opacity-40 disabled:pointer-events-none"
                   aria-label="Enviar mensagem"
                 >
                   <Send size={16} />
@@ -903,12 +1235,12 @@ export function ChatPage() {
           </main>
 
           {/* ========================================================= */}
-          {/* COLUNA 3: Ficha Rápida do Imóvel Associado (Lateral)      */}
+          {/* COLUNA 3: Ficha do Imóvel Associado (Desktop Lateral)     */}
           {/* ========================================================= */}
           {activeProperty && propertyDrawerOpen && (
             <aside
               aria-label="Ficha do imóvel em negociação"
-              className="border-l border-ondjo-border/80 bg-ondjo-bg/40 p-4 lg:col-span-3 xl:col-span-3.5 overflow-y-auto scrollbar-subtle"
+              className="hidden lg:block border-l border-ondjo-border/80 bg-ondjo-bg/40 p-4 lg:col-span-3 xl:col-span-3.5 overflow-y-auto scrollbar-subtle"
             >
               <div className="rounded-2xl border border-ondjo-border bg-ondjo-surface p-4 shadow-xs">
                 <div className="flex items-center justify-between pb-3 border-b border-ondjo-border/60">
@@ -918,14 +1250,14 @@ export function ChatPage() {
                   <button
                     type="button"
                     onClick={() => setPropertyDrawerOpen(false)}
-                    className="focus-ring text-ondjo-muted hover:text-ondjo-ink p-1"
+                    className="focus-ring text-ondjo-muted hover:text-ondjo-ink p-1 rounded-lg"
                     aria-label="Fechar painel do imóvel"
                   >
-                    ×
+                    <X size={15} />
                   </button>
                 </div>
 
-                {/* Foto principal */}
+                {/* Imagem */}
                 <div className="mt-3 overflow-hidden rounded-xl ring-1 ring-ondjo-border">
                   <img
                     src={activeProperty.images[0]}
@@ -949,7 +1281,7 @@ export function ChatPage() {
                   </p>
                 </div>
 
-                {/* Especificações rápidas */}
+                {/* Especificações */}
                 <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl bg-ondjo-bg p-3 text-xs">
                   <div>
                     <span className="text-ondjo-muted block text-[10px] uppercase font-bold">Tipo</span>
@@ -969,7 +1301,7 @@ export function ChatPage() {
                   </div>
                 </div>
 
-                {/* Comodidades destacadas */}
+                {/* Comodidades */}
                 <div className="mt-4">
                   <p className="text-xs font-bold text-ondjo-navy mb-2">
                     Comodidades do condomínio
@@ -986,7 +1318,7 @@ export function ChatPage() {
                   </div>
                 </div>
 
-                {/* Botão de Ver Anúncio Completo */}
+                {/* Link Externo */}
                 <div className="mt-5 pt-3 border-t border-ondjo-border/60">
                   <a
                     href={`#/imovel/${activeProperty.id}`}
@@ -1001,7 +1333,88 @@ export function ChatPage() {
           )}
         </div>
       </div>
+
+      {/* Modal / Bottom Sheet do Imóvel para Telemóveis (Mobile) */}
+      <AnimatePresence>
+        {activeProperty && propertyDrawerOpen && (
+          <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 lg:hidden">
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 250 }}
+              className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-ondjo-surface p-5 shadow-2xl"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-ondjo-border">
+                <div className="flex items-center gap-2">
+                  <Building2 size={18} className="text-ondjo-blue" />
+                  <h3 className="text-sm font-bold text-ondjo-navy">
+                    Imóvel em negociação
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPropertyDrawerOpen(false)}
+                  className="focus-ring rounded-xl border border-ondjo-border p-2 text-ondjo-muted hover:bg-ondjo-bg hover:text-ondjo-ink"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="mt-4">
+                <img
+                  src={activeProperty.images[0]}
+                  alt={activeProperty.title}
+                  className="aspect-16/9 w-full rounded-2xl object-cover ring-1 ring-ondjo-border"
+                />
+
+                <div className="mt-3">
+                  <p className="text-lg font-black text-ondjo-navy">
+                    {new Intl.NumberFormat("pt-AO").format(activeProperty.price)} Kz
+                    <span className="text-xs font-normal text-ondjo-muted"> / mês</span>
+                  </p>
+                  <h4 className="text-sm font-bold text-ondjo-ink">{activeProperty.title}</h4>
+                  <p className="mt-1 flex items-center gap-1 text-xs text-ondjo-muted">
+                    <MapPin size={13} className="text-ondjo-blue shrink-0" />
+                    <span>{activeProperty.neighborhood}, {activeProperty.city}</span>
+                  </p>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl bg-ondjo-bg p-3 text-xs">
+                  <div>
+                    <span className="text-ondjo-muted block text-[10px] uppercase font-bold">Tipo</span>
+                    <span className="font-bold text-ondjo-navy">{activeProperty.type}</span>
+                  </div>
+                  <div>
+                    <span className="text-ondjo-muted block text-[10px] uppercase font-bold">Área</span>
+                    <span className="font-bold text-ondjo-navy">{activeProperty.area} m²</span>
+                  </div>
+                  <div>
+                    <span className="text-ondjo-muted block text-[10px] uppercase font-bold">Quartos</span>
+                    <span className="font-bold text-ondjo-navy">{activeProperty.bedrooms} Quartos</span>
+                  </div>
+                  <div>
+                    <span className="text-ondjo-muted block text-[10px] uppercase font-bold">Vagas</span>
+                    <span className="font-bold text-ondjo-navy">{activeProperty.parking} Vagas</span>
+                  </div>
+                </div>
+
+                <div className="mt-5">
+                  <a
+                    href={`#/imovel/${activeProperty.id}`}
+                    className="focus-ring flex w-full items-center justify-center gap-2 rounded-xl bg-ondjo-blue py-3 text-sm font-bold text-white shadow-xs hover:bg-ondjo-blue-dark"
+                  >
+                    <span>Ver anúncio completo</span>
+                    <ExternalLink size={16} />
+                  </a>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+
 export default ChatPage;
