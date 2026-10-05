@@ -1,7 +1,7 @@
-import { useEffect, useState, useId } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
-  Building2, CalendarDays, ChevronLeft, ChevronRight, CircleHelp,
+  Building2, CalendarDays, ChevronLeft, CircleHelp,
   Heart, Home, Search, LogIn, Mail, Plus, Settings2, X, Sparkles,
   type LucideIcon,
 } from "lucide-react";
@@ -18,7 +18,7 @@ const mainItems: Item[] = [
   { label: "Início", href: "#/", icon: Home },
   { label: "Pesquisar imóveis", href: "#/pesquisar", icon: Search },
   { label: "Favoritos", href: "#/favoritos", icon: Heart, badge: "favorites" },
-  { label: "Mensagens", href: "#/login", icon: Mail, private: true },
+  { label: "Mensagens", href: "#/mensagens", icon: Mail },
   { label: "Agendamentos", href: "#/login", icon: CalendarDays, private: true },
 ];
 
@@ -117,7 +117,7 @@ export default function Sidebar({ expanded: controlledExpanded, onExpandedChange
   // Transições spring
   const springTransition = shouldReduceMotion
     ? { duration: 0.1 }
-    : { type: "spring", stiffness: 320, damping: 32 };
+    : { type: "spring" as const, stiffness: 320, damping: 32 };
 
   return (
     <>
