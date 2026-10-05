@@ -62,7 +62,7 @@ export function PropertyCard({
       <button
         type="button"
         onClick={() => toggleFavorite(property.id)}
-        className="focus-ring absolute right-3 top-3 grid size-10 place-items-center rounded-full bg-white/95 text-slate-600 shadow-md backdrop-blur transition hover:scale-105 hover:text-ondjo-danger"
+        className="focus-ring absolute right-3 top-14 grid size-10 place-items-center rounded-full bg-white/95 text-slate-600 shadow-md backdrop-blur transition hover:scale-105 hover:text-ondjo-danger"
         aria-label={favorite ? `Remover ${property.title} dos favoritos` : `Guardar ${property.title} nos favoritos`}
         aria-pressed={favorite}
       >
