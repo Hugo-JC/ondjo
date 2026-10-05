@@ -3,7 +3,9 @@ import { useEffect, useState } from "react";
 export type Route =
   | { page: "home" }
   | { page: "search" }
-  | { page: "property"; id: string };
+  | { page: "property"; id: string }
+  | { page: "favorites" }
+  | { page: "chat" };
 
 function readRoute(): Route {
   const hash = window.location.hash.replace(/^#\/?/, "");
@@ -11,6 +13,8 @@ function readRoute(): Route {
 
   if (segment === "imovel" && id) return { page: "property", id };
   if (segment === "pesquisar") return { page: "search" };
+  if (segment === "favoritos") return { page: "favorites" };
+  if (segment === "mensagens" || segment === "chat") return { page: "chat" };
   return { page: "home" };
 }
 
