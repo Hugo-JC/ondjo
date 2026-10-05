@@ -34,7 +34,7 @@ export const ownerNavigation: NavigationItem[] = [
 ];
 
 export const secondaryNavigation: NavigationItem[] = [
-  { label: "Ajuda", href: "#/", icon: CircleHelp },
+  { label: "Ajuda", href: "#/login", icon: CircleHelp },
   { label: "Definições", href: "#/login", icon: Settings2, private: true },
 ];
 

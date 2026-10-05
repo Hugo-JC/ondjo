@@ -22,6 +22,7 @@ import { useMemo, useState } from "react";
 import { properties, formatKz } from "../data/properties";
 import { navigate } from "../hooks/useHashRoute";
 import { PropertyCard } from "../components/PropertyCard";
+import { ScheduleVisitPanel } from "../components/ScheduleVisitPanel";
 
 export function PropertyPage({ id }: { id: string }) {
   const property = properties.find((item) => item.id === id);
@@ -29,6 +30,7 @@ export function PropertyPage({ id }: { id: string }) {
   const [gallery, setGallery] = useState(false);
   const [favorite, setFavorite] = useState(false);
   const [shared, setShared] = useState(false);
+  const [scheduleVisitOpen, setScheduleVisitOpen] = useState(false);
 
   const similar = useMemo(
     () =>
@@ -221,7 +223,12 @@ export function PropertyPage({ id }: { id: string }) {
               <button className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-ondjo-blue px-4 text-sm font-extrabold text-white shadow-sm transition-colors hover:bg-ondjo-blue-dark">
                 <MessageCircle size={17} /> Contactar
               </button>
-              <button className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-ondjo-blue bg-white px-4 text-sm font-extrabold text-ondjo-blue hover:bg-blue-50">
+              <button
+                type="button"
+                onClick={() => setScheduleVisitOpen(true)}
+                aria-haspopup="dialog"
+                className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-ondjo-blue bg-white px-4 text-sm font-extrabold text-ondjo-blue hover:bg-blue-50"
+              >
                 <CalendarDays size={17} /> Agendar visita
               </button>
             </div>
@@ -384,6 +391,13 @@ export function PropertyPage({ id }: { id: string }) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ScheduleVisitPanel
+        open={scheduleVisitOpen}
+        onClose={() => setScheduleVisitOpen(false)}
+        propertyTitle={property.title}
+        propertyLocation={`${property.neighborhood}, ${property.city}`}
+      />
     </main>
   );
 }
