@@ -1,7 +1,9 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
+  Bell,
+  BellOff,
   BellRing,
   Bot,
   Building2,
@@ -21,6 +23,8 @@ import {
   Send,
   ShieldCheck,
   Sparkles,
+  Volume2,
+  VolumeX,
   X,
   Zap,
 } from "lucide-react";
@@ -209,12 +213,40 @@ const QUICK_QUESTIONS = [
 ];
 
 const LOCAL_STORAGE_KEY = "ondjo-chat-conversations-v3";
+const SOUND_STORAGE_KEY = "ondjo-chat-sound-enabled";
 
 function formatTimestamp(): string {
   return new Intl.DateTimeFormat("pt-AO", {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date());
+}
+
+// Síntese sutil de som de notificação (sem depender de assets externos)
+function playNotificationChime() {
+  try {
+    const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "sine";
+    // Acorde duplo suave tipo mensagem
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+    osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1); // A5
+
+    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.36);
+  } catch (e) {
+    // Silencioso se navegador bloquear autoplay de áudio
+  }
 }
 
 export function ChatPage() {
@@ -239,10 +271,43 @@ export function ChatPage() {
   const [mobileView, setMobileView] = useState<"list" | "chat">("list");
   const [notification, setNotification] = useState<InAppNotification | null>(null);
 
+  // Som de novas mensagens
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
+    try {
+      const stored = window.localStorage.getItem(SOUND_STORAGE_KEY);
+      return stored !== null ? JSON.parse(stored) : true;
+    } catch {
+      return true;
+    }
+  });
+
+  // Estado da permissão nativa do navegador
+  const isNotificationSupported = typeof window !== "undefined" && "Notification" in window;
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | "unsupported">(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      return Notification.permission;
+    }
+    return "unsupported";
+  });
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const activeChatIdRef = useRef<string>(activeChatId);
 
-  // Sincronizar com localStorage
+  useEffect(() => {
+    activeChatIdRef.current = activeChatId;
+  }, [activeChatId]);
+
+  // Guardar preferências de som
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(SOUND_STORAGE_KEY, JSON.stringify(soundEnabled));
+    } catch {
+      // Ignorar
+    }
+  }, [soundEnabled]);
+
+  // Sincronizar conversas com localStorage
   useEffect(() => {
     try {
       window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(conversations));
@@ -280,19 +345,83 @@ export function ChatPage() {
   }, [activeChat?.messages, activeChat?.isTyping]);
 
   // Selecionar conversa e marcar como lida
-  function selectConversation(id: string) {
+  const selectConversation = useCallback((id: string) => {
     setActiveChatId(id);
     setMobileView("chat");
     setConversations((prev) =>
       prev.map((c) => {
         if (c.id !== id) return c;
-        // Marcar todas as mensagens de agentes/sistema como lidas
         const updatedMsgs = c.messages.map((m) =>
           m.sender !== "user" ? { ...m, status: "read" as MessageStatus } : m
         );
         return { ...c, unreadCount: 0, messages: updatedMsgs };
       })
     );
+  }, []);
+
+  // Disparo de notificação nativa no navegador com clique direto para a conversa
+  const triggerBrowserNotification = useCallback(
+    (convId: string, senderName: string, text: string) => {
+      // Som suave se ativado
+      if (soundEnabled) {
+        playNotificationChime();
+      }
+
+      if (!isNotificationSupported || Notification.permission !== "granted") {
+        return;
+      }
+
+      // Disparar se a janela estiver minimizada/em segundo plano ou se for outra conversa
+      const shouldNotify = document.hidden || activeChatIdRef.current !== convId;
+      if (!shouldNotify) return;
+
+      try {
+        const notif = new Notification(`ONDJO: Mensagem de ${senderName}`, {
+          body: text,
+          icon: "/favicon.ico",
+          tag: `ondjo-conv-${convId}`, // evita acumular duplicadas da mesma conversa
+        });
+
+        notif.onclick = () => {
+          window.focus();
+          selectConversation(convId);
+          notif.close();
+        };
+      } catch (err) {
+        console.warn("Falha ao criar notificação do navegador:", err);
+      }
+    },
+    [isNotificationSupported, selectConversation, soundEnabled]
+  );
+
+  // Solicitar permissão de notificações do navegador
+  async function requestNotificationPermission() {
+    if (!isNotificationSupported) {
+      alert("O seu navegador não possui suporte para notificações de área de trabalho.");
+      return;
+    }
+
+    try {
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+
+      if (permission === "granted") {
+        const welcome = new Notification("Notificações ONDJO Ativadas!", {
+          body: "Receberá alertas em tempo real sempre que corretores responderem ou enviarem propostas.",
+          icon: "/favicon.ico",
+        });
+        welcome.onclick = () => {
+          window.focus();
+          welcome.close();
+        };
+      } else if (permission === "denied") {
+        alert(
+          "As notificações estão bloqueadas no seu navegador. Para ativá-las, clique no ícone de cadeado/definições ao lado da barra de endereço e autorize as notificações para o ONDJO."
+        );
+      }
+    } catch (err) {
+      console.error("Erro ao solicitar permissão de notificações:", err);
+    }
   }
 
   // Filtragem e pesquisa de conversas
@@ -320,6 +449,8 @@ export function ChatPage() {
 
     const messageId = `m-${Date.now()}`;
     const currentTime = formatTimestamp();
+    const currentConvId = activeChat.id;
+    const currentSenderName = activeChat.contactName;
 
     // 1. Mensagem começa com estado "pending"
     const userMessage: ChatMessage = {
@@ -332,7 +463,7 @@ export function ChatPage() {
 
     setConversations((prev) =>
       prev.map((c) =>
-        c.id === activeChat.id
+        c.id === currentConvId
           ? {
               ...c,
               messages: [...c.messages, userMessage],
@@ -348,7 +479,7 @@ export function ChatPage() {
     setTimeout(() => {
       setConversations((prev) =>
         prev.map((c) => {
-          if (c.id !== activeChat.id) return c;
+          if (c.id !== currentConvId) return c;
           return {
             ...c,
             messages: c.messages.map((m) =>
@@ -363,7 +494,7 @@ export function ChatPage() {
     setTimeout(() => {
       setConversations((prev) =>
         prev.map((c) => {
-          if (c.id !== activeChat.id) return c;
+          if (c.id !== currentConvId) return c;
           return {
             ...c,
             messages: c.messages.map((m) =>
@@ -378,7 +509,7 @@ export function ChatPage() {
     setTimeout(() => {
       setConversations((prev) =>
         prev.map((c) => {
-          if (c.id !== activeChat.id) return c;
+          if (c.id !== currentConvId) return c;
           return {
             ...c,
             presence: "online",
@@ -397,7 +528,7 @@ export function ChatPage() {
       if (activeChat.category === "assistant") {
         if (text.toLowerCase().includes("ipu") || text.toLowerCase().includes("imposto")) {
           replyText =
-            "O IPU (Imposto Predial Urbano) é anual e incide sobre o rendimento das rendas (habitualmente taxa efetiva entre 10% a 15%) ou sobre o valor patrimonial. Exija sempre o DAR (Documento de Arrecadação de Receitas) liquidado pelo senhorio na AGT.";
+            "O IPU (Imposto Predial Urbano) é anual e incide sobre o rendimento das rendas (habitualmente taxa efetiva entre 10% a 15%) ou sobre o valor patrimonial. Exija sempre o DAR liquidado pelo senhorio na AGT.";
         } else if (text.toLowerCase().includes("visita") || text.toLowerCase().includes("agendar")) {
           replyText =
             "Pode solicitar visitas diretamente nesta janela a qualquer corretor verificado do ONDJO. Não há cobrança de taxas de agendamento na nossa plataforma.";
@@ -447,7 +578,7 @@ export function ChatPage() {
 
       setConversations((prev) =>
         prev.map((c) =>
-          c.id === activeChat.id
+          c.id === currentConvId
             ? {
                 ...c,
                 isTyping: false,
@@ -458,6 +589,9 @@ export function ChatPage() {
             : c
         )
       );
+
+      // Disparar Notificação Nativa do Navegador se a página estiver em segundo plano
+      triggerBrowserNotification(currentConvId, currentSenderName, replyText);
     }, 4400);
   }
 
@@ -494,6 +628,9 @@ export function ChatPage() {
         };
       })
     );
+
+    // Disparar Notificação Nativa no Navegador
+    triggerBrowserNotification(target.id, target.contactName, chosenText);
 
     // Notificação in-app se for outra conversa
     if (target.id !== activeChatId) {
@@ -616,6 +753,36 @@ export function ChatPage() {
 
   return (
     <div className="min-h-[calc(100vh-4.5rem)] bg-ondjo-bg p-2 sm:p-5 lg:p-7">
+      {/* Banner de Ativação de Notificações do Navegador */}
+      {isNotificationSupported && notificationPermission === "default" && (
+        <div className="mx-auto mb-3 max-w-7xl">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-ondjo-blue/20 bg-ondjo-blue-soft/50 px-4 py-3 text-xs shadow-xs">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="grid size-8 shrink-0 place-items-center rounded-xl bg-ondjo-blue text-white">
+                <Bell size={16} />
+              </div>
+              <div>
+                <p className="font-bold text-ondjo-navy">
+                  Ativar notificações no navegador
+                </p>
+                <p className="text-ondjo-muted">
+                  Receba alertas em tempo real quando os corretores responderem ou propuserem visitas, mesmo noutra aba.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={requestNotificationPermission}
+                className="focus-ring rounded-xl bg-ondjo-blue px-3.5 py-1.5 font-bold text-white shadow-xs hover:bg-ondjo-blue-dark transition-colors"
+              >
+                Permitir notificações
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Notificação In-App de Nova Mensagem em Tempo Real */}
       <AnimatePresence>
         {notification && (
@@ -674,7 +841,7 @@ export function ChatPage() {
 
       {/* Caixa Central da Aplicação de Chat */}
       <div className="mx-auto max-w-7xl overflow-hidden rounded-2xl border border-ondjo-border bg-ondjo-surface shadow-xs">
-        {/* Barra Superior / Breadcrumb & Controlos de Simulação */}
+        {/* Barra Superior / Breadcrumb & Controlos de Simulação e Notificações */}
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-ondjo-border/80 px-4 py-3 sm:px-6 bg-ondjo-surface">
           <div className="flex items-center gap-3">
             <div className="grid size-9 sm:size-10 place-items-center rounded-xl bg-ondjo-blue-soft text-ondjo-blue">
@@ -698,6 +865,57 @@ export function ChatPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Controlo de Notificações do Navegador */}
+            {isNotificationSupported && (
+              <button
+                type="button"
+                onClick={requestNotificationPermission}
+                title={
+                  notificationPermission === "granted"
+                    ? "Notificações do navegador ativas (clique para testar)"
+                    : notificationPermission === "denied"
+                    ? "Notificações bloqueadas no navegador (clique para ver instruções)"
+                    : "Ativar notificações no navegador"
+                }
+                className={[
+                  "focus-ring inline-flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-xs font-semibold transition-colors",
+                  notificationPermission === "granted"
+                    ? "border-ondjo-success-border bg-ondjo-green-soft text-ondjo-green"
+                    : notificationPermission === "denied"
+                    ? "border-ondjo-danger-border bg-ondjo-danger-soft text-ondjo-danger"
+                    : "border-ondjo-border bg-ondjo-bg text-ondjo-muted hover:border-ondjo-blue hover:text-ondjo-blue",
+                ].join(" ")}
+              >
+                {notificationPermission === "granted" ? (
+                  <>
+                    <BellRing size={13} className="shrink-0 text-ondjo-green" />
+                    <span className="hidden sm:inline">Alertas ativos</span>
+                  </>
+                ) : notificationPermission === "denied" ? (
+                  <>
+                    <BellOff size={13} className="shrink-0 text-ondjo-danger" />
+                    <span className="hidden sm:inline">Bloqueadas</span>
+                  </>
+                ) : (
+                  <>
+                    <Bell size={13} className="shrink-0 text-ondjo-muted" />
+                    <span className="hidden sm:inline">Ativar alertas</span>
+                  </>
+                )}
+              </button>
+            )}
+
+            {/* Alternar som de alerta */}
+            <button
+              type="button"
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              title={soundEnabled ? "Desativar avisos sonoros" : "Ativar avisos sonoros"}
+              className="focus-ring inline-flex items-center gap-1 rounded-xl border border-ondjo-border px-2.5 py-1.5 text-xs font-semibold text-ondjo-muted hover:bg-ondjo-bg hover:text-ondjo-ink transition-colors"
+            >
+              {soundEnabled ? <Volume2 size={13} className="text-ondjo-blue" /> : <VolumeX size={13} />}
+              <span className="hidden md:inline">{soundEnabled ? "Som ativo" : "Sem som"}</span>
+            </button>
+
             {/* Botão de teste: simular nova mensagem recebida */}
             <button
               type="button"
@@ -706,7 +924,7 @@ export function ChatPage() {
               className="focus-ring inline-flex items-center gap-1.5 rounded-xl border border-ondjo-blue/30 bg-ondjo-blue-soft/40 px-2.5 py-1.5 text-xs font-semibold text-ondjo-blue hover:bg-ondjo-blue hover:text-white transition-colors"
             >
               <Zap size={13} className="shrink-0" />
-              <span className="hidden sm:inline">Simular nova mensagem</span>
+              <span className="hidden sm:inline">Simular mensagem</span>
               <span className="sm:hidden">Simular</span>
             </button>
 
