@@ -5,6 +5,7 @@ import { Home } from "./pages/Home";
 import { SearchPage } from "./pages/SearchPage";
 import { PropertyPage } from "./pages/PropertyPage";
 import { FavoritesPage } from "./pages/FavoritesPage";
+import { ChatPage } from "./pages/ChatPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 
@@ -28,6 +29,7 @@ export default function App() {
   if (propertyMatch) return <AppShell><PropertyPage id={propertyMatch[1]} /></AppShell>;
   if (hash.startsWith("#/pesquisar")) return <AppShell><SearchPage /></AppShell>;
   if (hash.startsWith("#/favoritos")) return <AppShell><FavoritesPage /></AppShell>;
+  if (hash.startsWith("#/mensagens") || hash.startsWith("#/chat")) return <AppShell><ChatPage /></AppShell>;
   return <AppShell><Home /></AppShell>;
 }
 
