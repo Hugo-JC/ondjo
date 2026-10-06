@@ -2,6 +2,7 @@
   "name": "ondjo-property-market",
   "private": true,
   "version": "0.1.0",
+  "description": "Prototype of a property marketplace for Angola, built with React, TypeScript and Vite.",
   "type": "module",
   "engines": {
     "node": ">=24.21.0",
