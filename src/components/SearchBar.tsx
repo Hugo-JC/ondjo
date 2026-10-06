@@ -16,7 +16,11 @@ import { locations, properties } from "../data/properties";
 
 export type SearchPurpose = "comprar" | "arrendar";
 
-export type SearchOrigin = "todos" | "verificados" | "particulares" | "profissionais";
+export type SearchOrigin =
+  | "todos"
+  | "verificados"
+  | "particulares"
+  | "profissionais";
 
 export interface SearchFilters {
   query: string;
@@ -56,43 +60,52 @@ export const PURPOSE_OPTIONS: { id: SearchPurpose; label: string }[] = [
   { id: "arrendar", label: "Arrendar" },
 ];
 
-export const ORIGIN_OPTIONS: { id: SearchOrigin; label: string; icon?: typeof ShieldCheck }[] = [
+export const ORIGIN_OPTIONS: {
+  id: SearchOrigin;
+  label: string;
+  icon?: typeof ShieldCheck;
+}[] = [
   { id: "todos", label: "Todos os anúncios" },
   { id: "verificados", label: "Verificados ONDJO", icon: ShieldCheck },
-  { id: "particulares", label: "Direto c/ Proprietário" },
+  { id: "particulares", label: "Proprietário" },
+  { id: "particulares", label: "Agentes" },
 ];
 
 export const PROPERTY_TYPES = [
   { value: "", label: "Todos os tipos" },
-  { value: "Apartamento", label: "Apartamento" },
+  { value: "Apartamento", label: "Apartamentos" },
   { value: "Casa", label: "Casa" },
-  { value: "Moradia", label: "Moradia" },
+  { value: "Moradia", label: "Vivenda/Moradia" },
   { value: "Terreno", label: "Terreno" },
+  { value: "Lojas", label: "Lojas" },
 ];
 
 export const BEDROOM_OPTIONS = [
   { value: "", label: "Qualquer tipologia" },
-  { value: "0", label: "T0 / Estúdio" },
-  { value: "1", label: "T1 (1 quarto)" },
-  { value: "2", label: "T2 (2 quartos)" },
-  { value: "3", label: "T3 (3 quartos)" },
-  { value: "4", label: "T4 ou mais" },
+  { value: "0", label: "T0" },
+  { value: "1", label: "T1" },
+  { value: "2", label: "T2" },
+  { value: "3", label: "T3" },
+  { value: "4", label: "T4" },
+  { value: "5", label: "T5 ou mais" },
 ];
 
 export const BATHROOM_OPTIONS = [
   { value: "", label: "Qualquer número" },
-  { value: "1", label: "1+ casa de banho" },
-  { value: "2", label: "2+ casas de banho" },
-  { value: "3", label: "3+ casas de banho" },
-  { value: "4", label: "4+ casas de banho" },
+  { value: "1", label: "1 casa de banho" },
+  { value: "2", label: "2 casas de banho" },
+  { value: "3", label: "3 casas de banho" },
+  { value: "4", label: "4 casas de banho" },
+  { value: "5", label: "5+ casas de banho" },
 ];
 
-export const PARKING_OPTIONS = [
-  { value: "", label: "Qualquer" },
-  { value: "1", label: "1+ vaga de garagem" },
-  { value: "2", label: "2+ vagas de garagem" },
-  { value: "3", label: "3+ vagas de garagem" },
-];
+// export const PARKING_OPTIONS = [
+//   { value: "", label: "Qualquer" },
+//   { value: "1", label: "1 vaga de garagem" },
+//   { value: "2", label: "2 vagas de garagem" },
+//   { value: "3", label: "3 vagas de garagem" },
+//   { value: "4", label: "4+ vagas de garagem" },
+// ];
 
 export function defaultSearchFilters(): SearchFilters {
   return { ...emptyFilters };
@@ -133,7 +146,8 @@ export function SearchBar({
     };
 
     document.addEventListener("pointerdown", handleClickOutside);
-    return () => document.removeEventListener("pointerdown", handleClickOutside);
+    return () =>
+      document.removeEventListener("pointerdown", handleClickOutside);
   }, []);
 
   const set = (key: keyof SearchFilters, next: unknown) => {
@@ -167,8 +181,7 @@ export function SearchBar({
 
       const matchBath =
         !value.bathrooms || item.bathrooms >= Number(value.bathrooms);
-      const matchPark =
-        !value.parking || item.parking >= Number(value.parking);
+      const matchPark = !value.parking || item.parking >= Number(value.parking);
 
       const matchVerified =
         currentOrigin === "verificados" ? Boolean(item.verified) : true;
@@ -197,7 +210,9 @@ export function SearchBar({
   const searchText = value.location || value.query;
 
   const filteredLocations = locations
-    .filter((loc) => loc.toLowerCase().includes(searchText.trim().toLowerCase()))
+    .filter((loc) =>
+      loc.toLowerCase().includes(searchText.trim().toLowerCase()),
+    )
     .slice(0, 6);
 
   const clearAllFilters = () => {
@@ -280,7 +295,9 @@ export function SearchBar({
                   <Icon
                     size={13}
                     aria-hidden="true"
-                    className={isSelected ? "text-ondjo-green" : "text-ondjo-muted"}
+                    className={
+                      isSelected ? "text-ondjo-green" : "text-ondjo-muted"
+                    }
                   />
                 )}
                 <span>{orig.label}</span>
@@ -373,7 +390,9 @@ export function SearchBar({
                 className="absolute inset-x-0 top-full z-40 mt-2 max-h-72 overflow-y-auto rounded-2xl border border-ondjo-border bg-white p-2 shadow-[0_16px_36px_rgba(16,42,67,0.16)]"
               >
                 <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-ondjo-muted">
-                  {searchText ? "Zonas correspondentes" : "Zonas populares em Luanda"}
+                  {searchText
+                    ? "Zonas correspondentes"
+                    : "Zonas populares em Luanda"}
                 </div>
 
                 <div className="mt-1 space-y-0.5">
@@ -399,7 +418,8 @@ export function SearchBar({
                     ))
                   ) : (
                     <div className="px-3 py-4 text-center text-xs text-ondjo-muted">
-                      Nenhuma zona específica encontrada. Clique em "Pesquisar" para buscar pelo texto.
+                      Nenhuma zona específica encontrada. Clique em "Pesquisar"
+                      para buscar pelo texto.
                     </div>
                   )}
                 </div>
@@ -410,19 +430,21 @@ export function SearchBar({
                     Atalhos frequentes:
                   </div>
                   <div className="flex flex-wrap gap-1.5">
-                    {["Talatona", "Maianga", "Kilamba", "Benfica"].map((chip) => (
-                      <button
-                        key={chip}
-                        type="button"
-                        onClick={() => {
-                          onChange({ ...value, location: chip, query: "" });
-                          setLocationOpen(false);
-                        }}
-                        className="rounded-md bg-ondjo-bg px-2 py-1 text-xs font-semibold text-ondjo-ink transition hover:bg-ondjo-blue-soft hover:text-ondjo-blue"
-                      >
-                        {chip}
-                      </button>
-                    ))}
+                    {["Talatona", "Maianga", "Kilamba", "Benfica"].map(
+                      (chip) => (
+                        <button
+                          key={chip}
+                          type="button"
+                          onClick={() => {
+                            onChange({ ...value, location: chip, query: "" });
+                            setLocationOpen(false);
+                          }}
+                          className="rounded-md bg-ondjo-bg px-2 py-1 text-xs font-semibold text-ondjo-ink transition hover:bg-ondjo-blue-soft hover:text-ondjo-blue"
+                        >
+                          {chip}
+                        </button>
+                      ),
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -506,7 +528,11 @@ export function SearchBar({
               "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ondjo-blue",
             ].join(" ")}
           >
-            <Search size={18} aria-hidden="true" className="shrink-0 transition-transform group-hover:scale-110" />
+            <Search
+              size={18}
+              aria-hidden="true"
+              className="shrink-0 transition-transform group-hover:scale-110"
+            />
             <span className="whitespace-nowrap">
               {matchingCount > 0 ? `Ver ${matchingCount} imóveis` : "Pesquisar"}
             </span>
@@ -532,7 +558,11 @@ export function SearchBar({
           ].join(" ")}
         >
           <SlidersHorizontal size={15} aria-hidden="true" />
-          <span>{advancedOpen ? "Menos filtros" : "Mais filtros (Preço, WC, Garagem)"}</span>
+          <span>
+            {advancedOpen
+              ? "Menos filtros"
+              : "Mais filtros (Preço, WC, Garagem)"}
+          </span>
 
           {activeAdvancedCount > 0 && (
             <span className="inline-flex size-5 items-center justify-center rounded-full bg-ondjo-blue text-[11px] font-bold text-white">
@@ -550,11 +580,15 @@ export function SearchBar({
         <div className="flex items-center gap-2">
           {matchingCount > 0 && (
             <span className="hidden text-xs text-ondjo-muted sm:inline">
-              <strong className="text-ondjo-ink">{matchingCount}</strong> disponíveis
+              <strong className="text-ondjo-ink">{matchingCount}</strong>{" "}
+              disponíveis
             </span>
           )}
 
-          {(activeAdvancedCount > 0 || value.location || value.type || value.bedrooms) && (
+          {(activeAdvancedCount > 0 ||
+            value.location ||
+            value.type ||
+            value.bedrooms) && (
             <button
               type="button"
               onClick={clearAllFilters}
@@ -578,7 +612,10 @@ export function SearchBar({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: reduceMotion ? 0 : 0.22, ease: "easeInOut" }}
+            transition={{
+              duration: reduceMotion ? 0 : 0.22,
+              ease: "easeInOut",
+            }}
             className="overflow-hidden"
           >
             <div className="mt-3.5 space-y-4 rounded-2xl border border-ondjo-border/80 bg-ondjo-bg/60 p-4">
@@ -600,7 +637,9 @@ export function SearchBar({
                       type="text"
                       inputMode="numeric"
                       value={value.minPrice}
-                      onChange={(e) => set("minPrice", e.target.value.replace(/\D/g, ""))}
+                      onChange={(e) =>
+                        set("minPrice", e.target.value.replace(/\D/g, ""))
+                      }
                       placeholder="Sem mínimo"
                       className="h-11 w-full rounded-xl border border-ondjo-border bg-white pl-9 pr-3 text-xs font-semibold text-ondjo-ink outline-none transition-colors hover:border-ondjo-muted focus-visible:border-ondjo-blue focus-visible:ring-2 focus-visible:ring-ondjo-blue/20"
                     />
@@ -624,7 +663,9 @@ export function SearchBar({
                       type="text"
                       inputMode="numeric"
                       value={value.maxPrice}
-                      onChange={(e) => set("maxPrice", e.target.value.replace(/\D/g, ""))}
+                      onChange={(e) =>
+                        set("maxPrice", e.target.value.replace(/\D/g, ""))
+                      }
                       placeholder="Sem máximo"
                       className="h-11 w-full rounded-xl border border-ondjo-border bg-white pl-9 pr-3 text-xs font-semibold text-ondjo-ink outline-none transition-colors hover:border-ondjo-muted focus-visible:border-ondjo-blue focus-visible:ring-2 focus-visible:ring-ondjo-blue/20"
                     />
@@ -637,7 +678,11 @@ export function SearchBar({
                     htmlFor={bathroomsId}
                     className="mb-1.5 flex items-center gap-1.5 text-xs font-bold text-ondjo-ink"
                   >
-                    <Bath size={14} className="text-ondjo-blue" aria-hidden="true" />
+                    <Bath
+                      size={14}
+                      className="text-ondjo-blue"
+                      aria-hidden="true"
+                    />
                     <span>Casas de banho</span>
                   </label>
                   <div className="relative">
@@ -662,12 +707,16 @@ export function SearchBar({
                 </div>
 
                 {/* 4. Estacionamento / Vagas (Dropdown elegante com ícone) */}
-                <div>
+                {/* <div>
                   <label
                     htmlFor={parkingId}
                     className="mb-1.5 flex items-center gap-1.5 text-xs font-bold text-ondjo-ink"
                   >
-                    <Car size={14} className="text-ondjo-blue" aria-hidden="true" />
+                    <Car
+                      size={14}
+                      className="text-ondjo-blue"
+                      aria-hidden="true"
+                    />
                     <span>Estacionamento</span>
                   </label>
                   <div className="relative">
@@ -689,8 +738,8 @@ export function SearchBar({
                       className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ondjo-muted"
                     />
                   </div>
-                </div>
-              </div>
+                </div> */}
+              </div> 
 
               {/* Ações Rápidas no Painel Avançado (Mobile) */}
               <div className="flex items-center justify-end gap-2 pt-1 sm:hidden">

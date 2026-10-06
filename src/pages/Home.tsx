@@ -1,5 +1,9 @@
-
-import { ArrowRight, Search, ShieldCheck, SlidersHorizontal } from "lucide-react";
+import {
+  ArrowRight,
+  Search,
+  ShieldCheck,
+  SlidersHorizontal,
+} from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useRef, useState } from "react";
 
@@ -15,9 +19,7 @@ import {
 import { TrustStrip } from "../components/TrustStrip";
 
 export function Home() {
-  const [filters, setFilters] = useState<SearchFilters>(
-    defaultSearchFilters(),
-  );
+  const [filters, setFilters] = useState<SearchFilters>(defaultSearchFilters());
 
   const searchRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
@@ -88,15 +90,13 @@ export function Home() {
 
             <h1 className="mx-auto mt-6 max-w-4xl text-4xl font-black leading-[1.12] tracking-tight text-white sm:text-5xl lg:text-6xl">
               O próximo capítulo da sua vida{" "}
-              <span className="text-blue-200">
-                começa aqui.
-              </span>
+              <span className="text-blue-200">começa aqui.</span>
             </h1>
 
             <p className="mx-auto mt-5 max-w-2xl text-sm leading-6 text-blue-100/85 sm:text-base sm:leading-7">
-              Encontre casas, apartamentos e terrenos de acordo com
-              a sua localização e o seu orçamento. Explore as opções
-              com tranquilidade e escolha ao seu ritmo.
+              Encontre casas, apartamentos e terrenos de acordo com a sua
+              localização e o seu orçamento. Explore as opções com tranquilidade
+              e escolha ao seu ritmo.
             </p>
 
             {/* CTA que conduz à pesquisa */}
@@ -124,9 +124,7 @@ export function Home() {
           {/* Pesquisa: elemento principal da página */}
           <motion.div
             ref={searchRef}
-            initial={
-              reduceMotion ? false : { opacity: 0, y: 16 }
-            }
+            initial={reduceMotion ? false : { opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{
               duration: 0.45,
@@ -188,10 +186,6 @@ export function Home() {
                 })}
               </div>
             </div>
-
-            <p className="mt-4 text-center text-xs leading-5 text-blue-100/65">
-              Pesquise gratuitamente e explore as opções disponíveis.
-            </p>
           </motion.div>
         </div>
       </section>
@@ -209,8 +203,8 @@ export function Home() {
             </h2>
 
             <p className="mt-2 max-w-xl text-sm leading-6 text-ondjo-muted">
-              Explore algumas opções e descubra o imóvel que
-              melhor corresponde ao que procura.
+              Explore algumas opções e descubra o imóvel que melhor corresponde
+              ao que procura.
             </p>
           </div>
 
