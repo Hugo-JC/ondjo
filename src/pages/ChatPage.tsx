@@ -310,6 +310,7 @@ export function ChatPage() {
   const activeChatIdRef = useRef<string>(activeChatId);
   const reduceMotion = useReducedMotion();
   const conversationSearchId = useId();
+  const conversationListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     activeChatIdRef.current = activeChatId;
@@ -500,6 +501,70 @@ export function ChatPage() {
       return conv.category === activeTab;
     });
   }, [conversations, searchQuery, activeTab]);
+  // Atalhos de teclado globais (/ ou Ctrl+K para pesquisar, Esc para fechar gaveta do imóvel)
+  useEffect(() => {
+    function handleGlobalKeyDown(e: KeyboardEvent) {
+      const target = e.target as HTMLElement;
+      const isInput = target.tagName === "INPUT" || target.tagName === "TEXTAREA";
+
+      if ((e.key === "/" && !isInput) || ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k")) {
+        e.preventDefault();
+        const searchInput = document.getElementById(conversationSearchId) as HTMLInputElement | null;
+        searchInput?.focus();
+        searchInput?.select();
+        return;
+      }
+
+      if (e.key === "Escape") {
+        if (propertyDrawerOpen) {
+          setPropertyDrawerOpen(false);
+        } else if (isInput) {
+          target.blur();
+        }
+      }
+    }
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [propertyDrawerOpen, conversationSearchId]);
+
+  // Navegação por teclado na lista de conversas (Setas, Home, End)
+  const handleConversationKeyDown = useCallback(
+    (e: React.KeyboardEvent, index: number) => {
+      if (!filteredConversations.length) return;
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        const nextIndex = (index + 1) % filteredConversations.length;
+        const nextConv = filteredConversations[nextIndex];
+        selectConversation(nextConv.id);
+        const buttons = conversationListRef.current?.querySelectorAll<HTMLButtonElement>('button[role="option"]');
+        buttons?.[nextIndex]?.focus();
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        const prevIndex = (index - 1 + filteredConversations.length) % filteredConversations.length;
+        const prevConv = filteredConversations[prevIndex];
+        selectConversation(prevConv.id);
+        const buttons = conversationListRef.current?.querySelectorAll<HTMLButtonElement>('button[role="option"]');
+        buttons?.[prevIndex]?.focus();
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        const firstConv = filteredConversations[0];
+        selectConversation(firstConv.id);
+        const buttons = conversationListRef.current?.querySelectorAll<HTMLButtonElement>('button[role="option"]');
+        buttons?.[0]?.focus();
+      } else if (e.key === "End") {
+        e.preventDefault();
+        const lastIndex = filteredConversations.length - 1;
+        const lastConv = filteredConversations[lastIndex];
+        selectConversation(lastConv.id);
+        const buttons = conversationListRef.current?.querySelectorAll<HTMLButtonElement>('button[role="option"]');
+        buttons?.[lastIndex]?.focus();
+      }
+    },
+    [filteredConversations, selectConversation]
+  );
+
 
   // Enviar mensagem pelo usuário com simulação de leitura em tempo real
   function handleSendMessage(textToSend?: string) {
@@ -1091,7 +1156,7 @@ export function ChatPage() {
                   </p>
                 </div>
               ) : (
-                filteredConversations.map((conv) => {
+                filteredConversations.map((conv, index) => {
                   const isCurrent = conv.id === activeChat.id;
                   const lastMessage = conv.messages[conv.messages.length - 1];
                   const linkedProp = conv.propertyId
@@ -1102,6 +1167,10 @@ export function ChatPage() {
                     <button
                       key={conv.id}
                       type="button"
+                      role="option"
+                      aria-selected={isCurrent}
+                      tabIndex={isCurrent ? 0 : -1}
+                      onKeyDown={(e) => handleConversationKeyDown(e, index)}
                       onClick={() => selectConversation(conv.id)}
                       className={[
                         "w-full text-left p-3.5 transition-colors focus-ring flex items-start gap-3 relative",
