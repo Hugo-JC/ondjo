@@ -17,8 +17,6 @@ import {
   Info,
   MapPin,
   MessageSquare,
-  PanelRightClose,
-  PanelRightOpen,
   RotateCcw,
   Search,
   Send,
@@ -311,8 +309,6 @@ export function ChatPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const activeChatIdRef = useRef<string>(activeChatId);
   const reduceMotion = useReducedMotion();
-  const messageInputId = useId();
-  const messagesLogId = useId();
   const conversationSearchId = useId();
 
   useEffect(() => {
