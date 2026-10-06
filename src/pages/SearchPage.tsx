@@ -12,7 +12,6 @@ import { motion, AnimatePresence } from "framer-motion";
 
 function readFilters(): SearchFilters {
   const params = new URLSearchParams(window.location.hash.split("?")[1] ?? "");
-  const amenitiesParam = params.get("amenities");
   return {
     query: params.get("query") ?? "",
     location: params.get("location") ?? "",
@@ -24,7 +23,6 @@ function readFilters(): SearchFilters {
     origin: params.get("origin") ?? "todos",
     bathrooms: params.get("bathrooms") ?? "",
     parking: params.get("parking") ?? "",
-    amenities: amenitiesParam ? amenitiesParam.split(",").filter(Boolean) : [],
   };
 }
 
@@ -64,14 +62,6 @@ export function SearchPage() {
         !filters.parking || property.parking >= Number(filters.parking);
       const matchesVerified =
         filters.origin === "verificados" ? Boolean(property.verified) : true;
-      const matchesAmenities =
-        !filters.amenities ||
-        filters.amenities.length === 0 ||
-        filters.amenities.every((amenity) =>
-          property.features?.some(
-            (f) => f.toLowerCase() === amenity.toLowerCase(),
-          ),
-        );
 
       return (
         matchesQuery &&
@@ -81,8 +71,7 @@ export function SearchPage() {
         matchesBedrooms &&
         matchesBathrooms &&
         matchesParking &&
-        matchesVerified &&
-        matchesAmenities
+        matchesVerified
       );
     });
 
@@ -97,9 +86,7 @@ export function SearchPage() {
   const apply = () => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
-      if (Array.isArray(value)) {
-        if (value.length > 0) params.set(key, value.join(","));
-      } else if (value) {
+      if (value) {
         params.set(key, String(value));
       }
     });
@@ -122,7 +109,6 @@ export function SearchPage() {
     filters.bathrooms && `${filters.bathrooms}+ WC`,
     filters.parking && `${filters.parking}+ Vagas`,
     filters.origin === "verificados" && "Verificados",
-    ...(filters.amenities || []),
   ].filter(Boolean) as string[];
 
   return (
@@ -138,7 +124,7 @@ export function SearchPage() {
           Encontre o seu imóvel
         </h1>
         <p className="mt-1 text-sm text-ondjo-muted">
-          Refine por localização, tipo de negócio, comodidades essenciais e preço.
+          Refine por localização, modalidade e características específicas.
         </p>
       </div>
 
@@ -266,7 +252,7 @@ export function SearchPage() {
               </h2>
               <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-ondjo-muted">
                 Tente ajustar a faixa de preço, selecionar outra localização ou
-                remover algum filtro avançado.
+                remover algum filtro.
               </p>
               <button
                 onClick={clear}
