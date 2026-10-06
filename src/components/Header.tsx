@@ -1,4 +1,5 @@
 import { Heart, Menu, UserRound } from "lucide-react";
+import { Logo } from "./Logo";
 
 export default function Header() {
   return (
@@ -15,9 +16,10 @@ export default function Header() {
 
         <a
           href="#/"
-          className="text-xl font-black tracking-tight text-ondjo-navy-deep"
+          aria-label="ONDJO — página inicial"
+          className="focus-ring inline-flex shrink-0 items-center rounded-xl"
         >
-          ONDJO
+          <Logo height={36} decorative />
         </a>
 
         <nav className="ml-auto flex items-center gap-1">

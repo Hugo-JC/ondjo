@@ -1,21 +1,41 @@
-import { Home } from "lucide-react";
+type LogoProps = {
+  /** "full" = símbolo + nome; "mark" = só o símbolo */
+  variant?: "full" | "mark";
+  /** "dark" = versão para fundos escuros (navy) */
+  theme?: "light" | "dark";
+  /** Altura em px; a largura segue a proporção do SVG */
+  height?: number;
+  /** true quando o link à volta já tem aria-label */
+  decorative?: boolean;
+  className?: string;
+};
 
-export function Logo({ compact = false }: { compact?: boolean }) {
+const FILES = {
+  full: { light: "/logo.svg", dark: "/logo-dark.svg", ratio: 259 / 64 },
+  mark: { light: "/icon.svg", dark: "/icon.svg", ratio: 1 },
+} as const;
+
+export function Logo({
+  variant = "full",
+  theme = "light",
+  height = 40,
+  decorative = false,
+  className,
+}: LogoProps) {
+  const file = FILES[variant];
+  const width = Math.round(height * file.ratio);
+
   return (
-    <div className="flex items-center gap-2.5" aria-label="ONDJO">
-      <span className="grid size-10 place-items-center rounded-xl bg-ondjo-navy text-white shadow-sm">
-        <Home size={21} strokeWidth={2.1} />
-      </span>
-      {!compact && (
-        <span className="leading-none">
-          <span className="block text-[20px] font-extrabold tracking-[0.12em] text-ondjo-navy">
-            ONDJO
-          </span>
-          <span className="mt-1 block text-[8px] font-bold uppercase tracking-[0.18em] text-ondjo-muted">
-            Encontrar. Escolher. Viver.
-          </span>
-        </span>
-      )}
-    </div>
+    <img
+      src={file[theme]}
+      alt={decorative ? "" : "ONDJO"}
+      width={width}
+      height={height}
+      style={{ height, width }}
+      draggable={false}
+      className={["block shrink-0 select-none", className]
+        .filter(Boolean)
+        .join(" ")}
+    />
   );
 }

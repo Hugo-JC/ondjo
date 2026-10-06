@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Building2, ChevronLeft, Plus, Sparkles, X } from "lucide-react";
+import { ChevronLeft, Plus, Sparkles, X } from "lucide-react";
+import { Logo } from "./Logo";
 import {
   accountNavigation,
   mainNavigation,
@@ -140,19 +141,12 @@ export default function Sidebar({
               href="#/"
               aria-label="ONDJO — página inicial"
               onClick={() => setMobileOpen(false)}
-              className="group flex min-w-0 items-center gap-3 select-none"
+              className="focus-ring flex min-w-0 flex-col gap-1.5 rounded-xl select-none"
             >
-              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-ondjo-navy text-white shadow-sm">
-                <Building2 size={21} strokeWidth={2.2} aria-hidden="true" />
+              <Logo height={34} decorative />
+              <span className="block truncate text-[10px] font-semibold uppercase tracking-[0.16em] text-ondjo-muted">
+                Encontre o seu lugar
               </span>
-              <div className="min-w-0 overflow-hidden">
-                <span className="block text-lg font-black tracking-tight text-ondjo-navy transition-colors group-hover:text-ondjo-blue">
-                  ONDJO
-                </span>
-                <span className="block truncate text-[10px] font-semibold uppercase tracking-[0.16em] text-ondjo-muted">
-                  Encontre o seu lugar
-                </span>
-              </div>
             </a>
           )}
 
