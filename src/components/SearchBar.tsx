@@ -2,7 +2,6 @@ import {
   Bath,
   Building2,
   Car,
-  Check,
   ChevronDown,
   Layers,
   MapPin,
@@ -10,17 +9,12 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   X,
-  Zap,
 } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { locations, properties } from "../data/properties";
 
-export type SearchPurpose =
-  | "comprar"
-  | "arrendar"
-  | "empreendimentos"
-  | "curta-estadia";
+export type SearchPurpose = "comprar" | "arrendar";
 
 export type SearchOrigin = "todos" | "verificados" | "particulares" | "profissionais";
 
@@ -35,7 +29,6 @@ export interface SearchFilters {
   origin?: string;
   bathrooms?: string;
   parking?: string;
-  amenities?: string[];
 }
 
 interface SearchBarProps {
@@ -56,21 +49,17 @@ const emptyFilters: SearchFilters = {
   origin: "todos",
   bathrooms: "",
   parking: "",
-  amenities: [],
 };
 
-export const PURPOSE_OPTIONS: { id: SearchPurpose; label: string; badge?: string }[] = [
+export const PURPOSE_OPTIONS: { id: SearchPurpose; label: string }[] = [
   { id: "comprar", label: "Comprar" },
   { id: "arrendar", label: "Arrendar" },
-  { id: "empreendimentos", label: "Empreendimentos", badge: "Novos" },
-  { id: "curta-estadia", label: "Curta Estadia" },
 ];
 
 export const ORIGIN_OPTIONS: { id: SearchOrigin; label: string; icon?: typeof ShieldCheck }[] = [
   { id: "todos", label: "Todos os anúncios" },
   { id: "verificados", label: "Verificados ONDJO", icon: ShieldCheck },
   { id: "particulares", label: "Direto c/ Proprietário" },
-  { id: "profissionais", label: "Profissionais & Agências" },
 ];
 
 export const PROPERTY_TYPES = [
@@ -91,55 +80,23 @@ export const BEDROOM_OPTIONS = [
 ];
 
 export const BATHROOM_OPTIONS = [
-  { value: "", label: "Qualquer" },
-  { value: "1", label: "1+ wc" },
-  { value: "2", label: "2+ wc" },
-  { value: "3", label: "3+ wc" },
+  { value: "", label: "Qualquer número" },
+  { value: "1", label: "1+ casa de banho" },
+  { value: "2", label: "2+ casas de banho" },
+  { value: "3", label: "3+ casas de banho" },
+  { value: "4", label: "4+ casas de banho" },
 ];
 
 export const PARKING_OPTIONS = [
   { value: "", label: "Qualquer" },
-  { value: "1", label: "1+ vaga" },
-  { value: "2", label: "2+ vagas" },
-];
-
-export const LUANDA_AMENITIES = [
-  { id: "Gerador", label: "Gerador" },
-  { id: "Segurança 24h", label: "Segurança 24h" },
-  { id: "Água canalizada", label: "Tanque / Água" },
-  { id: "Ar condicionado", label: "Ar Condicionado" },
-  { id: "Garagem", label: "Garagem privativa" },
-  { id: "Piscina", label: "Piscina" },
-  { id: "Cozinha equipada", label: "Cozinha equipada" },
-  { id: "Varanda", label: "Varanda" },
-];
-
-const BUY_PRESETS = [
-  { label: "Até 10 milhões Kz", value: "10000000" },
-  { label: "Até 25 milhões Kz", value: "25000000" },
-  { label: "Até 50 milhões Kz", value: "50000000" },
-  { label: "Até 100 milhões Kz", value: "100000000" },
-  { label: "Até 250 milhões Kz", value: "250000000" },
-  { label: "Até 500 milhões Kz", value: "500000000" },
-];
-
-const RENT_PRESETS = [
-  { label: "Até 150 mil Kz/mês", value: "150000" },
-  { label: "Até 300 mil Kz/mês", value: "300000" },
-  { label: "Até 600 mil Kz/mês", value: "600000" },
-  { label: "Até 1,2 milhões Kz/mês", value: "1200000" },
-  { label: "Até 2,5 milhões Kz/mês", value: "2500000" },
+  { value: "1", label: "1+ vaga de garagem" },
+  { value: "2", label: "2+ vagas de garagem" },
+  { value: "3", label: "3+ vagas de garagem" },
 ];
 
 export function defaultSearchFilters(): SearchFilters {
   return { ...emptyFilters };
 }
-
-const formatKzValue = (val: string) => {
-  const num = Number(val);
-  if (!num || Number.isNaN(num)) return "";
-  return `${new Intl.NumberFormat("pt-AO").format(num)} Kz`;
-};
 
 export function SearchBar({
   value,
@@ -158,10 +115,13 @@ export function SearchBar({
   const suggestionsId = useId();
   const advancedId = useId();
   const typeId = useId();
-  const priceId = useId();
   const bedroomsId = useId();
+  const bathroomsId = useId();
+  const parkingId = useId();
+  const minPriceId = useId();
+  const maxPriceId = useId();
 
-  // Fechar dropdown de sugestões ao clicar fora
+  // Fechar dropdown de localização ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event: PointerEvent) => {
       if (
@@ -182,16 +142,8 @@ export function SearchBar({
 
   const currentPurpose = value.purpose || "comprar";
   const currentOrigin = value.origin || "todos";
-  const currentAmenities = value.amenities ?? [];
 
-  const toggleAmenity = (amenityId: string) => {
-    const next = currentAmenities.includes(amenityId)
-      ? currentAmenities.filter((item) => item !== amenityId)
-      : [...currentAmenities, amenityId];
-    set("amenities", next);
-  };
-
-  // Contagem dinâmica de imóveis que coincidem com os filtros em tempo real
+  // Contagem dinâmica de imóveis que correspondem aos filtros
   const matchingCount = useMemo(() => {
     const q = (value.query || value.location).trim().toLowerCase();
     const min = Number(value.minPrice) || 0;
@@ -221,14 +173,6 @@ export function SearchBar({
       const matchVerified =
         currentOrigin === "verificados" ? Boolean(item.verified) : true;
 
-      const matchAmenities =
-        currentAmenities.length === 0 ||
-        currentAmenities.every((amenity) =>
-          item.features?.some(
-            (f) => f.toLowerCase() === amenity.toLowerCase(),
-          ),
-        );
-
       return (
         matchQ &&
         matchLoc &&
@@ -237,18 +181,16 @@ export function SearchBar({
         matchBed &&
         matchBath &&
         matchPark &&
-        matchVerified &&
-        matchAmenities
+        matchVerified
       );
     }).length;
-  }, [value, currentOrigin, currentAmenities]);
+  }, [value, currentOrigin]);
 
   const activeAdvancedCount = [
     value.minPrice,
     value.maxPrice,
     value.bathrooms,
     value.parking,
-    currentAmenities.length > 0,
     currentOrigin !== "todos",
   ].filter(Boolean).length;
 
@@ -258,12 +200,10 @@ export function SearchBar({
     .filter((loc) => loc.toLowerCase().includes(searchText.trim().toLowerCase()))
     .slice(0, 6);
 
-  const pricePresets = currentPurpose === "arrendar" ? RENT_PRESETS : BUY_PRESETS;
-
   const clearAllFilters = () => {
     onChange({
       ...emptyFilters,
-      purpose: currentPurpose, // mantém a intenção de negócio selecionada
+      purpose: currentPurpose,
     });
     setLocationOpen(false);
   };
@@ -285,12 +225,15 @@ export function SearchBar({
       ].join(" ")}
       aria-label="Pesquisa de imóveis ONDJO"
     >
-      {/* 1. TABS SUPERIORES SEGMENTADAS (Comprar, Arrendar, Empreendimentos, Curta Estadia) */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-ondjo-border/60 pb-3.5">
+      {/* ========================================================
+          GRUPO 1: INTENÇÃO & ORIGEM (Comprar / Arrendar + Verificação)
+         ======================================================== */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-ondjo-border/60 pb-3">
+        {/* Tabs de Modo: Apenas Comprar e Arrendar */}
         <div
           role="tablist"
-          aria-label="Tipo de negócio"
-          className="inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-xl bg-ondjo-bg p-1 text-xs font-bold text-ondjo-muted"
+          aria-label="Modalidade de negócio"
+          className="inline-flex items-center gap-1 rounded-xl bg-ondjo-bg p-1 text-xs font-bold text-ondjo-muted"
         >
           {PURPOSE_OPTIONS.map((opt) => {
             const isSelected = currentPurpose === opt.id;
@@ -302,7 +245,7 @@ export function SearchBar({
                 aria-selected={isSelected}
                 onClick={() => set("purpose", opt.id)}
                 className={[
-                  "relative flex min-h-[38px] shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-1.5 transition-all outline-none",
+                  "relative flex min-h-[38px] items-center gap-1.5 rounded-lg px-4 py-1.5 transition-all outline-none",
                   "focus-visible:ring-2 focus-visible:ring-ondjo-blue focus-visible:ring-offset-1",
                   isSelected
                     ? "bg-white font-extrabold text-ondjo-navy shadow-sm"
@@ -310,17 +253,12 @@ export function SearchBar({
                 ].join(" ")}
               >
                 <span>{opt.label}</span>
-                {opt.badge && (
-                  <span className="rounded-full bg-ondjo-blue-soft px-1.5 py-0.5 text-[10px] font-bold text-ondjo-blue">
-                    {opt.badge}
-                  </span>
-                )}
               </button>
             );
           })}
         </div>
 
-        {/* Badges Rápidas: Verificados e Particulares */}
+        {/* Toggles de Anúncios Verificados e Particulares */}
         <div className="flex flex-wrap items-center gap-1.5">
           {ORIGIN_OPTIONS.map((orig) => {
             const isSelected = currentOrigin === orig.id;
@@ -331,7 +269,7 @@ export function SearchBar({
                 type="button"
                 onClick={() => set("origin", orig.id)}
                 className={[
-                  "inline-flex min-h-[32px] items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold transition-all",
+                  "inline-flex min-h-[34px] items-center gap-1.5 rounded-lg border px-3 py-1 text-xs font-semibold transition-all",
                   "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ondjo-blue",
                   isSelected
                     ? "border-ondjo-blue bg-ondjo-blue-soft/70 text-ondjo-blue font-bold shadow-xs"
@@ -352,17 +290,20 @@ export function SearchBar({
         </div>
       </div>
 
-      {/* 2. BARRA PRINCIPAL: GRID RESPONSIVA DE CAMPOS ESTATÉGICOS */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.1fr)_auto]">
-        {/* Campo 1: Localização Inteligente (Bairro / Município) */}
+      {/* ========================================================
+          GRUPO 2: CAMPOS PRINCIPAIS BEM AGRUPADOS
+          (Localização + Tipo de Imóvel + Tipologia + Botão de Busca)
+         ======================================================== */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.8fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_auto]">
+        {/* Campo 1: Localização com Autocomplete e Atalhos Rápidos */}
         <div ref={locationRef} className="relative min-w-0">
           <label
             htmlFor={locationId}
             className="mb-1.5 flex items-center justify-between text-xs font-bold text-ondjo-ink"
           >
-            <span>Onde quer morar?</span>
+            <span>Onde procura?</span>
             <span className="text-[11px] font-normal text-ondjo-muted">
-              Luanda & Províncias
+              Luanda & Regiões
             </span>
           </label>
 
@@ -420,7 +361,7 @@ export function SearchBar({
             )}
           </div>
 
-          {/* Popover de Sugestões / Zonas Populares */}
+          {/* Popover de Localizações */}
           <AnimatePresence>
             {locationOpen && (
               <motion.div
@@ -432,7 +373,7 @@ export function SearchBar({
                 className="absolute inset-x-0 top-full z-40 mt-2 max-h-72 overflow-y-auto rounded-2xl border border-ondjo-border bg-white p-2 shadow-[0_16px_36px_rgba(16,42,67,0.16)]"
               >
                 <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-ondjo-muted">
-                  {searchText ? "Zonas correspondentes" : "Zonas em destaque em Luanda"}
+                  {searchText ? "Zonas correspondentes" : "Zonas populares em Luanda"}
                 </div>
 
                 <div className="mt-1 space-y-0.5">
@@ -458,12 +399,12 @@ export function SearchBar({
                     ))
                   ) : (
                     <div className="px-3 py-4 text-center text-xs text-ondjo-muted">
-                      Nenhuma zona específica encontrada. Carregue em "Pesquisar" para buscar pelo texto digitado.
+                      Nenhuma zona específica encontrada. Clique em "Pesquisar" para buscar pelo texto.
                     </div>
                   )}
                 </div>
 
-                {/* Atalhos rápidos em chips */}
+                {/* Atalhos Rápidos */}
                 <div className="mt-2 border-t border-ondjo-border/60 pt-2 px-1">
                   <div className="mb-1 text-[10px] font-bold uppercase text-ondjo-muted">
                     Atalhos frequentes:
@@ -555,50 +496,7 @@ export function SearchBar({
           </div>
         </div>
 
-        {/* Campo 4: Orçamento Máximo */}
-        <div className="min-w-0">
-          <label
-            htmlFor={priceId}
-            className="mb-1.5 flex items-center justify-between text-xs font-bold text-ondjo-ink"
-          >
-            <span>Orçamento</span>
-            <span className="text-[11px] font-normal text-ondjo-muted">
-              {currentPurpose === "arrendar" ? "Mensal" : "Valor total"}
-            </span>
-          </label>
-
-          <div className="relative">
-            <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-black text-ondjo-blue">
-              Kz
-            </div>
-            <select
-              id={priceId}
-              value={value.maxPrice}
-              onChange={(e) => set("maxPrice", e.target.value)}
-              className="h-12 w-full appearance-none rounded-xl border border-ondjo-border bg-white pl-9 pr-9 text-sm font-semibold text-ondjo-ink outline-none transition-colors hover:border-ondjo-muted focus-visible:border-ondjo-blue focus-visible:ring-2 focus-visible:ring-ondjo-blue focus-visible:ring-offset-1"
-            >
-              <option value="">Qualquer valor</option>
-              {value.maxPrice &&
-                !pricePresets.some((p) => p.value === value.maxPrice) && (
-                  <option value={value.maxPrice}>
-                    Até {formatKzValue(value.maxPrice)}
-                  </option>
-                )}
-              {pricePresets.map((preset) => (
-                <option key={preset.value} value={preset.value}>
-                  {preset.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              size={16}
-              aria-hidden="true"
-              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ondjo-muted"
-            />
-          </div>
-        </div>
-
-        {/* Campo 5: Botão CTA com Contador Dinâmico de Resultados */}
+        {/* Campo 4: Botão de Ação com Contador Dinâmico */}
         <div className="flex flex-col justify-end">
           <button
             type="submit"
@@ -616,7 +514,9 @@ export function SearchBar({
         </div>
       </div>
 
-      {/* 3. BARRA DE FILTROS AVANÇADOS / TOGGLES */}
+      {/* ========================================================
+          BARRA DE EXPANSÃO: MAIS FILTROS & LIMPAR
+         ======================================================== */}
       <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2 border-t border-ondjo-border/70 pt-3">
         <button
           type="button"
@@ -632,7 +532,7 @@ export function SearchBar({
           ].join(" ")}
         >
           <SlidersHorizontal size={15} aria-hidden="true" />
-          <span>{advancedOpen ? "Ocultar filtros avançados" : "Mais filtros (Comodidades, WC, Vagas)"}</span>
+          <span>{advancedOpen ? "Menos filtros" : "Mais filtros (Preço, WC, Garagem)"}</span>
 
           {activeAdvancedCount > 0 && (
             <span className="inline-flex size-5 items-center justify-center rounded-full bg-ondjo-blue text-[11px] font-bold text-white">
@@ -647,7 +547,6 @@ export function SearchBar({
           />
         </button>
 
-        {/* Resumo ou Limpar */}
         <div className="flex items-center gap-2">
           {matchingCount > 0 && (
             <span className="hidden text-xs text-ondjo-muted sm:inline">
@@ -668,7 +567,10 @@ export function SearchBar({
         </div>
       </div>
 
-      {/* 4. PAINEL EXPANSÍVEL: DETALHES AVANÇADOS & COMODIDADES DE LUANDA */}
+      {/* ========================================================
+          GRUPO 3: FILTROS AVANÇADOS HARMONIOSAMENTE ORGANIZADOS
+          (Preço Mín/Máx + Dropdowns de Casas de Banho e Vagas)
+         ======================================================== */}
       <AnimatePresence initial={false}>
         {advancedOpen && (
           <motion.div
@@ -676,165 +578,132 @@ export function SearchBar({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: reduceMotion ? 0 : 0.25, ease: "easeInOut" }}
+            transition={{ duration: reduceMotion ? 0 : 0.22, ease: "easeInOut" }}
             className="overflow-hidden"
           >
             <div className="mt-3.5 space-y-4 rounded-2xl border border-ondjo-border/80 bg-ondjo-bg/60 p-4">
-              {/* Linha 1: Preço Customizado, Casas de Banho e Vagas */}
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {/* Preço Mínimo */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {/* 1. Preço Mínimo (Kz) */}
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-ondjo-ink">
+                  <label
+                    htmlFor={minPriceId}
+                    className="mb-1.5 block text-xs font-bold text-ondjo-ink"
+                  >
                     Preço mínimo (Kz)
                   </label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={value.minPrice}
-                    onChange={(e) => set("minPrice", e.target.value.replace(/\D/g, ""))}
-                    placeholder="Ex.: 50 000 000"
-                    className="h-11 w-full rounded-xl border border-ondjo-border bg-white px-3 text-xs font-semibold text-ondjo-ink outline-none transition-colors hover:border-ondjo-muted focus-visible:border-ondjo-blue focus-visible:ring-2 focus-visible:ring-ondjo-blue/20"
-                  />
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-ondjo-muted">
+                      Kz
+                    </span>
+                    <input
+                      id={minPriceId}
+                      type="text"
+                      inputMode="numeric"
+                      value={value.minPrice}
+                      onChange={(e) => set("minPrice", e.target.value.replace(/\D/g, ""))}
+                      placeholder="Sem mínimo"
+                      className="h-11 w-full rounded-xl border border-ondjo-border bg-white pl-9 pr-3 text-xs font-semibold text-ondjo-ink outline-none transition-colors hover:border-ondjo-muted focus-visible:border-ondjo-blue focus-visible:ring-2 focus-visible:ring-ondjo-blue/20"
+                    />
+                  </div>
                 </div>
 
-                {/* Preço Máximo Preciso */}
+                {/* 2. Preço Máximo (Kz) */}
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-ondjo-ink">
+                  <label
+                    htmlFor={maxPriceId}
+                    className="mb-1.5 block text-xs font-bold text-ondjo-ink"
+                  >
                     Preço máximo (Kz)
                   </label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={value.maxPrice}
-                    onChange={(e) => set("maxPrice", e.target.value.replace(/\D/g, ""))}
-                    placeholder="Sem limite"
-                    className="h-11 w-full rounded-xl border border-ondjo-border bg-white px-3 text-xs font-semibold text-ondjo-ink outline-none transition-colors hover:border-ondjo-muted focus-visible:border-ondjo-blue focus-visible:ring-2 focus-visible:ring-ondjo-blue/20"
-                  />
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-ondjo-muted">
+                      Kz
+                    </span>
+                    <input
+                      id={maxPriceId}
+                      type="text"
+                      inputMode="numeric"
+                      value={value.maxPrice}
+                      onChange={(e) => set("maxPrice", e.target.value.replace(/\D/g, ""))}
+                      placeholder="Sem máximo"
+                      className="h-11 w-full rounded-xl border border-ondjo-border bg-white pl-9 pr-3 text-xs font-semibold text-ondjo-ink outline-none transition-colors hover:border-ondjo-muted focus-visible:border-ondjo-blue focus-visible:ring-2 focus-visible:ring-ondjo-blue/20"
+                    />
+                  </div>
                 </div>
 
-                {/* Casas de Banho */}
+                {/* 3. Casas de Banho (Dropdown elegante com ícone) */}
                 <div>
-                  <label className="mb-1 flex items-center gap-1.5 text-xs font-bold text-ondjo-ink">
+                  <label
+                    htmlFor={bathroomsId}
+                    className="mb-1.5 flex items-center gap-1.5 text-xs font-bold text-ondjo-ink"
+                  >
                     <Bath size={14} className="text-ondjo-blue" aria-hidden="true" />
                     <span>Casas de banho</span>
                   </label>
-                  <div className="flex gap-1.5">
-                    {BATHROOM_OPTIONS.map((opt) => {
-                      const isSel = (value.bathrooms || "") === opt.value;
-                      return (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          onClick={() => set("bathrooms", opt.value)}
-                          className={[
-                            "flex-1 min-h-[42px] rounded-xl border text-xs font-bold transition-all",
-                            "focus-visible:outline-2 focus-visible:outline-ondjo-blue",
-                            isSel
-                              ? "border-ondjo-blue bg-ondjo-blue-soft text-ondjo-blue"
-                              : "border-ondjo-border bg-white text-ondjo-ink hover:bg-ondjo-bg",
-                          ].join(" ")}
-                        >
+                  <div className="relative">
+                    <select
+                      id={bathroomsId}
+                      value={value.bathrooms || ""}
+                      onChange={(e) => set("bathrooms", e.target.value)}
+                      className="h-11 w-full appearance-none rounded-xl border border-ondjo-border bg-white pl-3 pr-9 text-xs font-semibold text-ondjo-ink outline-none transition-colors hover:border-ondjo-muted focus-visible:border-ondjo-blue focus-visible:ring-2 focus-visible:ring-ondjo-blue focus-visible:ring-offset-1"
+                    >
+                      {BATHROOM_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
                           {opt.label}
-                        </button>
-                      );
-                    })}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      size={15}
+                      aria-hidden="true"
+                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ondjo-muted"
+                    />
                   </div>
                 </div>
 
-                {/* Vagas de Estacionamento */}
+                {/* 4. Estacionamento / Vagas (Dropdown elegante com ícone) */}
                 <div>
-                  <label className="mb-1 flex items-center gap-1.5 text-xs font-bold text-ondjo-ink">
+                  <label
+                    htmlFor={parkingId}
+                    className="mb-1.5 flex items-center gap-1.5 text-xs font-bold text-ondjo-ink"
+                  >
                     <Car size={14} className="text-ondjo-blue" aria-hidden="true" />
                     <span>Estacionamento</span>
                   </label>
-                  <div className="flex gap-1.5">
-                    {PARKING_OPTIONS.map((opt) => {
-                      const isSel = (value.parking || "") === opt.value;
-                      return (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          onClick={() => set("parking", opt.value)}
-                          className={[
-                            "flex-1 min-h-[42px] rounded-xl border text-xs font-bold transition-all",
-                            "focus-visible:outline-2 focus-visible:outline-ondjo-blue",
-                            isSel
-                              ? "border-ondjo-blue bg-ondjo-blue-soft text-ondjo-blue"
-                              : "border-ondjo-border bg-white text-ondjo-ink hover:bg-ondjo-bg",
-                          ].join(" ")}
-                        >
-                          {opt.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* Linha 2: Comodidades Críticas de Luanda (Gerador, Tanque de Água, Segurança, etc.) */}
-              <div className="border-t border-ondjo-border/60 pt-3">
-                <div className="mb-2 flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-ondjo-ink">
-                    <Zap size={14} className="text-ondjo-blue" aria-hidden="true" />
-                    <span>Comodidades Essenciais em Luanda</span>
-                  </div>
-                  {currentAmenities.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => set("amenities", [])}
-                      className="text-[11px] font-semibold text-ondjo-muted hover:text-ondjo-blue"
+                  <div className="relative">
+                    <select
+                      id={parkingId}
+                      value={value.parking || ""}
+                      onChange={(e) => set("parking", e.target.value)}
+                      className="h-11 w-full appearance-none rounded-xl border border-ondjo-border bg-white pl-3 pr-9 text-xs font-semibold text-ondjo-ink outline-none transition-colors hover:border-ondjo-muted focus-visible:border-ondjo-blue focus-visible:ring-2 focus-visible:ring-ondjo-blue focus-visible:ring-offset-1"
                     >
-                      Limpar ({currentAmenities.length})
-                    </button>
-                  )}
-                </div>
-
-                <div className="flex flex-wrap gap-1.5">
-                  {LUANDA_AMENITIES.map((am) => {
-                    const isChecked = currentAmenities.includes(am.id);
-                    return (
-                      <button
-                        key={am.id}
-                        type="button"
-                        onClick={() => toggleAmenity(am.id)}
-                        aria-pressed={isChecked}
-                        className={[
-                          "inline-flex min-h-[36px] items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all",
-                          "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ondjo-blue",
-                          isChecked
-                            ? "border-ondjo-blue bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-xs"
-                            : "border-ondjo-border bg-white text-ondjo-ink hover:border-ondjo-muted hover:bg-ondjo-bg",
-                        ].join(" ")}
-                      >
-                        <span
-                          className={[
-                            "flex size-4 items-center justify-center rounded border transition-colors",
-                            isChecked
-                              ? "border-ondjo-blue bg-ondjo-blue text-white"
-                              : "border-ondjo-border bg-transparent",
-                          ].join(" ")}
-                        >
-                          {isChecked && <Check size={11} strokeWidth={3} />}
-                        </span>
-                        <span>{am.label}</span>
-                      </button>
-                    );
-                  })}
+                      {PARKING_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      size={15}
+                      aria-hidden="true"
+                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ondjo-muted"
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* Botão de Aplicar no painel avançado (Mobile) */}
+              {/* Ações Rápidas no Painel Avançado (Mobile) */}
               <div className="flex items-center justify-end gap-2 pt-1 sm:hidden">
                 <button
                   type="button"
                   onClick={() => setAdvancedOpen(false)}
-                  className="rounded-xl border border-ondjo-border bg-white px-4 py-2.5 text-xs font-bold text-ondjo-ink"
+                  className="rounded-xl border border-ondjo-border bg-white px-4 py-2 text-xs font-bold text-ondjo-ink"
                 >
-                  Concluir
+                  Fechar
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-ondjo-blue px-4 py-2.5 text-xs font-bold text-white"
+                  className="rounded-xl bg-ondjo-blue px-4 py-2 text-xs font-bold text-white"
                 >
                   Ver {matchingCount} imóveis
                 </button>
