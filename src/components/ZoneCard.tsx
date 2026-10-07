@@ -1,6 +1,7 @@
 import { ArrowUpRight, Building2, MapPin } from "lucide-react";
 import { formatKz } from "../data/properties";
 import { formatCount, type ZoneSummary } from "../data/zones";
+import { getOptimizedImageUrl, getImageSrcSet } from "../utils/images";
 
 const ZONE_METADATA: Record<
   string,
@@ -92,10 +93,12 @@ export function ZoneCard({ zone }: { zone: ZoneSummary }) {
       aria-label={`Explorar ${count} imóveis em ${name}, a partir de ${formatKz(minPrice)}`}
       className="focus-ring group relative flex h-68 sm:h-72 w-full flex-col justify-between overflow-hidden rounded-[22px] border border-ondjo-border bg-ondjo-navy text-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-400/50 hover:shadow-xl hover:shadow-slate-900/15 active:scale-[0.99]"
     >
-      {/* Imagem de Fundo com Zoom Suave */}
-      <div className="absolute inset-0 overflow-hidden">
+      {/* Imagem de Fundo com Formatos Modernos (WebP/AVIF), SrcSet e Carregamento Diferido */}
+      <div className="absolute inset-0 overflow-hidden bg-ondjo-navy">
         <img
-          src={meta.image}
+          src={getOptimizedImageUrl(meta.image, 640, 70)}
+          srcSet={getImageSrcSet(meta.image, [320, 480, 640, 800], 70)}
+          sizes="(max-width: 640px) 78vw, (max-width: 1024px) 50vw, 300px"
           alt=""
           aria-hidden="true"
           loading="lazy"
