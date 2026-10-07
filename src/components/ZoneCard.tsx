@@ -2,7 +2,6 @@ import { ArrowUpRight, Building2, MapPin } from "lucide-react";
 import { formatKz } from "../data/properties";
 import { formatCount, type ZoneSummary } from "../data/zones";
 
-// Imagens e destaques contextuais para cada bairro de Luanda
 const ZONE_METADATA: Record<
   string,
   { image: string; tag: string; description: string }
@@ -70,7 +69,7 @@ export function ZoneCard({ zone }: { zone: ZoneSummary }) {
 
   if (!hasProperties) {
     return (
-      <div className="flex h-64 flex-col justify-between overflow-hidden rounded-2xl border border-dashed border-ondjo-border bg-slate-50/70 p-5 text-slate-500">
+      <div className="flex h-64 sm:h-72 flex-col justify-between overflow-hidden rounded-2xl border border-dashed border-ondjo-border bg-slate-50/70 p-4 sm:p-5 text-slate-500">
         <div>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-200/70 px-2.5 py-0.5 text-[10px] font-bold text-slate-600">
             <Building2 size={12} /> Em breve
@@ -91,34 +90,35 @@ export function ZoneCard({ zone }: { zone: ZoneSummary }) {
     <a
       href={`#/pesquisar?location=${encodeURIComponent(name)}`}
       aria-label={`Explorar ${count} imóveis em ${name}, a partir de ${formatKz(minPrice)}`}
-      className="focus-ring group relative flex h-72 flex-col justify-between overflow-hidden rounded-[22px] border border-ondjo-border bg-ondjo-navy text-white shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-blue-400/50 hover:shadow-xl hover:shadow-slate-900/15"
+      className="focus-ring group relative flex h-68 sm:h-72 w-full flex-col justify-between overflow-hidden rounded-[22px] border border-ondjo-border bg-ondjo-navy text-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-400/50 hover:shadow-xl hover:shadow-slate-900/15 active:scale-[0.99]"
     >
-      {/* Imagem de Fundo com Zoom Suave no Hover */}
+      {/* Imagem de Fundo com Zoom Suave */}
       <div className="absolute inset-0 overflow-hidden">
         <img
           src={meta.image}
           alt=""
           aria-hidden="true"
           loading="lazy"
-          className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+          decoding="async"
+          className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
         />
         {/* Camada Dupla de Gradiente para Máxima Legibilidade (WCAG AAA) */}
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/50 to-slate-900/30"
+          className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/55 to-slate-900/25"
         />
       </div>
 
       {/* Topo do Card: Badge de Imóveis + Botão com Seta */}
       <div className="relative z-10 flex items-center justify-between p-4 sm:p-5">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/40 px-3 py-1 text-xs font-bold text-white backdrop-blur-md">
-          <MapPin size={12} className="text-ondjo-blue-soft" aria-hidden="true" />
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/45 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-md">
+          <MapPin size={12} className="text-blue-300" aria-hidden="true" />
           <span>{formatCount(count)}</span>
         </span>
 
         <span
           aria-hidden="true"
-          className="grid size-9 place-items-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-md transition-all duration-300 group-hover:bg-ondjo-blue group-hover:text-white group-hover:rotate-45"
+          className="grid size-9 place-items-center rounded-full border border-white/20 bg-white/15 text-white backdrop-blur-md transition-all duration-300 group-hover:bg-ondjo-blue group-hover:text-white group-hover:rotate-45"
         >
           <ArrowUpRight size={16} />
         </span>
@@ -130,7 +130,7 @@ export function ZoneCard({ zone }: { zone: ZoneSummary }) {
           {meta.tag}
         </span>
 
-        <h3 className="mt-1 text-xl font-black tracking-tight text-white transition-colors group-hover:text-blue-100 sm:text-2xl">
+        <h3 className="mt-1 text-lg font-black tracking-tight text-white transition-colors group-hover:text-blue-100 sm:text-2xl">
           {name}
         </h3>
 
@@ -138,12 +138,12 @@ export function ZoneCard({ zone }: { zone: ZoneSummary }) {
           {meta.description}
         </p>
 
-        <div className="mt-3.5 flex items-center justify-between border-t border-white/15 pt-3">
+        <div className="mt-3 flex items-center justify-between border-t border-white/15 pt-2.5 sm:mt-3.5 sm:pt-3">
           <div>
             <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-300">
-              Preço de partida
+              A partir de
             </span>
-            <strong className="block text-sm font-black text-white">
+            <strong className="block text-xs font-black text-white sm:text-sm">
               {formatKz(minPrice)}
             </strong>
           </div>
