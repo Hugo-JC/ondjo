@@ -1,7 +1,6 @@
 import {
   Bath,
   Building2,
-  Car,
   ChevronDown,
   Layers,
   MapPin,
@@ -130,7 +129,6 @@ export function SearchBar({
   const typeId = useId();
   const bedroomsId = useId();
   const bathroomsId = useId();
-  const parkingId = useId();
   const minPriceId = useId();
   const maxPriceId = useId();
 
