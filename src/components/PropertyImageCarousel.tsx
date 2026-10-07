@@ -6,6 +6,7 @@ import {
   X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { getOptimizedImageUrl, getImageSrcSet } from "../utils/images";
 
 interface PropertyImageCarouselProps {
   images: string[];
@@ -33,6 +34,7 @@ export function PropertyImageCarousel({
 
   const safeImages = images && images.length > 0 ? images : ["/placeholder.jpg"];
   const total = safeImages.length;
+  const currentImage = safeImages[currentIndex];
 
   const nextImage = useCallback(
     (e?: React.MouseEvent) => {
@@ -63,15 +65,13 @@ export function PropertyImageCarousel({
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (!touchStartX.current || !touchEndX.current) return;
     const distance = touchStartX.current - touchEndX.current;
-    const isSwipe = Math.abs(distance) > 40; // minimum threshold
+    const isSwipe = Math.abs(distance) > 40;
 
     if (isSwipe) {
       e.stopPropagation();
       if (distance > 0) {
-        // swipe left -> next
         nextImage();
       } else {
-        // swipe right -> prev
         prevImage();
       }
     }
@@ -80,7 +80,6 @@ export function PropertyImageCarousel({
     touchEndX.current = null;
   };
 
-  // Keyboard navigation when lightbox is open
   useEffect(() => {
     if (!lightboxOpen) return;
 
@@ -106,41 +105,45 @@ export function PropertyImageCarousel({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* Imagem atual */}
+        {/* Imagem otimizada: WebP/AVIF via Unsplash, srcSet responsivo, decoding assíncrono */}
         <img
-          src={safeImages[currentIndex]}
+          src={getOptimizedImageUrl(currentImage, priority ? 800 : 640)}
+          srcSet={getImageSrcSet(currentImage, [360, 640, 960])}
+          sizes="(max-width: 640px) 85vw, (max-width: 1024px) 50vw, 320px)"
           alt={`${title} - Foto ${currentIndex + 1} de ${total}`}
           loading={priority ? "eager" : "lazy"}
+          decoding="async"
+          {...(priority ? { fetchPriority: "high" as const } : { fetchPriority: "low" as const })}
           className="h-full w-full object-cover transition duration-500 ease-out"
         />
 
         {/* Gradiente subtil na base */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-black/55 to-transparent" />
 
-        {/* Controlos de navegação (desktop hover ou touch) */}
+        {/* Controlos de navegação */}
         {total > 1 && (
           <>
             <button
               type="button"
               onClick={prevImage}
               aria-label="Imagem anterior"
-              className="absolute left-2 top-1/2 -translate-y-1/2 grid size-7 place-items-center rounded-full bg-white/85 text-ondjo-ink opacity-0 shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-105 group-hover/carousel:opacity-100 focus:opacity-100"
+              className="absolute left-2 top-1/2 -translate-y-1/2 grid size-8 place-items-center rounded-full bg-white/85 text-ondjo-ink opacity-0 shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-105 group-hover/carousel:opacity-100 focus:opacity-100"
             >
-              <ChevronLeft size={16} />
+              <ChevronLeft size={18} />
             </button>
 
             <button
               type="button"
               onClick={nextImage}
               aria-label="Próxima imagem"
-              className="absolute right-2 top-1/2 -translate-y-1/2 grid size-7 place-items-center rounded-full bg-white/85 text-ondjo-ink opacity-0 shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-105 group-hover/carousel:opacity-100 focus:opacity-100"
+              className="absolute right-2 top-1/2 -translate-y-1/2 grid size-8 place-items-center rounded-full bg-white/85 text-ondjo-ink opacity-0 shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-105 group-hover/carousel:opacity-100 focus:opacity-100"
             >
-              <ChevronRight size={16} />
+              <ChevronRight size={18} />
             </button>
           </>
         )}
 
-        {/* Pontos de Paginação (Dots) e Contador */}
+        {/* Pontos de Paginação e Contador */}
         {total > 1 && (
           <div className="absolute inset-x-0 bottom-2.5 flex items-center justify-between px-3 pointer-events-none">
             <div className="flex items-center gap-1 pointer-events-auto">
@@ -168,7 +171,6 @@ export function PropertyImageCarousel({
               )}
             </div>
 
-            {/* Contador discreto 1/N */}
             <span className="rounded-full bg-black/45 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-xs">
               {currentIndex + 1}/{total}
             </span>
@@ -191,7 +193,7 @@ export function PropertyImageCarousel({
         )}
       </div>
 
-      {/* Lightbox Modal em Tela Cheia */}
+      {/* Lightbox Modal */}
       <AnimatePresence>
         {lightboxOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6">
@@ -212,7 +214,6 @@ export function PropertyImageCarousel({
               aria-modal="true"
               aria-label={`Galeria de fotos: ${title}`}
             >
-              {/* Top bar do Lightbox */}
               <div className="w-full flex items-center justify-between py-2 px-1 text-white">
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-sm truncate max-w-xs sm:max-w-md">
@@ -233,11 +234,11 @@ export function PropertyImageCarousel({
                 </button>
               </div>
 
-              {/* Área da imagem ampliada */}
               <div className="relative w-full flex-1 flex items-center justify-center overflow-hidden my-2 rounded-2xl bg-black/40">
                 <img
-                  src={safeImages[currentIndex]}
+                  src={getOptimizedImageUrl(currentImage, 1200, 85)}
                   alt={`${title} foto ampliada`}
+                  decoding="async"
                   className="max-h-[75vh] w-auto max-w-full object-contain rounded-lg"
                 />
 
@@ -263,7 +264,6 @@ export function PropertyImageCarousel({
                 )}
               </div>
 
-              {/* Miniaturas em rodapé do modal */}
               {total > 1 && (
                 <div className="flex items-center gap-2 overflow-x-auto max-w-full py-2 px-1 scrollbar-none">
                   {safeImages.map((img, idx) => (
@@ -279,8 +279,10 @@ export function PropertyImageCarousel({
                       ].join(" ")}
                     >
                       <img
-                        src={img}
+                        src={getOptimizedImageUrl(img, 120, 60)}
                         alt={`Miniatura ${idx + 1}`}
+                        loading="lazy"
+                        decoding="async"
                         className="h-full w-full object-cover"
                       />
                     </button>
