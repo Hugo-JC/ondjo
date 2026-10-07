@@ -1,5 +1,8 @@
 import {
   ArrowRight,
+  CheckCircle2,
+  Coins,
+  MapPin,
   Search,
   ShieldCheck,
   SlidersHorizontal,
@@ -62,51 +65,71 @@ export function Home() {
 
   return (
     <main>
-      {/* Hero: identidade e chamada à pesquisa otimizado para telemóvel */}
+      {/* =========================================================
+          HERO SECTION REDESIGNED: "O próximo capítulo da sua vida começa aqui."
+          Fidelidade total ao style-guide ONDJO:
+          - Fundo ondjo-navy com iluminação ambiente e gradiente suave
+          - Tipografia com escala fluida para telemóveis e desktop
+          - Alvos de toque táteis (mínimo 44px/48px)
+          - Indicadores de confiança locais (Kwanza, Anúncios Verificados)
+          ========================================================= */}
       <section className="relative isolate overflow-hidden bg-ondjo-navy">
-        {/* Elementos decorativos de fundo */}
+        {/* Iluminação ambiente subtil e grelha decorativa suave */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
         >
-          <div className="absolute -right-40 -top-48 size-96 rounded-full bg-ondjo-blue/25 blur-3xl sm:size-150" />
-          <div className="absolute -bottom-64 -left-40 size-80 rounded-full bg-ondjo-green/15 blur-3xl sm:size-130" />
-          <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(16,42,67,0.15),transparent_55%,rgba(23,78,166,0.12))]" />
+          {/* Brilho suave azul da marca */}
+          <div className="absolute -right-20 -top-40 size-80 rounded-full bg-ondjo-blue/20 blur-3xl sm:-right-32 sm:size-140" />
+
+          {/* Brilho verde de confiança da marca */}
+          <div className="absolute -bottom-40 -left-20 size-80 rounded-full bg-ondjo-green/15 blur-3xl sm:-left-32 sm:size-120" />
+
+          {/* Gradiente de profundidade */}
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-transparent to-ondjo-navy/80" />
+
+          {/* Textura sutil de padrão */}
+          <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:24px_24px] opacity-40" />
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 pb-10 pt-8 sm:px-6 sm:pb-16 sm:pt-16 lg:px-8 lg:pb-20 lg:pt-20">
-          {/* Mensagem principal */}
+        <div className="relative mx-auto max-w-7xl px-4 pb-10 pt-8 sm:px-6 sm:pb-16 sm:pt-14 lg:px-8 lg:pb-20 lg:pt-18">
+          {/* Conteúdo Principal do Hero */}
           <motion.div
-            initial={reduceMotion ? undefined : { opacity: 0, y: 12 }}
+            initial={reduceMotion ? undefined : { opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
             className="mx-auto max-w-4xl text-center"
           >
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.08] px-3 py-1.5 text-xs font-semibold text-blue-100 sm:px-3.5 sm:py-2 sm:text-sm">
+            {/* Badge de Verificação e Contexto Nacional */}
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.08] px-3.5 py-1.5 text-xs font-semibold text-blue-100 backdrop-blur-md sm:text-sm">
+              <span className="flex size-2 rounded-full bg-emerald-400 animate-pulse" />
               <ShieldCheck
                 size={16}
                 aria-hidden="true"
                 className="text-emerald-300 shrink-0"
               />
-              <span>Explore imóveis verificados em Angola</span>
+              <span>Portal Imobiliário Oficial • Angola</span>
             </div>
 
-            <h1 className="mx-auto mt-4 max-w-4xl text-3xl font-black leading-tight tracking-tight text-white sm:mt-6 sm:text-5xl lg:text-6xl">
+            {/* Título Principal Redesenhado */}
+            <h1 className="mx-auto mt-4 max-w-4xl text-3xl font-black leading-[1.15] tracking-tight text-white sm:mt-6 sm:text-5xl lg:text-6xl">
               O próximo capítulo da sua vida{" "}
-              <span className="text-blue-200">começa aqui.</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 via-sky-100 to-emerald-200">
+                começa aqui.</span>
             </h1>
 
-            <p className="mx-auto mt-3.5 max-w-2xl text-xs leading-relaxed text-blue-100/90 sm:mt-5 sm:text-base sm:leading-7">
-              Encontre casas, apartamentos e terrenos de acordo com a sua
-              localização e o seu orçamento em Luanda e restantes províncias.
+            {/* Subtítulo Acolhedor e Claro */}
+            <p className="mx-auto mt-3.5 max-w-2xl text-xs sm:text-base leading-relaxed text-blue-100/90 sm:mt-5 sm:leading-7">
+              Casas, apartamentos e terrenos com preços 100% em Kwanzas,
+              localização transparente e contacto direto com consultores credenciados.
             </p>
 
-            {/* CTAs com alvos de toque generosos (mínimo 48px) */}
-            <div className="mt-6 flex flex-col items-center justify-center gap-2.5 sm:mt-7 sm:flex-row sm:gap-3">
+            {/* Botões de Ação com excelente alvo de toque */}
+            <div className="mt-6 flex flex-col items-center justify-center gap-2.5 sm:mt-7 sm:flex-row sm:gap-3.5">
               <button
                 type="button"
                 onClick={goToSearch}
-                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-ondjo-blue px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-black/15 transition hover:bg-blue-700 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:w-auto"
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-ondjo-blue px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-black/20 transition hover:bg-blue-700 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:w-auto"
               >
                 <Search size={18} aria-hidden="true" />
                 <span>Encontrar um imóvel</span>
@@ -123,7 +146,7 @@ export function Home() {
             </div>
           </motion.div>
 
-          {/* Pesquisa: elemento principal da página */}
+          {/* Painel Central de Pesquisa */}
           <motion.div
             ref={searchRef}
             initial={reduceMotion ? undefined : { opacity: 0, y: 16 }}
@@ -145,13 +168,14 @@ export function Home() {
                 </h2>
               </div>
 
-              <div className="hidden items-center gap-2 text-xs text-blue-100/75 sm:flex">
+              <div className="hidden items-center gap-2 text-xs text-blue-100/80 sm:flex">
                 <SlidersHorizontal size={14} aria-hidden="true" />
                 Ajuste os filtros às suas necessidades
               </div>
             </div>
 
-            <div className="rounded-2xl bg-white p-1.5 shadow-[0_24px_70px_rgba(0,0,0,0.22)] ring-1 ring-white/20 sm:rounded-3xl sm:p-2">
+            {/* Container da Barra com contraste refinado */}
+            <div className="rounded-2xl bg-white p-2 shadow-[0_20px_60px_rgba(0,0,0,0.25)] ring-1 ring-white/20 sm:rounded-3xl sm:p-2.5">
               <SearchBar
                 value={filters}
                 onChange={setFilters}
@@ -159,11 +183,12 @@ export function Home() {
               />
             </div>
 
-            {/* Atalhos de localização com scroll horizontal táctil no mobile */}
+            {/* Barra de atalhos rápidos por zona (scroll táctil suave no mobile) */}
             <div className="mt-4 flex flex-col items-center gap-2 sm:mt-5 sm:flex-row sm:justify-center sm:gap-3">
-              <span className="text-xs font-semibold text-blue-100/80 shrink-0">
-                Comece por uma zona:
-              </span>
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-blue-100/80 shrink-0">
+                <MapPin size={13} className="text-blue-300" aria-hidden="true" />
+                <span>Zonas populares:</span>
+              </div>
 
               <div className="flex max-w-full w-full sm:w-auto overflow-x-auto no-scrollbar scroll-smooth gap-1.5 py-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:justify-center">
                 {locations.slice(0, 6).map((location) => {
@@ -178,7 +203,7 @@ export function Home() {
                       className={[
                         "min-h-11 shrink-0 rounded-full border px-4 py-2 text-xs font-semibold transition-all active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
                         selected
-                          ? "border-white bg-white text-ondjo-navy shadow-xs"
+                          ? "border-white bg-white text-ondjo-navy shadow-sm"
                           : "border-white/20 bg-white/10 text-white hover:border-white/40 hover:bg-white/15",
                       ].join(" ")}
                     >
@@ -187,6 +212,24 @@ export function Home() {
                   );
                 })}
               </div>
+            </div>
+
+            {/* 3 Garantias Centrais no Hero */}
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-[11px] sm:text-xs text-blue-200/80">
+              <span className="inline-flex items-center gap-1.5">
+                <Coins size={14} className="text-amber-300" />
+                Valores 100% em Kwanzas (Kz)
+              </span>
+              <span className="hidden sm:inline">•</span>
+              <span className="inline-flex items-center gap-1.5">
+                <ShieldCheck size={14} className="text-emerald-300" />
+                Anúncios auditados contra fraudes
+              </span>
+              <span className="hidden sm:inline">•</span>
+              <span className="inline-flex items-center gap-1.5">
+                <CheckCircle2 size={14} className="text-blue-300" />
+                Contacto direto sem custos
+              </span>
             </div>
           </motion.div>
         </div>
