@@ -21,6 +21,10 @@ import {
   type SearchFilters,
 } from "../components/SearchBar";
 import { TrustStrip } from "../components/TrustStrip";
+import { getImageSrcSet, getOptimizedImageUrl } from "../utils/images";
+
+const HERO_IMAGE_URL =
+  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c";
 
 export function Home() {
   const [filters, setFilters] = useState<SearchFilters>(defaultSearchFilters());
@@ -74,22 +78,37 @@ export function Home() {
           - Indicadores de confiança locais (Kwanza, Anúncios Verificados)
           ========================================================= */}
       <section className="relative isolate overflow-hidden bg-ondjo-navy">
-        {/* Iluminação ambiente subtil e grelha decorativa suave */}
+        {/* Camada de imagem principal e atmosfera luminescente de fundo */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
         >
-          {/* Brilho suave azul da marca */}
-          <div className="absolute -right-20 -top-40 size-80 rounded-full bg-ondjo-blue/20 blur-3xl sm:-right-32 sm:size-140" />
+          {/* Imagem de destaque com srcset responsivo e prioridade alta para LCP */}
+          <img
+            src={getOptimizedImageUrl(HERO_IMAGE_URL, 1200, 80)}
+            srcSet={getImageSrcSet(
+              HERO_IMAGE_URL,
+              [390, 640, 828, 1080, 1200, 1920],
+              80
+            )}
+            sizes="100vw"
+            alt=""
+            aria-hidden="true"
+            fetchPriority="high"
+            loading="eager"
+            decoding="async"
+            className="absolute inset-0 size-full object-cover object-center opacity-25 mix-blend-luminosity brightness-95 contrast-105"
+          />
 
-          {/* Brilho verde de confiança da marca */}
+          {/* Gradientes atmosféricos em ondjo-navy para garantir contraste e legibilidade impecáveis */}
+          <div className="absolute inset-0 bg-gradient-to-b from-ondjo-navy/90 via-ondjo-navy/80 to-ondjo-navy" />
+
+          {/* Brilhos suaves sutis da identidade visual ONDJO */}
+          <div className="absolute -right-24 -top-40 size-80 rounded-full bg-ondjo-blue/20 blur-3xl sm:-right-32 sm:size-140" />
           <div className="absolute -bottom-40 -left-20 size-80 rounded-full bg-ondjo-green/15 blur-3xl sm:-left-32 sm:size-120" />
 
-          {/* Gradiente de profundidade */}
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-transparent to-ondjo-navy/80" />
-
-          {/* Textura sutil de padrão */}
-          <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:24px_24px] opacity-40" />
+          {/* Textura sutil de padrão para textura física suave */}
+          <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:28px_28px] opacity-35" />
         </div>
 
         <div className="relative mx-auto max-w-7xl px-4 pb-10 pt-8 sm:px-6 sm:pb-16 sm:pt-14 lg:px-8 lg:pb-20 lg:pt-18">
@@ -114,8 +133,7 @@ export function Home() {
             {/* Título Principal Redesenhado */}
             <h1 className="mx-auto mt-4 max-w-4xl text-3xl font-black leading-[1.15] tracking-tight text-white sm:mt-6 sm:text-5xl lg:text-6xl">
               O próximo capítulo da sua vida{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 via-sky-100 to-emerald-200">
-                começa aqui.</span>
+              <span className="text-blue-200">começa aqui.</span>
             </h1>
 
             {/* Subtítulo Acolhedor e Claro */}
@@ -175,7 +193,7 @@ export function Home() {
             </div>
 
             {/* Container da Barra com contraste refinado */}
-            <div className="rounded-2xl bg-white p-2 shadow-[0_20px_60px_rgba(0,0,0,0.25)] ring-1 ring-white/20 sm:rounded-3xl sm:p-2.5">
+            <div className="rounded-2xl bg-white p-2 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] ring-1 ring-white/20 sm:rounded-3xl sm:p-2.5">
               <SearchBar
                 value={filters}
                 onChange={setFilters}

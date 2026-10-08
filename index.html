@@ -12,10 +12,22 @@
     <link rel="apple-touch-icon" href="/icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://images.unsplash.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Roboto:wght@100..900&display=swap"
       rel="stylesheet"
     />
+
+    <!-- Preload responsivo da imagem principal do Hero para otimização de LCP em telemóveis e desktop -->
+    <link
+      rel="preload"
+      as="image"
+      href="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&amp;fit=crop&amp;w=1200&amp;q=80"
+      imagesrcset="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&amp;fit=crop&amp;w=390&amp;q=80 390w, https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&amp;fit=crop&amp;w=640&amp;q=80 640w, https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&amp;fit=crop&amp;w=828&amp;q=80 828w, https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&amp;fit=crop&amp;w=1080&amp;q=80 1080w, https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&amp;fit=crop&amp;w=1200&amp;q=80 1200w, https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&amp;fit=crop&amp;w=1920&amp;q=80 1920w"
+      imagesizes="100vw"
+      fetchpriority="high"
+    />
+
     <title>ONDJO — Encontre o seu próximo lar</title>
   </head>
   <body>
