@@ -258,7 +258,7 @@ export function SearchBar({
                 aria-selected={isSelected}
                 onClick={() => set("purpose", opt.id)}
                 className={[
-                  "relative flex min-h-[38px] items-center gap-1.5 rounded-lg px-4 py-1.5 transition-all outline-none",
+                  "relative flex min-h-9.5 items-center gap-1.5 rounded-lg px-4 py-1.5 transition-all outline-none",
                   "focus-visible:ring-2 focus-visible:ring-ondjo-blue focus-visible:ring-offset-1",
                   isSelected
                     ? "bg-white font-extrabold text-ondjo-navy shadow-sm"
@@ -282,7 +282,7 @@ export function SearchBar({
                 type="button"
                 onClick={() => set("origin", orig.id)}
                 className={[
-                  "inline-flex min-h-[34px] items-center gap-1.5 rounded-lg border px-3 py-1 text-xs font-semibold transition-all",
+                  "inline-flex min-h-8.5 items-center gap-1.5 rounded-lg border px-3 py-1 text-xs font-semibold transition-all",
                   "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ondjo-blue",
                   isSelected
                     ? "border-ondjo-blue bg-ondjo-blue-soft/70 text-ondjo-blue font-bold shadow-xs"
@@ -403,7 +403,7 @@ export function SearchBar({
                           onChange({ ...value, location: loc, query: "" });
                           setLocationOpen(false);
                         }}
-                        className="flex min-h-[42px] w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm text-ondjo-ink transition hover:bg-ondjo-bg focus-visible:bg-ondjo-blue-soft focus-visible:outline-none"
+                        className="flex min-h-10.5 w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm text-ondjo-ink transition hover:bg-ondjo-bg focus-visible:bg-ondjo-blue-soft focus-visible:outline-none"
                       >
                         <span className="flex items-center gap-2.5">
                           <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-ondjo-blue-soft text-ondjo-blue">
@@ -548,7 +548,7 @@ export function SearchBar({
           aria-expanded={advancedOpen}
           aria-controls={advancedId}
           className={[
-            "inline-flex min-h-[38px] items-center gap-2 rounded-lg px-2.5 py-1 text-xs font-bold transition-colors",
+            "inline-flex min-h-9.5 items-center gap-2 rounded-lg px-2.5 py-1 text-xs font-bold transition-colors",
             "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ondjo-blue",
             advancedOpen
               ? "bg-ondjo-blue-soft text-ondjo-blue"
