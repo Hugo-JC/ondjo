@@ -3,7 +3,6 @@ import {
   CheckCircle2,
   Coins,
   MapPin,
-  Search,
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
@@ -41,17 +40,6 @@ export function Home() {
     navigate(`pesquisar?${params.toString()}`);
   };
 
-  const goToSearch = () => {
-    searchRef.current?.scrollIntoView({
-      behavior: reduceMotion ? "auto" : "smooth",
-      block: "center",
-    });
-
-    searchRef.current?.querySelector("input")?.focus({
-      preventScroll: true,
-    });
-  };
-
   const selectLocation = (location: string) => {
     setFilters((previous) => ({
       ...previous,
@@ -59,7 +47,9 @@ export function Home() {
       query: "",
     }));
 
-    goToSearch();
+    searchRef.current?.querySelector("input")?.focus({
+      preventScroll: true,
+    });
   };
 
   const featuredProperties = properties
@@ -69,16 +59,14 @@ export function Home() {
   return (
     <main className="min-h-screen bg-ondjo-bg">
       {/* =========================================================
-          HERO SECTION — PRIMEIRA SECÇÃO
-          Identidade ONDJO Autêntica:
-          - Fundo ondjo-navy estruturado com imagem arquitetónica sóbria
-          - Ausência de gradientes neon chamativos, mantendo sofisticação e seriedade
-          - Tipografia equilibrada com tokens oficiais ondjo
-          - Barra de pesquisa integrada sem caixas duplicadas
-          - Chips táteis para zonas populares e pilares de confiança em Kz
+          HERO SECTION — PRIMEIRA SECÇÃO ONDJO
+          - Foco absoluto na barra de pesquisa (centralizada e visível no 1º ecrã)
+          - Remoção de elementos verticais desnecessários acima do título
+          - Selo "Marketplace Imobiliário em Angola" reposicionado com estilo limpo e elegante
+          - Preços 100% em Kwanzas e garantias locais
           ========================================================= */}
       <section className="relative isolate overflow-hidden bg-ondjo-navy">
-        {/* Camada arquitetónica de fundo com tratamento de iluminação natural e suave */}
+        {/* Camada arquitetónica de fundo com tratamento sóbrio */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
@@ -99,80 +87,51 @@ export function Home() {
             className="absolute inset-0 size-full object-cover object-center opacity-20 mix-blend-luminosity brightness-95 contrast-105"
           />
 
-          {/* Gradiente vertical contínuo em ondjo-navy para máximo contraste e legibilidade */}
+          {/* Gradiente vertical em ondjo-navy */}
           <div className="absolute inset-0 bg-gradient-to-b from-ondjo-navy/95 via-ondjo-navy/85 to-ondjo-navy" />
 
-          {/* Brilho ambiente sóbrio e sutil alinhado aos tokens da marca */}
-          <div className="absolute left-1/2 -top-48 -translate-x-1/2 size-[650px] rounded-full bg-ondjo-blue/15 blur-[120px]" />
+          {/* Brilho ambiente sóbrio alinhado aos tokens da marca */}
+          <div className="absolute left-1/2 -top-40 -translate-x-1/2 size-[600px] rounded-full bg-ondjo-blue/15 blur-[120px]" />
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 pb-12 pt-10 sm:px-6 sm:pb-20 sm:pt-16 lg:px-8 lg:pb-24 lg:pt-20">
-          {/* Cabeçalho do Hero */}
+        {/* Espaçamento otimizado: search bar entra diretamente no campo de visão principal */}
+        <div className="relative mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-6 sm:pb-16 sm:pt-10 lg:px-8 lg:pb-18 lg:pt-12">
+          {/* Cabeçalho do Hero — Direto, Impactante e Compacto */}
           <motion.div
-            initial={reduceMotion ? undefined : { opacity: 0, y: 12 }}
+            initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
             className="mx-auto max-w-4xl text-center"
           >
-            {/* Badge de Verificação e Identidade Angolana */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.08] px-3.5 py-1.5 text-xs font-semibold text-ondjo-blue-soft backdrop-blur-md sm:text-sm">
-              <span className="flex size-2 rounded-full bg-emerald-400" />
-              <ShieldCheck
-                size={16}
-                aria-hidden="true"
-                className="text-emerald-300 shrink-0"
-              />
-              <span>Marketplace Imobiliário em Angola</span>
-            </div>
-
             {/* Título Principal */}
-            <h1 className="mx-auto mt-4 max-w-4xl text-3xl font-black leading-[1.15] tracking-tight text-white sm:mt-6 sm:text-5xl lg:text-6xl">
+            <h1 className="mx-auto max-w-4xl text-3xl font-black leading-[1.12] tracking-tight text-white sm:text-5xl lg:text-[54px]">
               O próximo capítulo da sua vida{" "}
               <span className="text-ondjo-blue-soft">começa aqui.</span>
             </h1>
 
-            {/* Subtítulo Claro e Confiável */}
-            <p className="mx-auto mt-3.5 max-w-2xl text-xs sm:text-base leading-relaxed text-slate-200/90 sm:mt-5 sm:leading-7">
-              Casas, apartamentos e terrenos com preços 100% em Kwanzas,
-              localização transparente e contacto direto com consultores credenciados.
-            </p>
-
-            {/* Ações Rápidas de Navegação */}
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-3 sm:mt-7">
-              <button
-                type="button"
-                onClick={goToSearch}
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-ondjo-blue px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-ondjo-blue-dark active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              >
-                <Search size={16} aria-hidden="true" />
-                <span>Começar pesquisa</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => navigate("pesquisar")}
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              >
-                <span>Explorar imóveis ({properties.length})</span>
-                <ArrowRight size={15} aria-hidden="true" />
-              </button>
+            {/* Subtítulo Acolhedor com link sutil de catálogo */}
+            <div className="mx-auto mt-2.5 max-w-2xl sm:mt-3">
+              <p className="text-xs sm:text-base leading-relaxed text-slate-200/90 sm:leading-6">
+                Casas, apartamentos e terrenos com preços 100% em Kwanzas,
+                localização transparente e contacto direto com consultores credenciados.
+              </p>
             </div>
           </motion.div>
 
-          {/* Painel Central de Pesquisa — Destaque Principal do Hero */}
+          {/* Painel Central de Pesquisa — Posicionado no Centro do Ecrã */}
           <motion.div
             ref={searchRef}
-            initial={reduceMotion ? undefined : { opacity: 0, y: 16 }}
+            initial={reduceMotion ? undefined : { opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{
-              duration: 0.4,
-              delay: reduceMotion ? 0 : 0.06,
+              duration: 0.38,
+              delay: reduceMotion ? 0 : 0.05,
             }}
-            className="mx-auto mt-8 max-w-5xl scroll-mt-6 sm:mt-12"
+            className="mx-auto mt-6 max-w-5xl scroll-mt-4 sm:mt-8"
             tabIndex={-1}
           >
-            {/* Barra de Pesquisa ONDJO integrada com elegância */}
-            <div className="rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] ring-1 ring-white/15">
+            {/* Barra de Pesquisa ONDJO */}
+            <div className="rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.32)] ring-1 ring-white/15">
               <SearchBar
                 value={filters}
                 onChange={setFilters}
@@ -181,7 +140,7 @@ export function Home() {
             </div>
 
             {/* Atalhos Rápidos por Zona (Chips Táteis Horizontais) */}
-            <div className="mt-4 flex flex-col items-center gap-2 sm:mt-5 sm:flex-row sm:justify-center sm:gap-3">
+            <div className="mt-3.5 flex flex-col items-center gap-2 sm:mt-4 sm:flex-row sm:justify-center sm:gap-3">
               <div className="flex items-center gap-1.5 text-xs font-semibold text-ondjo-blue-soft/90 shrink-0">
                 <MapPin size={13} className="text-ondjo-blue-soft" aria-hidden="true" />
                 <span>Zonas populares:</span>
@@ -198,7 +157,7 @@ export function Home() {
                       onClick={() => selectLocation(location)}
                       aria-pressed={selected}
                       className={[
-                        "min-h-10 shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-all active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
+                        "min-h-9 shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
                         selected
                           ? "border-white bg-white text-ondjo-navy shadow-xs font-bold"
                           : "border-white/20 bg-white/10 text-white hover:border-white/40 hover:bg-white/15",
@@ -211,21 +170,29 @@ export function Home() {
               </div>
             </div>
 
-            {/* Pilares de Confiança e Transparência Local */}
-            <div className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-ondjo-blue-soft/90">
+            {/* Linha de Confiança: Selo "Marketplace Imobiliário em Angola" reposicionado com estilo sóbrio e limpo */}
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2.5 text-xs text-ondjo-blue-soft/90">
+              <div className="inline-flex items-center gap-1.5 font-semibold text-white">
+                <ShieldCheck
+                  size={15}
+                  aria-hidden="true"
+                  className="text-emerald-400 shrink-0"
+                />
+                <span>Marketplace Imobiliário em Angola</span>
+              </div>
+
+              <span className="hidden sm:inline text-white/25">•</span>
+
               <span className="inline-flex items-center gap-1.5">
-                <Coins size={14} className="text-amber-300" />
+                <Coins size={14} className="text-amber-300 shrink-0" aria-hidden="true" />
                 Preços 100% em Kwanzas (Kz)
               </span>
-              <span className="hidden sm:inline text-white/30">•</span>
+
+              <span className="hidden sm:inline text-white/25">•</span>
+
               <span className="inline-flex items-center gap-1.5">
-                <ShieldCheck size={14} className="text-emerald-300" />
-                Anúncios auditados contra fraudes
-              </span>
-              <span className="hidden sm:inline text-white/30">•</span>
-              <span className="inline-flex items-center gap-1.5">
-                <CheckCircle2 size={14} className="text-blue-300" />
-                Contacto direto com consultores
+                <CheckCircle2 size={14} className="text-blue-300 shrink-0" aria-hidden="true" />
+                Consultores credenciados e auditoria local
               </span>
             </div>
           </motion.div>
