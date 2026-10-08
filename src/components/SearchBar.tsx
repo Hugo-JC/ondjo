@@ -577,7 +577,7 @@ export function SearchBar({
 
         <div className="flex items-center gap-2">
           {matchingCount > 0 && (
-            <span className="hidden text-xs text-ondjo-muted sm:inline">
+            <span className="hidden text-2sm text-ondjo-navy sm:inline">
               <strong className="text-ondjo-ink">{matchingCount}</strong>{" "}
               disponíveis
             </span>
@@ -590,7 +590,7 @@ export function SearchBar({
             <button
               type="button"
               onClick={clearAllFilters}
-              className="inline-flex min-h-[36px] items-center gap-1 rounded-lg px-2 text-xs font-semibold text-ondjo-muted transition-colors hover:text-ondjo-blue focus-visible:outline-2 focus-visible:outline-ondjo-blue"
+              className="inline-flex min-h-9 items-center gap-1 rounded-lg px-2 text-xs font-semibold text-ondjo-muted transition-colors hover:text-ondjo-blue focus-visible:outline-2 focus-visible:outline-ondjo-blue"
             >
               <X size={14} aria-hidden="true" />
               <span>Limpar filtros</span>
@@ -737,7 +737,7 @@ export function SearchBar({
                     />
                   </div>
                 </div> */}
-              </div> 
+              </div>
 
               {/* Ações Rápidas no Painel Avançado (Mobile) */}
               <div className="flex items-center justify-end gap-2 pt-1 sm:hidden">

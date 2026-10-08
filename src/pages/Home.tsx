@@ -76,7 +76,7 @@ export function Home() {
             srcSet={getImageSrcSet(
               HERO_IMAGE_URL,
               [390, 640, 828, 1080, 1200, 1920],
-              80
+              80,
             )}
             sizes="100vw"
             alt=""
@@ -88,10 +88,10 @@ export function Home() {
           />
 
           {/* Gradiente vertical em ondjo-navy */}
-          <div className="absolute inset-0 bg-gradient-to-b from-ondjo-navy/95 via-ondjo-navy/85 to-ondjo-navy" />
+          <div className="absolute inset-0 bg-linear-to-b from-ondjo-navy/95 via-ondjo-navy/85 to-ondjo-navy" />
 
           {/* Brilho ambiente sóbrio alinhado aos tokens da marca */}
-          <div className="absolute left-1/2 -top-40 -translate-x-1/2 size-[600px] rounded-full bg-ondjo-blue/15 blur-[120px]" />
+          <div className="absolute left-1/2 -top-40 -translate-x-1/2 size-150 rounded-full bg-ondjo-blue/15 blur-[120px]" />
         </div>
 
         {/* Espaçamento otimizado: search bar entra diretamente no campo de visão principal */}
@@ -113,7 +113,8 @@ export function Home() {
             <div className="mx-auto mt-2.5 max-w-2xl sm:mt-3">
               <p className="text-xs sm:text-base leading-relaxed text-slate-200/90 sm:leading-6">
                 Casas, apartamentos e terrenos com preços 100% em Kwanzas,
-                localização transparente e contacto direto com consultores credenciados.
+                localização transparente e contacto direto com consultores
+                credenciados.
               </p>
             </div>
           </motion.div>
@@ -141,8 +142,12 @@ export function Home() {
 
             {/* Atalhos Rápidos por Zona (Chips Táteis Horizontais) */}
             <div className="mt-3.5 flex flex-col items-center gap-2 sm:mt-4 sm:flex-row sm:justify-center sm:gap-3">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-ondjo-blue-soft/90 shrink-0">
-                <MapPin size={13} className="text-ondjo-blue-soft" aria-hidden="true" />
+              <div className="flex items-center gap-1.5 text-2sm font-semibold text-ondjo-blue-soft/90 shrink-0">
+                <MapPin
+                  size={18}
+                  className="text-ondjo-blue-soft"
+                  aria-hidden="true"
+                />
                 <span>Zonas populares:</span>
               </div>
 
@@ -171,10 +176,10 @@ export function Home() {
             </div>
 
             {/* Linha de Confiança: Selo "Marketplace Imobiliário em Angola" reposicionado com estilo sóbrio e limpo */}
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2.5 text-xs text-ondjo-blue-soft/90">
+            <div className="mt-11 flex flex-wrap items-center justify-center gap-x-6 gap-y-2.5 text-sm text-ondjo-blue-soft/90">
               <div className="inline-flex items-center gap-1.5 font-semibold text-white">
                 <ShieldCheck
-                  size={15}
+                  size={18}
                   aria-hidden="true"
                   className="text-emerald-400 shrink-0"
                 />
@@ -184,14 +189,22 @@ export function Home() {
               <span className="hidden sm:inline text-white/25">•</span>
 
               <span className="inline-flex items-center gap-1.5">
-                <Coins size={14} className="text-amber-300 shrink-0" aria-hidden="true" />
+                <Coins
+                  size={18}
+                  className="text-amber-300 shrink-0"
+                  aria-hidden="true"
+                />
                 Preços 100% em Kwanzas (Kz)
               </span>
 
               <span className="hidden sm:inline text-white/25">•</span>
 
               <span className="inline-flex items-center gap-1.5">
-                <CheckCircle2 size={14} className="text-blue-300 shrink-0" aria-hidden="true" />
+                <CheckCircle2
+                  size={18}
+                  className="text-blue-300 shrink-0"
+                  aria-hidden="true"
+                />
                 Consultores credenciados e auditoria local
               </span>
             </div>
@@ -214,8 +227,9 @@ export function Home() {
               Imóveis em destaque
             </h2>
 
-            <p className="mt-1.5 max-w-xl text-xs sm:text-sm leading-relaxed text-ondjo-muted sm:text-base">
-              Explore opções verificadas com fotografias reais e condições transparentes em Luanda.
+            <p className="mt-1.5 max-w-xl text-xs sm:text-base leading-relaxed text-ondjo-muted">
+              Explore opções verificadas com fotografias reais e condições
+              transparentes em Luanda.
             </p>
           </div>
 
@@ -242,7 +256,7 @@ export function Home() {
           {featuredProperties.map((property, index) => (
             <div
               key={property.id}
-              className="w-[85vw] max-w-[330px] shrink-0 snap-center sm:w-auto sm:max-w-none sm:shrink"
+              className="w-[85vw] max-w-82.5 shrink-0 snap-center sm:w-auto sm:max-w-none sm:shrink"
             >
               <PropertyCard property={property} index={index} />
             </div>
