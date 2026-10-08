@@ -5,7 +5,6 @@ import {
   MapPin,
   Search,
   ShieldCheck,
-  SlidersHorizontal,
   Sparkles,
 } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
@@ -68,22 +67,22 @@ export function Home() {
     .slice(0, 4);
 
   return (
-    <main>
+    <main className="min-h-screen bg-ondjo-bg">
       {/* =========================================================
-          HERO SECTION REDESIGNED: "O próximo capítulo da sua vida começa aqui."
-          Fidelidade total ao style-guide ONDJO:
-          - Fundo ondjo-navy com iluminação ambiente e gradiente suave
-          - Tipografia com escala fluida para telemóveis e desktop
-          - Alvos de toque táteis (mínimo 44px/48px)
-          - Indicadores de confiança locais (Kwanza, Anúncios Verificados)
+          HERO SECTION — PRIMEIRA SECÇÃO
+          Identidade ONDJO Autêntica:
+          - Fundo ondjo-navy estruturado com imagem arquitetónica sóbria
+          - Ausência de gradientes neon chamativos, mantendo sofisticação e seriedade
+          - Tipografia equilibrada com tokens oficiais ondjo
+          - Barra de pesquisa integrada sem caixas duplicadas
+          - Chips táteis para zonas populares e pilares de confiança em Kz
           ========================================================= */}
       <section className="relative isolate overflow-hidden bg-ondjo-navy">
-        {/* Camada de imagem principal e atmosfera luminescente de fundo */}
+        {/* Camada arquitetónica de fundo com tratamento de iluminação natural e suave */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
         >
-          {/* Imagem de destaque com srcset responsivo e prioridade alta para LCP */}
           <img
             src={getOptimizedImageUrl(HERO_IMAGE_URL, 1200, 80)}
             srcSet={getImageSrcSet(
@@ -97,103 +96,83 @@ export function Home() {
             fetchPriority="high"
             loading="eager"
             decoding="async"
-            className="absolute inset-0 size-full object-cover object-center opacity-25 mix-blend-luminosity brightness-95 contrast-105"
+            className="absolute inset-0 size-full object-cover object-center opacity-20 mix-blend-luminosity brightness-95 contrast-105"
           />
 
-          {/* Gradientes atmosféricos em ondjo-navy para garantir contraste e legibilidade impecáveis */}
-          <div className="absolute inset-0 bg-gradient-to-b from-ondjo-navy/90 via-ondjo-navy/80 to-ondjo-navy" />
+          {/* Gradiente vertical contínuo em ondjo-navy para máximo contraste e legibilidade */}
+          <div className="absolute inset-0 bg-gradient-to-b from-ondjo-navy/95 via-ondjo-navy/85 to-ondjo-navy" />
 
-          {/* Brilhos suaves sutis da identidade visual ONDJO */}
-          <div className="absolute -right-24 -top-40 size-80 rounded-full bg-ondjo-blue/20 blur-3xl sm:-right-32 sm:size-140" />
-          <div className="absolute -bottom-40 -left-20 size-80 rounded-full bg-ondjo-green/15 blur-3xl sm:-left-32 sm:size-120" />
-
-          {/* Textura sutil de padrão para textura física suave */}
-          <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:28px_28px] opacity-35" />
+          {/* Brilho ambiente sóbrio e sutil alinhado aos tokens da marca */}
+          <div className="absolute left-1/2 -top-48 -translate-x-1/2 size-[650px] rounded-full bg-ondjo-blue/15 blur-[120px]" />
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 pb-10 pt-8 sm:px-6 sm:pb-16 sm:pt-14 lg:px-8 lg:pb-20 lg:pt-18">
-          {/* Conteúdo Principal do Hero */}
+        <div className="relative mx-auto max-w-7xl px-4 pb-12 pt-10 sm:px-6 sm:pb-20 sm:pt-16 lg:px-8 lg:pb-24 lg:pt-20">
+          {/* Cabeçalho do Hero */}
           <motion.div
-            initial={reduceMotion ? undefined : { opacity: 0, y: 14 }}
+            initial={reduceMotion ? undefined : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: 0.35 }}
             className="mx-auto max-w-4xl text-center"
           >
-            {/* Badge de Verificação e Contexto Nacional */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.08] px-3.5 py-1.5 text-xs font-semibold text-blue-100 backdrop-blur-md sm:text-sm">
-              <span className="flex size-2 rounded-full bg-emerald-400 animate-pulse" />
+            {/* Badge de Verificação e Identidade Angolana */}
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.08] px-3.5 py-1.5 text-xs font-semibold text-ondjo-blue-soft backdrop-blur-md sm:text-sm">
+              <span className="flex size-2 rounded-full bg-emerald-400" />
               <ShieldCheck
                 size={16}
                 aria-hidden="true"
                 className="text-emerald-300 shrink-0"
               />
-              <span>Portal Imobiliário Oficial • Angola</span>
+              <span>Marketplace Imobiliário em Angola</span>
             </div>
 
-            {/* Título Principal Redesenhado */}
+            {/* Título Principal */}
             <h1 className="mx-auto mt-4 max-w-4xl text-3xl font-black leading-[1.15] tracking-tight text-white sm:mt-6 sm:text-5xl lg:text-6xl">
               O próximo capítulo da sua vida{" "}
-              <span className="text-blue-200">começa aqui.</span>
+              <span className="text-ondjo-blue-soft">começa aqui.</span>
             </h1>
 
-            {/* Subtítulo Acolhedor e Claro */}
-            <p className="mx-auto mt-3.5 max-w-2xl text-xs sm:text-base leading-relaxed text-blue-100/90 sm:mt-5 sm:leading-7">
+            {/* Subtítulo Claro e Confiável */}
+            <p className="mx-auto mt-3.5 max-w-2xl text-xs sm:text-base leading-relaxed text-slate-200/90 sm:mt-5 sm:leading-7">
               Casas, apartamentos e terrenos com preços 100% em Kwanzas,
               localização transparente e contacto direto com consultores credenciados.
             </p>
 
-            {/* Botões de Ação com excelente alvo de toque */}
-            <div className="mt-6 flex flex-col items-center justify-center gap-2.5 sm:mt-7 sm:flex-row sm:gap-3.5">
+            {/* Ações Rápidas de Navegação */}
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3 sm:mt-7">
               <button
                 type="button"
                 onClick={goToSearch}
-                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-ondjo-blue px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-black/20 transition hover:bg-blue-700 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:w-auto"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-ondjo-blue px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-ondjo-blue-dark active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
-                <Search size={18} aria-hidden="true" />
-                <span>Encontrar um imóvel</span>
-                <ArrowRight size={16} aria-hidden="true" />
+                <Search size={16} aria-hidden="true" />
+                <span>Começar pesquisa</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => navigate("pesquisar")}
-                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-white/15 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:w-auto"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
-                <span>Explorar todos os imóveis</span>
+                <span>Explorar imóveis ({properties.length})</span>
+                <ArrowRight size={15} aria-hidden="true" />
               </button>
             </div>
           </motion.div>
 
-          {/* Painel Central de Pesquisa */}
+          {/* Painel Central de Pesquisa — Destaque Principal do Hero */}
           <motion.div
             ref={searchRef}
             initial={reduceMotion ? undefined : { opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{
-              duration: 0.45,
-              delay: reduceMotion ? 0 : 0.08,
+              duration: 0.4,
+              delay: reduceMotion ? 0 : 0.06,
             }}
-            className="mx-auto mt-8 max-w-6xl scroll-mt-6 sm:mt-12"
+            className="mx-auto mt-8 max-w-5xl scroll-mt-6 sm:mt-12"
             tabIndex={-1}
           >
-            <div className="mb-2.5 flex flex-wrap items-end justify-between gap-2 px-1">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-blue-200">
-                  Pesquisa de imóveis
-                </p>
-                <h2 className="mt-0.5 text-base font-bold text-white sm:text-xl">
-                  O que procura hoje?
-                </h2>
-              </div>
-
-              <div className="hidden items-center gap-2 text-xs text-blue-100/80 sm:flex">
-                <SlidersHorizontal size={14} aria-hidden="true" />
-                Ajuste os filtros às suas necessidades
-              </div>
-            </div>
-
-            {/* Container da Barra com contraste refinado */}
-            <div className="rounded-2xl bg-white p-2 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] ring-1 ring-white/20 sm:rounded-3xl sm:p-2.5">
+            {/* Barra de Pesquisa ONDJO integrada com elegância */}
+            <div className="rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] ring-1 ring-white/15">
               <SearchBar
                 value={filters}
                 onChange={setFilters}
@@ -201,10 +180,10 @@ export function Home() {
               />
             </div>
 
-            {/* Barra de atalhos rápidos por zona (scroll táctil suave no mobile) */}
+            {/* Atalhos Rápidos por Zona (Chips Táteis Horizontais) */}
             <div className="mt-4 flex flex-col items-center gap-2 sm:mt-5 sm:flex-row sm:justify-center sm:gap-3">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-blue-100/80 shrink-0">
-                <MapPin size={13} className="text-blue-300" aria-hidden="true" />
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-ondjo-blue-soft/90 shrink-0">
+                <MapPin size={13} className="text-ondjo-blue-soft" aria-hidden="true" />
                 <span>Zonas populares:</span>
               </div>
 
@@ -219,9 +198,9 @@ export function Home() {
                       onClick={() => selectLocation(location)}
                       aria-pressed={selected}
                       className={[
-                        "min-h-11 shrink-0 rounded-full border px-4 py-2 text-xs font-semibold transition-all active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
+                        "min-h-10 shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-all active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
                         selected
-                          ? "border-white bg-white text-ondjo-navy shadow-sm"
+                          ? "border-white bg-white text-ondjo-navy shadow-xs font-bold"
                           : "border-white/20 bg-white/10 text-white hover:border-white/40 hover:bg-white/15",
                       ].join(" ")}
                     >
@@ -232,32 +211,34 @@ export function Home() {
               </div>
             </div>
 
-            {/* 3 Garantias Centrais no Hero */}
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-[11px] sm:text-xs text-blue-200/80">
+            {/* Pilares de Confiança e Transparência Local */}
+            <div className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-ondjo-blue-soft/90">
               <span className="inline-flex items-center gap-1.5">
                 <Coins size={14} className="text-amber-300" />
-                Valores 100% em Kwanzas (Kz)
+                Preços 100% em Kwanzas (Kz)
               </span>
-              <span className="hidden sm:inline">•</span>
+              <span className="hidden sm:inline text-white/30">•</span>
               <span className="inline-flex items-center gap-1.5">
                 <ShieldCheck size={14} className="text-emerald-300" />
                 Anúncios auditados contra fraudes
               </span>
-              <span className="hidden sm:inline">•</span>
+              <span className="hidden sm:inline text-white/30">•</span>
               <span className="inline-flex items-center gap-1.5">
                 <CheckCircle2 size={14} className="text-blue-300" />
-                Contacto direto sem custos
+                Contacto direto com consultores
               </span>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Imóveis em destaque adaptados para telemóveis */}
-      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
-        <div className="flex items-end justify-between gap-4">
+      {/* =========================================================
+          IMÓVEIS EM DESTAQUE (SELEÇÃO ONDJO)
+          ========================================================= */}
+      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/80 bg-emerald-50/80 px-2.5 py-0.5 text-xs font-extrabold uppercase tracking-wider text-ondjo-green">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/80 bg-emerald-50 px-2.5 py-0.5 text-xs font-extrabold uppercase tracking-wider text-ondjo-green">
               <Sparkles size={12} aria-hidden="true" />
               Seleção ONDJO
             </div>
@@ -267,21 +248,21 @@ export function Home() {
             </h2>
 
             <p className="mt-1.5 max-w-xl text-xs sm:text-sm leading-relaxed text-ondjo-muted sm:text-base">
-              Explore opções verificadas com fotografias reais e condições transparentes.
+              Explore opções verificadas com fotografias reais e condições transparentes em Luanda.
             </p>
           </div>
 
           <button
             type="button"
             onClick={() => navigate("pesquisar")}
-            className="hidden min-h-11 shrink-0 items-center gap-1.5 rounded-xl px-3 text-sm font-semibold text-ondjo-blue transition-colors hover:bg-ondjo-blue-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ondjo-blue sm:inline-flex"
+            className="hidden min-h-11 shrink-0 items-center gap-1.5 rounded-xl border border-ondjo-border bg-white px-4 py-2 text-sm font-semibold text-ondjo-blue shadow-2xs transition-colors hover:bg-ondjo-blue-soft/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ondjo-blue sm:inline-flex"
           >
-            <span>Ver todos</span>
-            <ArrowRight size={16} aria-hidden="true" />
+            <span>Ver todos ({properties.length})</span>
+            <ArrowRight size={15} aria-hidden="true" />
           </button>
         </div>
 
-        {/* Dica de Deslize no Telemóvel */}
+        {/* Indicador de Deslize no Telemóvel */}
         <div className="mt-3 flex items-center justify-between text-xs text-ondjo-muted sm:hidden">
           <span>Deslize para ver os imóveis</span>
           <span className="font-bold text-ondjo-blue">
@@ -289,8 +270,8 @@ export function Home() {
           </span>
         </div>
 
-        {/* Grelha no Desktop & Carrossel Suave com Snap no Mobile */}
-        <div className="mt-3.5 sm:mt-7 flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 -mx-4 px-4 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:mx-0 sm:px-0 sm:overflow-visible no-scrollbar">
+        {/* Grelha no Desktop & Carrossel com Snap no Mobile */}
+        <div className="mt-4 sm:mt-7 flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 -mx-4 px-4 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:mx-0 sm:px-0 sm:overflow-visible no-scrollbar">
           {featuredProperties.map((property, index) => (
             <div
               key={property.id}
@@ -305,17 +286,21 @@ export function Home() {
         <button
           type="button"
           onClick={() => navigate("pesquisar")}
-          className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-ondjo-border bg-white px-4 py-3.5 text-sm font-bold text-ondjo-blue shadow-xs transition-colors hover:bg-ondjo-bg active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ondjo-blue sm:hidden"
+          className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-ondjo-border bg-white px-4 py-3.5 text-sm font-bold text-ondjo-blue shadow-2xs transition-colors hover:bg-ondjo-bg active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ondjo-blue sm:hidden"
         >
           <span>Ver todos os {properties.length} imóveis</span>
           <ArrowRight size={16} aria-hidden="true" />
         </button>
 
-        {/* Exploração por zona */}
+        {/* =========================================================
+            EXPLORAR POR ZONA (ZONAS POPULARES DE LUANDA)
+            ========================================================= */}
         <ZoneSection />
 
-        {/* Confiança */}
-        <div className="mt-14 sm:mt-16">
+        {/* =========================================================
+            TRUST STRIP (PILARES DE SEGURANÇA E CONFIANÇA)
+            ========================================================= */}
+        <div className="mt-14 sm:mt-20">
           <TrustStrip />
         </div>
       </section>
