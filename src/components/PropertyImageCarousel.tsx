@@ -243,7 +243,7 @@ export function PropertyImageCarousel({
               }}
               aria-label={`Abrir galeria de fotos de ${title} em ecrã inteiro (${total} fotos)`}
               title="Abrir galeria completa"
-              className="focus-ring pointer-events-auto inline-flex min-h-[32px] sm:min-h-[30px] items-center gap-1.5 rounded-full bg-black/60 hover:bg-black/80 active:scale-95 px-2.5 py-1 text-white shadow-md backdrop-blur-md transition cursor-pointer"
+              className="focus-ring pointer-events-auto inline-flex min-h-8 sm:min-h-7.5 items-center gap-1.5 rounded-full bg-black/60 hover:bg-black/80 active:scale-95 px-2.5 py-1 text-white shadow-md backdrop-blur-md transition cursor-pointer"
             >
               <Maximize2 size={12} aria-hidden="true" className="shrink-0" />
               <span className="text-[11px] font-bold tracking-tight whitespace-nowrap">
