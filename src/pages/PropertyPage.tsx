@@ -9,7 +9,6 @@ import {
   ChevronRight,
   Clock,
   Droplets,
-  
   Flame,
   Heart,
   Home,
@@ -17,13 +16,11 @@ import {
   MapPin,
   Maximize2,
   MessageCircle,
-  
   Ruler,
   Share2,
   ShieldCheck,
   ShowerHead,
   Sparkles,
-  
   Wind,
   X,
   Zap,
@@ -39,19 +36,42 @@ import { ScheduleVisitPanel } from "../components/ScheduleVisitPanel";
 // Ícones contextuais para comodidades habituais em Angola
 function getFeatureIcon(featureName: string) {
   const lower = featureName.toLowerCase();
-  if (lower.includes("gerador") || lower.includes("energia") || lower.includes("luz")) {
+  if (
+    lower.includes("gerador") ||
+    lower.includes("energia") ||
+    lower.includes("luz")
+  ) {
     return <Zap className="size-4 text-amber-600" aria-hidden="true" />;
   }
-  if (lower.includes("água") || lower.includes("tanque") || lower.includes("bomba") || lower.includes("piscina")) {
+  if (
+    lower.includes("água") ||
+    lower.includes("tanque") ||
+    lower.includes("bomba") ||
+    lower.includes("piscina")
+  ) {
     return <Droplets className="size-4 text-sky-600" aria-hidden="true" />;
   }
-  if (lower.includes("ar condicionado") || lower.includes("ac") || lower.includes("climatiz")) {
+  if (
+    lower.includes("ar condicionado") ||
+    lower.includes("ac") ||
+    lower.includes("climatiz")
+  ) {
     return <Wind className="size-4 text-teal-600" aria-hidden="true" />;
   }
-  if (lower.includes("segurança") || lower.includes("portaria") || lower.includes("guarda")) {
-    return <ShieldCheck className="size-4 text-emerald-600" aria-hidden="true" />;
+  if (
+    lower.includes("segurança") ||
+    lower.includes("portaria") ||
+    lower.includes("guarda")
+  ) {
+    return (
+      <ShieldCheck className="size-4 text-emerald-600" aria-hidden="true" />
+    );
   }
-  if (lower.includes("garagem") || lower.includes("estacionamento") || lower.includes("vaga")) {
+  if (
+    lower.includes("garagem") ||
+    lower.includes("estacionamento") ||
+    lower.includes("vaga")
+  ) {
     return <CarFront className="size-4 text-blue-600" aria-hidden="true" />;
   }
   if (lower.includes("gás") || lower.includes("aquec")) {
@@ -90,9 +110,12 @@ export function PropertyPage({ id }: { id: string }) {
         <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-slate-100 text-slate-400">
           <Home size={32} />
         </div>
-        <h1 className="mt-4 text-2xl font-black text-ondjo-ink">Imóvel não encontrado</h1>
+        <h1 className="mt-4 text-2xl font-black text-ondjo-ink">
+          Imóvel não encontrado
+        </h1>
         <p className="mt-2 text-sm text-ondjo-muted">
-          O imóvel que procura pode ter sido removido ou o código de referência não existe.
+          O imóvel que procura pode ter sido removido ou o código de referência
+          não existe.
         </p>
         <button
           onClick={() => navigate("pesquisar")}
@@ -133,7 +156,10 @@ export function PropertyPage({ id }: { id: string }) {
   return (
     <main className="mx-auto max-w-7xl px-3 pb-28 pt-4 sm:px-6 sm:pb-16 lg:px-8 lg:pt-6">
       {/* Barra de Navegação Superior / Breadcrumb Semântico & Ações */}
-      <nav aria-label="Navegação estrutural" className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <nav
+        aria-label="Navegação estrutural"
+        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+      >
         <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-ondjo-muted">
           <button
             onClick={() => navigate("home")}
@@ -141,17 +167,28 @@ export function PropertyPage({ id }: { id: string }) {
           >
             Início
           </button>
-          <span aria-hidden="true" className="text-slate-300">/</span>
+          <span aria-hidden="true" className="text-slate-300">
+            /
+          </span>
           <button
             onClick={() => navigate("pesquisar")}
             className="focus-ring rounded-md text-ondjo-muted hover:text-ondjo-blue"
           >
             Pesquisar
           </button>
-          <span aria-hidden="true" className="text-slate-300">/</span>
-          <span className="font-semibold text-ondjo-ink">{property.neighborhood}</span>
-          <span aria-hidden="true" className="text-slate-300">/</span>
-          <span className="max-w-50 truncate text-slate-500 sm:max-w-[320px]" title={property.title}>
+          <span aria-hidden="true" className="text-slate-300">
+            /
+          </span>
+          <span className="font-semibold text-ondjo-ink">
+            {property.neighborhood}
+          </span>
+          <span aria-hidden="true" className="text-slate-300">
+            /
+          </span>
+          <span
+            className="max-w-50 truncate text-slate-500 sm:max-w-[320px]"
+            title={property.title}
+          >
             {property.title}
           </span>
         </div>
@@ -159,7 +196,9 @@ export function PropertyPage({ id }: { id: string }) {
         <div className="flex items-center gap-2 self-end sm:self-auto">
           <button
             onClick={share}
-            aria-label={shared ? "Link copiado com sucesso" : "Partilhar este imóvel"}
+            aria-label={
+              shared ? "Link copiado com sucesso" : "Partilhar este imóvel"
+            }
             className="focus-ring relative inline-flex min-h-10 items-center gap-2 rounded-xl border border-ondjo-border bg-white px-3.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50"
           >
             {shared ? (
@@ -178,14 +217,20 @@ export function PropertyPage({ id }: { id: string }) {
           <button
             onClick={() => toggleFavorite(property.id)}
             aria-pressed={favorite}
-            aria-label={favorite ? "Remover dos favoritos" : "Guardar nos favoritos"}
+            aria-label={
+              favorite ? "Remover dos favoritos" : "Guardar nos favoritos"
+            }
             className={`focus-ring inline-flex min-h-10 items-center gap-2 rounded-xl border px-3.5 text-xs font-bold shadow-sm transition ${
               favorite
                 ? "border-red-200 bg-red-50 text-red-600 hover:bg-red-100"
                 : "border-ondjo-border bg-white text-slate-700 hover:bg-slate-50"
             }`}
           >
-            <Heart size={15} fill={favorite ? "currentColor" : "none"} className={favorite ? "text-red-500" : ""} />
+            <Heart
+              size={15}
+              fill={favorite ? "currentColor" : "none"}
+              className={favorite ? "text-red-500" : ""}
+            />
             <span>{favorite ? "Guardado" : "Guardar"}</span>
           </button>
 
@@ -200,7 +245,7 @@ export function PropertyPage({ id }: { id: string }) {
       </nav>
 
       {/* Cartão Principal: Módulo Visual das Imagens + Informação Chave Instantânea */}
-      <section 
+      <section
         aria-label="Apresentação do imóvel"
         className="mt-4 overflow-hidden rounded-[26px] border border-ondjo-border bg-white shadow-[0_12px_45px_rgba(16,24,40,0.06)]"
       >
@@ -250,7 +295,9 @@ export function PropertyPage({ id }: { id: string }) {
                   onClick={() => setActive(index)}
                   aria-label={`Ver foto ${index + 1}`}
                   className={`focus-ring shrink-0 overflow-hidden rounded-xl border-2 transition ${
-                    active === index ? "border-ondjo-blue ring-2 ring-blue-100" : "border-transparent opacity-80 hover:opacity-100"
+                    active === index
+                      ? "border-ondjo-blue ring-2 ring-blue-100"
+                      : "border-transparent opacity-80 hover:opacity-100"
                   }`}
                 >
                   <img
@@ -288,17 +335,26 @@ export function PropertyPage({ id }: { id: string }) {
                   )}
                 </div>
 
-                <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-400" title="Código de Referência do Anúncio">
+                <span
+                  className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-400"
+                  title="Código de Referência do Anúncio"
+                >
                   Ref: {propertyRef}
                 </span>
               </div>
 
               {/* Localização com Hierarquia */}
               <div className="mt-4 flex items-center gap-1.5 text-sm font-semibold text-ondjo-muted">
-                <MapPin size={16} className="shrink-0 text-ondjo-blue" aria-hidden="true" />
+                <MapPin
+                  size={16}
+                  className="shrink-0 text-ondjo-blue"
+                  aria-hidden="true"
+                />
                 <span>
                   {property.neighborhood}, {property.city}
-                  {property.province && property.province !== property.city ? ` (${property.province})` : ""}
+                  {property.province && property.province !== property.city
+                    ? ` (${property.province})`
+                    : ""}
                 </span>
               </div>
 
@@ -324,7 +380,9 @@ export function PropertyPage({ id }: { id: string }) {
                 </div>
                 <div className="mt-2.5 flex items-center gap-1.5 border-t border-white/10 pt-2.5 text-xs text-blue-100/80">
                   <Check size={14} className="text-emerald-400 shrink-0" />
-                  <span>Valor oficial para negociação direta e sem comissões ocultas</span>
+                  <span>
+                    Valor oficial para negociação direta e sem comissões ocultas
+                  </span>
                 </div>
               </div>
 
@@ -334,32 +392,48 @@ export function PropertyPage({ id }: { id: string }) {
                   <span className="text-ondjo-blue mb-1">
                     <BedDouble size={18} aria-hidden="true" />
                   </span>
-                  <strong className="text-base font-black text-ondjo-ink">{property.bedrooms}</strong>
-                  <span className="text-[11px] font-medium text-slate-500">Quartos</span>
+                  <strong className="text-base font-black text-ondjo-ink">
+                    {property.bedrooms}
+                  </strong>
+                  <span className="text-[11px] font-medium text-slate-500">
+                    Quartos
+                  </span>
                 </div>
 
                 <div className="flex flex-col items-center justify-center rounded-xl bg-white p-2.5 shadow-xs">
                   <span className="text-ondjo-blue mb-1">
                     <ShowerHead size={18} aria-hidden="true" />
                   </span>
-                  <strong className="text-base font-black text-ondjo-ink">{property.bathrooms}</strong>
-                  <span className="text-[11px] font-medium text-slate-500">Banhos</span>
+                  <strong className="text-base font-black text-ondjo-ink">
+                    {property.bathrooms}
+                  </strong>
+                  <span className="text-[11px] font-medium text-slate-500">
+                    Banhos
+                  </span>
                 </div>
 
                 <div className="flex flex-col items-center justify-center rounded-xl bg-white p-2.5 shadow-xs">
                   <span className="text-ondjo-blue mb-1">
                     <Ruler size={18} aria-hidden="true" />
                   </span>
-                  <strong className="text-base font-black text-ondjo-ink">{property.area}</strong>
-                  <span className="text-[11px] font-medium text-slate-500">m² de área</span>
+                  <strong className="text-base font-black text-ondjo-ink">
+                    {property.area}
+                  </strong>
+                  <span className="text-[11px] font-medium text-slate-500">
+                    m² de área
+                  </span>
                 </div>
 
                 <div className="flex flex-col items-center justify-center rounded-xl bg-white p-2.5 shadow-xs">
                   <span className="text-ondjo-blue mb-1">
                     <CarFront size={18} aria-hidden="true" />
                   </span>
-                  <strong className="text-base font-black text-ondjo-ink">{property.parking}</strong>
-                  <span className="text-[11px] font-medium text-slate-500">Vagas</span>
+                  <strong className="text-base font-black text-ondjo-ink">
+                    {property.parking}
+                  </strong>
+                  <span className="text-[11px] font-medium text-slate-500">
+                    Vagas
+                  </span>
                 </div>
               </div>
 
@@ -385,9 +459,17 @@ export function PropertyPage({ id }: { id: string }) {
             {/* Aviso de Confiança e Segurança Local */}
             <div className="mt-6 border-t border-slate-100 pt-4">
               <div className="flex items-start gap-2.5 rounded-xl border border-slate-200/80 bg-slate-50 p-3 text-sm leading-relaxed text-slate-600">
-                <ShieldCheck size={20} className="mt-0.5 shrink-0 text-ondjo-green" aria-hidden="true" />
+                <ShieldCheck
+                  size={20}
+                  className="mt-0.5 shrink-0 text-ondjo-green"
+                  aria-hidden="true"
+                />
                 <p>
-                  <strong className="font-semibold text-ondjo-ink">Garantia ONDJO:</strong> Visite sempre o imóvel presencialmente antes de qualquer compromisso financeiro. Todos os corretores são verificados.
+                  <strong className="font-semibold text-ondjo-ink">
+                    Garantia ONDJO:
+                  </strong>{" "}
+                  Visite sempre o imóvel presencialmente antes de qualquer
+                  compromisso financeiro. Todos os corretores são verificados.
                 </p>
               </div>
             </div>
@@ -400,7 +482,7 @@ export function PropertyPage({ id }: { id: string }) {
         {/* Coluna Principal */}
         <div className="space-y-6">
           {/* Descrição Completa */}
-          <section 
+          <section
             aria-labelledby="desc-heading"
             className="rounded-[22px] border border-ondjo-border bg-white p-6 shadow-xs sm:p-7"
           >
@@ -408,30 +490,36 @@ export function PropertyPage({ id }: { id: string }) {
               <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-ondjo-blue">
                 Apresentação
               </span>
-              <h2 id="desc-heading" className="mt-1 text-xl font-black text-ondjo-ink">
+              <h2
+                id="desc-heading"
+                className="mt-1 text-xl font-black text-ondjo-ink"
+              >
                 Sobre este imóvel
               </h2>
             </div>
-            
+
             <p className="mt-4 text-base leading-relaxed text-ondjo-ink/80">
               {property.description}
             </p>
 
             <div className="mt-6 flex flex-wrap gap-2 pt-4 border-t border-slate-100">
               <div className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700">
-                <Check size={14} className="text-ondjo-green" /> Pronto para habitar
+                <Check size={14} className="text-ondjo-green" /> Pronto para
+                habitar
               </div>
               <div className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700">
-                <Check size={14} className="text-ondjo-green" /> Documentação em dia
+                <Check size={14} className="text-ondjo-green" /> Documentação em
+                dia
               </div>
               <div className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700">
-                <Check size={14} className="text-ondjo-green" /> Acesso asfaltado
+                <Check size={14} className="text-ondjo-green" /> Acesso
+                asfaltado
               </div>
             </div>
           </section>
 
           {/* Comodidades & Equipamentos */}
-          <section 
+          <section
             aria-labelledby="features-heading"
             className="rounded-[22px] border border-ondjo-border bg-white p-6 shadow-xs sm:p-7"
           >
@@ -439,7 +527,10 @@ export function PropertyPage({ id }: { id: string }) {
               <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-ondjo-blue">
                 Infraestrutura & Conforto
               </span>
-              <h2 id="features-heading" className="mt-1 text-xl font-black text-ondjo-ink">
+              <h2
+                id="features-heading"
+                className="mt-1 text-xl font-black text-ondjo-ink"
+              >
                 O que encontra neste imóvel
               </h2>
             </div>
@@ -459,17 +550,24 @@ export function PropertyPage({ id }: { id: string }) {
 
               <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/70 p-3.5 text-sm font-semibold text-ondjo-ink">
                 <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-white shadow-2xs">
-                  <CarFront className="size-4 text-blue-600" aria-hidden="true" />
+                  <CarFront
+                    className="size-4 text-blue-600"
+                    aria-hidden="true"
+                  />
                 </span>
                 <span>
-                  {property.parking} {property.parking === 1 ? "vaga reservada" : "vagas reservadas"} de estacionamento
+                  {property.parking}{" "}
+                  {property.parking === 1
+                    ? "vaga reservada"
+                    : "vagas reservadas"}{" "}
+                  de estacionamento
                 </span>
               </div>
             </div>
           </section>
 
           {/* Localização & Proximidades */}
-          <section 
+          <section
             aria-labelledby="location-heading"
             className="rounded-[22px] border border-ondjo-border bg-white p-6 shadow-xs sm:p-7"
           >
@@ -477,7 +575,10 @@ export function PropertyPage({ id }: { id: string }) {
               <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-ondjo-blue">
                 Enquadramento
               </span>
-              <h2 id="location-heading" className="mt-1 text-xl font-black text-ondjo-ink">
+              <h2
+                id="location-heading"
+                className="mt-1 text-xl font-black text-ondjo-ink"
+              >
                 Localização em {property.neighborhood}
               </h2>
             </div>
@@ -492,7 +593,8 @@ export function PropertyPage({ id }: { id: string }) {
                     {property.neighborhood}, Município de {property.city}
                   </h3>
                   <p className="text-xs text-ondjo-muted">
-                    Zona com acessos facilitados a vias principais e comércio local.
+                    Zona com acessos facilitados a vias principais e comércio
+                    local.
                   </p>
                 </div>
               </div>
@@ -501,7 +603,8 @@ export function PropertyPage({ id }: { id: string }) {
                 onClick={() => navigate("pesquisar")}
                 className="focus-ring inline-flex items-center justify-center gap-1.5 rounded-lg bg-white px-3 py-2 text-xs font-bold text-ondjo-blue shadow-2xs border border-blue-200 hover:bg-blue-50"
               >
-                Ver outros imóveis nesta zona <ArrowLeft size={13} className="rotate-180" />
+                Ver outros imóveis nesta zona{" "}
+                <ArrowLeft size={13} className="rotate-180" />
               </button>
             </div>
           </section>
@@ -514,12 +617,23 @@ export function PropertyPage({ id }: { id: string }) {
             <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
               <div className="relative grid size-12 place-items-center rounded-full bg-ondjo-navy font-bold text-white shadow-xs">
                 <span>ON</span>
-                <span className="absolute bottom-0 right-0 size-3.5 rounded-full border-2 border-white bg-emerald-500" title="Corretor online" />
+                <span
+                  className="absolute bottom-0 right-0 size-3.5 rounded-full border-2 border-white bg-emerald-500"
+                  title="Corretor online"
+                />
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <strong className="text-sm font-black text-ondjo-ink">Consultor ONDJO</strong>
-                  <span title="Identidade verificada"><ShieldCheck size={14} className="text-ondjo-green" aria-hidden="true" /></span>
+                  <strong className="text-sm font-black text-ondjo-ink">
+                    Consultor ONDJO
+                  </strong>
+                  <span title="Identidade verificada">
+                    <ShieldCheck
+                      size={14}
+                      className="text-ondjo-green"
+                      aria-hidden="true"
+                    />
+                  </span>
                 </div>
                 <p className="text-xs text-ondjo-muted flex items-center gap-1 mt-0.5">
                   <Clock size={15} /> Responde em média em 15 min
@@ -552,11 +666,13 @@ export function PropertyPage({ id }: { id: string }) {
               <ul className="mt-2 space-y-1.5 text-[13px] leading-relaxed text-slate-500">
                 <li className="flex items-start gap-1.5">
                   <span className="text-ondjo-green font-bold">•</span>
-                  Exija sempre a verificação presencial do título de propriedade.
+                  Exija sempre a verificação presencial do título de
+                  propriedade.
                 </li>
                 <li className="flex items-start gap-1.5">
                   <span className="text-ondjo-green font-bold">•</span>
-                  Agende as visitas em horários diurnos com o corretor responsável.
+                  Agende as visitas em horários diurnos com o corretor
+                  responsável.
                 </li>
               </ul>
             </div>
@@ -566,13 +682,19 @@ export function PropertyPage({ id }: { id: string }) {
 
       {/* Imóveis Semelhantes */}
       {similar.length > 0 && (
-        <section aria-labelledby="similar-heading" className="mt-14 border-t border-slate-200/80 pt-10">
+        <section
+          aria-labelledby="similar-heading"
+          className="mt-14 border-t border-slate-200/80 pt-10"
+        >
           <div className="flex items-end justify-between">
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-ondjo-blue">
                 Sugestões no mesmo perfil
               </p>
-              <h2 id="similar-heading" className="mt-1 text-2xl font-black text-ondjo-ink">
+              <h2
+                id="similar-heading"
+                className="mt-1 text-2xl font-black text-ondjo-ink"
+              >
                 Imóveis semelhantes em {property.city}
               </h2>
             </div>
@@ -592,7 +714,7 @@ export function PropertyPage({ id }: { id: string }) {
       )}
 
       {/* Barra Fixa Flutuante em Mobile: Preço + Ações rápidas acessíveis */}
-      <div 
+      <div
         role="region"
         aria-label="Ações rápidas do imóvel"
         className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 p-3 shadow-[0_-8px_25px_rgba(16,24,40,0.08)] backdrop-blur-md lg:hidden"
@@ -611,9 +733,13 @@ export function PropertyPage({ id }: { id: string }) {
             <button
               onClick={() => toggleFavorite(property.id)}
               aria-pressed={favorite}
-              aria-label={favorite ? "Remover dos favoritos" : "Guardar nos favoritos"}
+              aria-label={
+                favorite ? "Remover dos favoritos" : "Guardar nos favoritos"
+              }
               className={`focus-ring grid size-11 place-items-center rounded-xl border transition ${
-                favorite ? "border-red-200 bg-red-50 text-red-600" : "border-ondjo-border bg-white text-slate-600"
+                favorite
+                  ? "border-red-200 bg-red-50 text-red-600"
+                  : "border-ondjo-border bg-white text-slate-600"
               }`}
             >
               <Heart size={18} fill={favorite ? "currentColor" : "none"} />

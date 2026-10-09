@@ -345,7 +345,7 @@ export function FavoritesPage() {
 
               {selectedForCompare.length > 0 && (
                 <span className="inline-flex items-center gap-1.5 font-semibold text-ondjo-blue">
-                  <Scale size={13} aria-hidden="true" />
+                  <Scale size={18} aria-hidden="true" />
                   <span>{selectedForCompare.length} de 3 no comparador</span>
                 </span>
               )}
@@ -379,7 +379,7 @@ export function FavoritesPage() {
                     </div>
 
                     {/* Barra de utilidade integrada: botões com touch target >= 44px */}
-                    <div className="flex items-center justify-between border-t border-ondjo-border/80 bg-slate-50/80 px-3.5 py-2">
+                    <div className="flex items-center justify-between border-tb border-ondjo-border/80 bg-slate-50/80 px-3.5 py-2">
                       <button
                         type="button"
                         onClick={() => toggleCompare(property.id)}
@@ -422,7 +422,7 @@ export function FavoritesPage() {
                         title="Remover dos favoritos"
                         aria-label={`Remover ${property.title} dos favoritos`}
                       >
-                        <Trash2 size={16} aria-hidden="true" />
+                        <Trash2 size={18} aria-hidden="true" />
                         <span className="sr-only">Remover dos favoritos</span>
                       </button>
                     </div>
@@ -469,8 +469,8 @@ export function FavoritesPage() {
               >
                 <div className="flex items-center justify-between gap-3 rounded-2xl border border-ondjo-navy/15 bg-ondjo-navy p-3 text-white shadow-xl shadow-slate-950/25 sm:p-4">
                   <div className="flex items-center gap-2.5 sm:gap-3">
-                    <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white/10 text-blue-200" aria-hidden="true">
-                      <Scale size={18} />
+                    <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-white/10 text-blue-200" aria-hidden="true">
+                      <Scale size={22} />
                     </span>
                     <div className="min-w-0">
                       <p className="text-xs font-bold uppercase tracking-wider text-blue-200 truncate">
@@ -579,7 +579,7 @@ export function FavoritesPage() {
 
                   {/* Corpo do Comparador com scroll horizontal fluido e legível */}
                   <div className="flex-1 overflow-y-auto overflow-x-auto p-4 sm:p-6">
-                    <table className="w-full min-w-[580px] border-collapse text-left text-xs sm:text-sm" aria-label="Tabela de comparação de características">
+                    <table className="w-full min-w-145 border-collapse text-left text-xs sm:text-sm" aria-label="Tabela de comparação de características">
                       <thead>
                         <tr>
                           <th scope="col" className="w-36 pb-4 pt-1 font-bold uppercase tracking-wider text-ondjo-muted sm:w-44">
