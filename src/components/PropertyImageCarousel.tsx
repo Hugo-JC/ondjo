@@ -118,13 +118,13 @@ export function PropertyImageCarousel({
         />
 
         {/* Gradiente subtil na base para garantir legibilidade dos controlos */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-linear-to-t from-black/55 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-black/60 via-black/25 to-transparent" />
 
-        {/* Barra inferior: Pontos de Paginação, Contador e Botão de Expansão (Lightbox) */}
+        {/* Barra inferior: Agrupamento compacto e ergonómico de controlos */}
         <div className="absolute inset-x-0 bottom-2.5 flex items-center justify-between px-3 pointer-events-none z-10">
-          {/* Pontos de navegação touch/click discretos */}
+          {/* Indicadores de fotos touch-friendly com padding de toque invisível */}
           {total > 1 ? (
-            <div className="flex items-center gap-1 pointer-events-auto">
+            <div className="flex items-center gap-0.5 pointer-events-auto">
               {safeImages.slice(0, 6).map((_, idx) => (
                 <button
                   key={idx}
@@ -134,16 +134,20 @@ export function PropertyImageCarousel({
                     setCurrentIndex(idx);
                   }}
                   aria-label={`Ir para a foto ${idx + 1}`}
-                  className={[
-                    "h-1.5 rounded-full transition-all duration-300",
-                    currentIndex === idx
-                      ? "w-4 bg-white shadow-xs"
-                      : "w-1.5 bg-white/50 hover:bg-white/80",
-                  ].join(" ")}
-                />
+                  className="p-1 cursor-pointer focus:outline-none"
+                >
+                  <span
+                    className={[
+                      "block h-1.5 rounded-full transition-all duration-300",
+                      currentIndex === idx
+                        ? "w-4 bg-white shadow-xs"
+                        : "w-1.5 bg-white/50 hover:bg-white/85",
+                    ].join(" ")}
+                  />
+                </button>
               ))}
               {total > 6 && (
-                <span className="text-[10px] text-white/80 font-bold ml-0.5">
+                <span className="text-[10px] text-white/80 font-bold ml-1">
                   +{total - 6}
                 </span>
               )}
@@ -152,38 +156,24 @@ export function PropertyImageCarousel({
             <div />
           )}
 
-          {/* Lado direito da base: Contador clicável e Botão de visualização completa */}
-          <div className="flex items-center gap-1.5 pointer-events-auto">
-            {total > 1 && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setLightboxOpen(true);
-                }}
-                aria-label={`Ver galeria com todas as ${total} fotos`}
-                title={`Ver todas as ${total} fotos`}
-                className="rounded-full bg-black/50 hover:bg-black/75 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-xs transition cursor-pointer"
-              >
-                {currentIndex + 1}/{total}
-              </button>
-            )}
-
-            {showLightboxButton && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setLightboxOpen(true);
-                }}
-                aria-label="Ver fotos em ecrã inteiro"
-                title="Ver fotos em ecrã inteiro"
-                className="focus-ring grid size-7 place-items-center rounded-full bg-black/50 hover:bg-black/85 text-white opacity-0 backdrop-blur-xs transition hover:scale-105 group-hover:opacity-100 group-hover/carousel:opacity-100 focus:opacity-100 cursor-pointer shadow-xs"
-              >
-                <Maximize2 size={13} aria-hidden="true" />
-              </button>
-            )}
-          </div>
+          {/* Botão de Galeria Compacto e Unificado: Ícone + Contador, alvo tátil amplo */}
+          {showLightboxButton && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightboxOpen(true);
+              }}
+              aria-label={`Abrir galeria de fotos em ecrã inteiro (${total} fotos)`}
+              title="Abrir galeria completa"
+              className="focus-ring pointer-events-auto inline-flex min-h-[32px] sm:min-h-[30px] items-center gap-1.5 rounded-full bg-black/60 hover:bg-black/80 active:scale-95 px-2.5 py-1 text-white shadow-md backdrop-blur-md transition cursor-pointer"
+            >
+              <Maximize2 size={12} aria-hidden="true" className="shrink-0" />
+              <span className="text-[11px] font-bold tracking-tight">
+                {total > 1 ? `${currentIndex + 1}/${total}` : "Galeria"}
+              </span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -221,7 +211,7 @@ export function PropertyImageCarousel({
                 <button
                   type="button"
                   onClick={() => setLightboxOpen(false)}
-                  className="rounded-full p-2 bg-white/10 text-white hover:bg-white/20 transition-colors"
+                  className="rounded-full p-2 bg-white/10 text-white hover:bg-white/20 transition-colors cursor-pointer"
                   aria-label="Fechar galeria (Esc)"
                 >
                   <X size={20} />
@@ -242,7 +232,7 @@ export function PropertyImageCarousel({
                       type="button"
                       onClick={prevImage}
                       aria-label="Foto anterior"
-                      className="absolute left-3 top-1/2 -translate-y-1/2 grid size-10 place-items-center rounded-full bg-black/60 text-white hover:bg-black/90 backdrop-blur-xs transition"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 grid size-10 place-items-center rounded-full bg-black/60 text-white hover:bg-black/90 backdrop-blur-xs transition cursor-pointer"
                     >
                       <ChevronLeft size={22} />
                     </button>
@@ -250,7 +240,7 @@ export function PropertyImageCarousel({
                       type="button"
                       onClick={nextImage}
                       aria-label="Próxima foto"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 grid size-10 place-items-center rounded-full bg-black/60 text-white hover:bg-black/90 backdrop-blur-xs transition"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 grid size-10 place-items-center rounded-full bg-black/60 text-white hover:bg-black/90 backdrop-blur-xs transition cursor-pointer"
                     >
                       <ChevronRight size={22} />
                     </button>
@@ -266,7 +256,7 @@ export function PropertyImageCarousel({
                       type="button"
                       onClick={() => setCurrentIndex(idx)}
                       className={[
-                        "relative size-14 shrink-0 overflow-hidden rounded-lg border-2 transition",
+                        "relative size-14 shrink-0 overflow-hidden rounded-lg border-2 transition cursor-pointer",
                         currentIndex === idx
                           ? "border-white scale-105 shadow-md"
                           : "border-transparent opacity-60 hover:opacity-100",
