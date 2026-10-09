@@ -188,7 +188,7 @@ export function Home() {
 
               <span className="hidden sm:inline text-white/25">•</span>
 
-              <span className="inline-flex items-center gap-1.5">
+              <span className="inline-flex items-center font-semibold gap-1.5">
                 <Coins
                   size={18}
                   className="text-amber-300 shrink-0"
@@ -199,7 +199,7 @@ export function Home() {
 
               <span className="hidden sm:inline text-white/25">•</span>
 
-              <span className="inline-flex items-center gap-1.5">
+              <span className="inline-flex items-center font-semibold gap-1.5">
                 <CheckCircle2
                   size={18}
                   className="text-blue-300 shrink-0"
@@ -219,7 +219,7 @@ export function Home() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
             <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/80 bg-emerald-50 px-2.5 py-0.5 text-xs font-extrabold uppercase tracking-wider text-ondjo-green">
-              <Sparkles size={12} aria-hidden="true" />
+              <Sparkles size={15} aria-hidden="true" />
               Seleção ONDJO
             </div>
 

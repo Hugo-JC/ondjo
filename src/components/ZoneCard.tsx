@@ -108,7 +108,7 @@ export function ZoneCard({ zone }: { zone: ZoneSummary }) {
         {/* Camada Dupla de Gradiente para Máxima Legibilidade (WCAG AAA) */}
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/55 to-slate-900/25"
+          className="absolute inset-0 bg-linear-to-t from-slate-950/95 via-slate-950/55 to-slate-900/25"
         />
       </div>
 

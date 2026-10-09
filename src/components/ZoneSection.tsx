@@ -17,7 +17,7 @@ export function ZoneSection() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-200/80 bg-blue-50/80 px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-ondjo-blue">
-            <Compass size={13} className="text-ondjo-blue" aria-hidden="true" />
+            <Compass size={16} className="text-ondjo-blue" aria-hidden="true" />
             Explore por zona
           </div>
 
@@ -28,7 +28,7 @@ export function ZoneSection() {
             Onde quer procurar?
           </h2>
 
-          <p className="mt-1.5 max-w-xl text-xs sm:text-sm leading-relaxed text-ondjo-muted sm:text-base">
+          <p className="mt-1.5 max-w-xl text-xs leading-relaxed text-ondjo-muted sm:text-base">
             Descubra as zonas mais procuradas de Luanda e encontre o imóvel ideal
             com base na localização, serviços e acessos do seu dia a dia.
           </p>
@@ -62,7 +62,7 @@ export function ZoneSection() {
         {zones.map((zone) => (
           <li
             key={zone.name}
-            className="w-[78vw] max-w-[280px] shrink-0 snap-center sm:w-auto sm:max-w-none sm:shrink list-none"
+            className="w-[78vw] max-w-70] shrink-0 snap-center sm:w-auto sm:max-w-none sm:shrink list-none"
           >
             <ZoneCard zone={zone} />
           </li>

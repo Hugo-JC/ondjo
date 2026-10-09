@@ -118,7 +118,7 @@ export function PropertyImageCarousel({
         />
 
         {/* Gradiente subtil na base */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-black/55 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-linear-to-t from-black/55 to-transparent" />
 
         {/* Controlos de navegação */}
         {total > 1 && (

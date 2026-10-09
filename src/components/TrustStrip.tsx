@@ -83,7 +83,7 @@ export function TrustStrip() {
   return (
     <section
       aria-labelledby="trust-strip-title"
-      className="relative overflow-hidden rounded-[24px] sm:rounded-[28px] border border-ondjo-border bg-white p-5 shadow-[0_16px_50px_rgba(16,24,40,0.05)] sm:p-8 lg:p-10"
+      className="relative overflow-hidden rounded-3xl sm:rounded-[28px] border border-ondjo-border bg-white p-5 shadow-[0_16px_50px_rgba(16,24,40,0.05)] sm:p-8 lg:p-10"
     >
       {/* Detalhe de fundo subtil */}
       <div
@@ -110,7 +110,7 @@ export function TrustStrip() {
             A forma mais transparente de encontrar casa em Angola.
           </h2>
 
-          <p className="mt-1.5 text-xs sm:text-sm leading-relaxed text-ondjo-muted sm:text-base">
+          <p className="mt-1.5 text-xsleading-relaxed text-ondjo-muted sm:text-base">
             Desenvolvido para responder aos desafios reais da procura de imóveis em Angola: 
             segurança contra burlas, clareza nos preços e autonomia nas visitas.
           </p>
@@ -146,7 +146,7 @@ export function TrustStrip() {
               whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.35, delay: index * 0.08 }}
-              className={`group relative flex w-[78vw] max-w-[280px] shrink-0 snap-center sm:w-auto sm:max-w-none sm:shrink flex-col justify-between rounded-2xl border border-slate-100 bg-slate-50/70 p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-lg hover:shadow-slate-200/40 ${style.glow}`}
+              className={`group relative flex w-[78vw] max-w-70 shrink-0 snap-center sm:w-auto sm:max-w-none sm:shrink flex-col justify-between rounded-2xl border border-slate-100 bg-slate-50/70 p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-lg hover:shadow-slate-200/40 ${style.glow}`}
             >
               <div>
                 <div className="flex items-center justify-between gap-2">
@@ -183,7 +183,7 @@ export function TrustStrip() {
       </div>
 
       {/* Faixa Inferior de Indicadores Chave adaptada a ecrãs móveis */}
-      <div className="relative mt-6 sm:mt-8 rounded-2xl border border-slate-100 bg-gradient-to-r from-slate-50 via-blue-50/30 to-slate-50 p-3.5 sm:p-5">
+      <div className="relative mt-6 sm:mt-8 rounded-2xl border border-slate-100 bg-linear-to-r from-slate-50 via-blue-50/30 to-slate-50 p-3.5 sm:p-5">
         <div className="grid grid-cols-2 gap-3 divide-y divide-slate-200/60 sm:grid-cols-4 sm:gap-4 sm:divide-x sm:divide-y-0">
           {STATS.map((stat, i) => (
             <div
