@@ -126,7 +126,7 @@ export function TrustStrip() {
             <ShieldCheck size={25} />
           </div>
           <div>
-            <span className="block text-1xl font-bold text-ondjo-ink">
+            <span className="block text-lg font-bold text-ondjo-ink">
               Plataforma Segura
             </span>
             <span className="block text-sm text-ondjo-muted">

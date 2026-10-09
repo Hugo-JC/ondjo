@@ -151,7 +151,7 @@ export function PropertyPage({ id }: { id: string }) {
           <span aria-hidden="true" className="text-slate-300">/</span>
           <span className="font-semibold text-ondjo-ink">{property.neighborhood}</span>
           <span aria-hidden="true" className="text-slate-300">/</span>
-          <span className="max-w-[200px] truncate text-slate-500 sm:max-w-[320px]" title={property.title}>
+          <span className="max-w-50 truncate text-slate-500 sm:max-w-[320px]" title={property.title}>
             {property.title}
           </span>
         </div>
@@ -215,9 +215,9 @@ export function PropertyPage({ id }: { id: string }) {
               <img
                 src={property.images[active]}
                 alt={`${property.title} — foto ${active + 1}`}
-                className="aspect-[4/3] w-full object-cover transition duration-500 group-hover:scale-[1.015] sm:aspect-[16/10] lg:aspect-[1.12/1] lg:min-h-[580px]"
+                className="aspect-4/3 w-full object-cover transition duration-500 group-hover:scale-[1.015] sm:aspect-16/10 lg:aspect-[1.12/1] lg:min-h-145"
               />
-              <div className="absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-black/75 via-black/20 to-transparent p-4 pt-16 text-white sm:p-5 sm:pt-20">
+              <div className="absolute inset-x-0 bottom-0 flex items-end justify-between bg-linear-to-t from-black/75 via-black/20 to-transparent p-4 pt-16 text-white sm:p-5 sm:pt-20">
                 <span className="rounded-full bg-black/40 px-3 py-1.5 text-xs font-bold backdrop-blur">
                   {active + 1} / {property.images.length} fotos
                 </span>
@@ -270,20 +270,20 @@ export function PropertyPage({ id }: { id: string }) {
               {/* Badges de Estado & Referência */}
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-700">
-                    <Building2 size={12} className="text-ondjo-blue" />
+                  <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[13px] font-bold text-slate-700">
+                    <Building2 size={17} className="text-ondjo-blue" />
                     {property.type}
                   </span>
 
                   {property.verified && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-ondjo-green-soft px-2.5 py-1 text-[11px] font-extrabold text-ondjo-green">
-                      <ShieldCheck size={13} /> Verificado ONDJO
+                    <span className="inline-flex items-center gap-1 rounded-full bg-ondjo-green-soft px-2.5 py-1 text-[13px] font-extrabold text-ondjo-green">
+                      <ShieldCheck size={17} /> Verificado ONDJO
                     </span>
                   )}
 
                   {property.featured && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-extrabold text-amber-700 border border-amber-200">
-                      <Sparkles size={12} /> Destaque
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[13px] font-extrabold text-amber-700 border border-amber-200">
+                      <Sparkles size={17} /> Destaque
                     </span>
                   )}
                 </div>
@@ -308,7 +308,7 @@ export function PropertyPage({ id }: { id: string }) {
               </h1>
 
               {/* Cartão de Preço Exclusivo de Angola (Kz Puro, sem conversor externo) */}
-              <div className="mt-5 overflow-hidden rounded-2xl bg-gradient-to-br from-ondjo-navy-deep to-[#132c4a] p-4 text-white shadow-md sm:p-5">
+              <div className="mt-5 overflow-hidden rounded-2xl bg-linear-to-br from-ondjo-navy-deep to-[#132c4a] p-4 text-white shadow-md sm:p-5">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-blue-200">
                     Preço anunciado em Angola
@@ -384,8 +384,8 @@ export function PropertyPage({ id }: { id: string }) {
 
             {/* Aviso de Confiança e Segurança Local */}
             <div className="mt-6 border-t border-slate-100 pt-4">
-              <div className="flex items-start gap-2.5 rounded-xl border border-slate-200/80 bg-slate-50 p-3 text-xs leading-relaxed text-slate-600">
-                <ShieldCheck size={18} className="mt-0.5 shrink-0 text-ondjo-green" aria-hidden="true" />
+              <div className="flex items-start gap-2.5 rounded-xl border border-slate-200/80 bg-slate-50 p-3 text-sm leading-relaxed text-slate-600">
+                <ShieldCheck size={20} className="mt-0.5 shrink-0 text-ondjo-green" aria-hidden="true" />
                 <p>
                   <strong className="font-semibold text-ondjo-ink">Garantia ONDJO:</strong> Visite sempre o imóvel presencialmente antes de qualquer compromisso financeiro. Todos os corretores são verificados.
                 </p>
@@ -522,7 +522,7 @@ export function PropertyPage({ id }: { id: string }) {
                   <span title="Identidade verificada"><ShieldCheck size={14} className="text-ondjo-green" aria-hidden="true" /></span>
                 </div>
                 <p className="text-xs text-ondjo-muted flex items-center gap-1 mt-0.5">
-                  <Clock size={12} /> Responde em média em 15 min
+                  <Clock size={15} /> Responde em média em 15 min
                 </p>
               </div>
             </div>
@@ -545,11 +545,11 @@ export function PropertyPage({ id }: { id: string }) {
 
             {/* Dicas de Proteção ONDJO */}
             <div className="mt-5 rounded-xl bg-slate-50 p-3.5 border border-slate-100">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-ondjo-ink">
-                <Info size={14} className="text-ondjo-blue" />
+              <div className="flex items-center gap-1.5 text-2xs font-bold text-ondjo-ink">
+                <Info size={18} className="text-ondjo-blue" />
                 <span>Dicas essenciais</span>
               </div>
-              <ul className="mt-2 space-y-1.5 text-[11px] leading-relaxed text-slate-500">
+              <ul className="mt-2 space-y-1.5 text-[13px] leading-relaxed text-slate-500">
                 <li className="flex items-start gap-1.5">
                   <span className="text-ondjo-green font-bold">•</span>
                   Exija sempre a verificação presencial do título de propriedade.
@@ -641,7 +641,7 @@ export function PropertyPage({ id }: { id: string }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[80] bg-slate-950/95 p-3 sm:p-8"
+            className="fixed inset-0 z-80 bg-slate-950/95 p-3 sm:p-8"
           >
             <button
               onClick={() => setGallery(false)}
