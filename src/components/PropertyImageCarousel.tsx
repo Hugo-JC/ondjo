@@ -117,35 +117,13 @@ export function PropertyImageCarousel({
           className="h-full w-full object-cover transition duration-500 ease-out"
         />
 
-        {/* Gradiente subtil na base */}
+        {/* Gradiente subtil na base para garantir legibilidade dos controlos */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-linear-to-t from-black/55 to-transparent" />
 
-        {/* Controlos de navegação */}
-        {total > 1 && (
-          <>
-            <button
-              type="button"
-              onClick={prevImage}
-              aria-label="Imagem anterior"
-              className="absolute left-2 top-1/2 -translate-y-1/2 grid size-8 place-items-center rounded-full bg-white/85 text-ondjo-ink opacity-0 shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-105 group-hover/carousel:opacity-100 focus:opacity-100"
-            >
-              <ChevronLeft size={18} />
-            </button>
-
-            <button
-              type="button"
-              onClick={nextImage}
-              aria-label="Próxima imagem"
-              className="absolute right-2 top-1/2 -translate-y-1/2 grid size-8 place-items-center rounded-full bg-white/85 text-ondjo-ink opacity-0 shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-105 group-hover/carousel:opacity-100 focus:opacity-100"
-            >
-              <ChevronRight size={18} />
-            </button>
-          </>
-        )}
-
-        {/* Pontos de Paginação e Contador */}
-        {total > 1 && (
-          <div className="absolute inset-x-0 bottom-2.5 flex items-center justify-between px-3 pointer-events-none">
+        {/* Barra inferior: Pontos de Paginação, Contador e Botão de Expansão (Lightbox) */}
+        <div className="absolute inset-x-0 bottom-2.5 flex items-center justify-between px-3 pointer-events-none z-10">
+          {/* Pontos de navegação touch/click discretos */}
+          {total > 1 ? (
             <div className="flex items-center gap-1 pointer-events-auto">
               {safeImages.slice(0, 6).map((_, idx) => (
                 <button
@@ -159,7 +137,7 @@ export function PropertyImageCarousel({
                   className={[
                     "h-1.5 rounded-full transition-all duration-300",
                     currentIndex === idx
-                      ? "w-4 bg-white"
+                      ? "w-4 bg-white shadow-xs"
                       : "w-1.5 bg-white/50 hover:bg-white/80",
                   ].join(" ")}
                 />
@@ -170,27 +148,43 @@ export function PropertyImageCarousel({
                 </span>
               )}
             </div>
+          ) : (
+            <div />
+          )}
 
-            <span className="rounded-full bg-black/45 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-xs">
-              {currentIndex + 1}/{total}
-            </span>
+          {/* Lado direito da base: Contador clicável e Botão de visualização completa */}
+          <div className="flex items-center gap-1.5 pointer-events-auto">
+            {total > 1 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxOpen(true);
+                }}
+                aria-label={`Ver galeria com todas as ${total} fotos`}
+                title={`Ver todas as ${total} fotos`}
+                className="rounded-full bg-black/50 hover:bg-black/75 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-xs transition cursor-pointer"
+              >
+                {currentIndex + 1}/{total}
+              </button>
+            )}
+
+            {showLightboxButton && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxOpen(true);
+                }}
+                aria-label="Ver fotos em ecrã inteiro"
+                title="Ver fotos em ecrã inteiro"
+                className="focus-ring grid size-7 place-items-center rounded-full bg-black/50 hover:bg-black/85 text-white opacity-0 backdrop-blur-xs transition hover:scale-105 group-hover:opacity-100 group-hover/carousel:opacity-100 focus:opacity-100 cursor-pointer shadow-xs"
+              >
+                <Maximize2 size={13} aria-hidden="true" />
+              </button>
+            )}
           </div>
-        )}
-
-        {/* Botão para abrir Lightbox */}
-        {showLightboxButton && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setLightboxOpen(true);
-            }}
-            aria-label="Ampliar foto em ecrã inteiro"
-            className="absolute top-2.5 right-2.5 grid size-7 place-items-center rounded-full bg-black/40 text-white opacity-0 backdrop-blur-xs transition hover:bg-black/70 hover:scale-105 group-hover/carousel:opacity-100 focus:opacity-100"
-          >
-            <Maximize2 size={13} />
-          </button>
-        )}
+        </div>
       </div>
 
       {/* Lightbox Modal */}
