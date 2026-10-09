@@ -99,7 +99,11 @@ export function TrustStrip() {
       <div className="relative flex flex-col justify-between gap-4 border-b border-slate-100 pb-6 sm:flex-row sm:items-end sm:pb-8">
         <div className="max-w-2xl">
           <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-200/80 bg-blue-50/80 px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-ondjo-blue">
-            <Sparkles size={13} className="text-ondjo-blue" aria-hidden="true" />
+            <Sparkles
+              size={15}
+              className="text-ondjo-blue"
+              aria-hidden="true"
+            />
             Porquê escolher a ONDJO
           </div>
 
@@ -111,18 +115,23 @@ export function TrustStrip() {
           </h2>
 
           <p className="mt-1.5 text-xsleading-relaxed text-ondjo-muted sm:text-base">
-            Desenvolvido para responder aos desafios reais da procura de imóveis em Angola: 
-            segurança contra burlas, clareza nos preços e autonomia nas visitas.
+            Desenvolvido para responder aos desafios reais da procura de imóveis
+            em Angola: segurança contra burlas, clareza nos preços e autonomia
+            nas visitas.
           </p>
         </div>
 
         <div className="hidden shrink-0 items-center gap-2 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-3 sm:flex">
-          <div className="grid size-9 place-items-center rounded-xl bg-ondjo-navy text-white shadow-xs">
-            <ShieldCheck size={18} />
+          <div className="grid size-11 place-items-center rounded-xl bg-ondjo-navy text-white shadow-xs">
+            <ShieldCheck size={25} />
           </div>
           <div>
-            <span className="block text-xs font-bold text-ondjo-ink">Plataforma Segura</span>
-            <span className="block text-[11px] text-ondjo-muted">Mercado imobiliário angolano</span>
+            <span className="block text-1xl font-bold text-ondjo-ink">
+              Plataforma Segura
+            </span>
+            <span className="block text-sm text-ondjo-muted">
+              Mercado imobiliário angolano
+            </span>
           </div>
         </div>
       </div>
@@ -130,7 +139,9 @@ export function TrustStrip() {
       {/* Dica de swipe em ecrãs pequenos */}
       <div className="mt-4 flex items-center justify-between text-xs text-ondjo-muted sm:hidden">
         <span>4 pilares de segurança</span>
-        <span className="font-semibold text-ondjo-blue">Deslize para ver →</span>
+        <span className="font-semibold text-ondjo-blue">
+          Deslize para ver →
+        </span>
       </div>
 
       {/* 4 Pilares de Confiança: Scroll horizontal suave no mobile, grelha no desktop */}
@@ -143,7 +154,9 @@ export function TrustStrip() {
             <motion.div
               key={pillar.title}
               initial={shouldReduceMotion ? undefined : { opacity: 0, y: 14 }}
-              whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+              whileInView={
+                shouldReduceMotion ? undefined : { opacity: 1, y: 0 }
+              }
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.35, delay: index * 0.08 }}
               className={`group relative flex w-[78vw] max-w-70 shrink-0 snap-center sm:w-auto sm:max-w-none sm:shrink flex-col justify-between rounded-2xl border border-slate-100 bg-slate-50/70 p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-lg hover:shadow-slate-200/40 ${style.glow}`}
@@ -168,13 +181,17 @@ export function TrustStrip() {
                   {pillar.title}
                 </h3>
 
-                <p className="mt-1.5 text-xs leading-relaxed text-ondjo-muted">
+                <p className="mt-1.5 text-sm leading-relaxed text-ondjo-muted">
                   {pillar.description}
                 </p>
               </div>
 
-              <div className="mt-4 flex items-center gap-1.5 border-t border-slate-200/60 pt-3 text-[11px] font-bold text-slate-500">
-                <CheckCircle2 size={13} className="text-ondjo-green" aria-hidden="true" />
+              <div className="mt-4 flex items-center gap-1.5 border-t border-slate-200/60 pt-3 text-sm font-bold text-slate-500">
+                <CheckCircle2
+                  size={15}
+                  className="text-ondjo-green"
+                  aria-hidden="true"
+                />
                 <span>Padrão ONDJO de Qualidade</span>
               </div>
             </motion.div>
@@ -195,10 +212,10 @@ export function TrustStrip() {
               <strong className="text-lg font-black text-ondjo-navy sm:text-2xl">
                 {stat.value}
               </strong>
-              <span className="mt-0.5 text-xs font-bold text-ondjo-ink">
+              <span className="mt-0.5 text-sm font-bold text-ondjo-ink">
                 {stat.label}
               </span>
-              <span className="text-[10px] sm:text-[11px] text-slate-500">
+              <span className="text-[14px] sm:text-[15px] text-slate-500">
                 {stat.sub}
               </span>
             </div>

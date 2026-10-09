@@ -1,4 +1,4 @@
-import { ArrowRight, Compass, Sparkles } from "lucide-react";
+import { ArrowRight, Compass } from "lucide-react";
 import { useMemo } from "react";
 import { getZoneSummaries } from "../data/zones";
 import { navigate } from "../hooks/useHashRoute";
@@ -6,10 +6,6 @@ import { ZoneCard } from "./ZoneCard";
 
 export function ZoneSection() {
   const zones = useMemo(getZoneSummaries, []);
-  const totalCount = useMemo(
-    () => zones.reduce((acc, z) => acc + z.count, 0),
-    [zones]
-  );
 
   return (
     <section aria-labelledby="zonas-titulo" className="mt-14 sm:mt-20">
@@ -29,24 +25,19 @@ export function ZoneSection() {
           </h2>
 
           <p className="mt-1.5 max-w-xl text-xs leading-relaxed text-ondjo-muted sm:text-base">
-            Descubra as zonas mais procuradas de Luanda e encontre o imóvel ideal
-            com base na localização, serviços e acessos do seu dia a dia.
+            Descubra as zonas mais procuradas de Luanda e encontre o imóvel
+            ideal com base na localização, serviços e acessos do seu dia a dia.
           </p>
         </div>
 
         <div className="flex items-center gap-3 self-start sm:self-auto">
-          <div className="hidden rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-600 shadow-2xs md:inline-flex items-center gap-2">
-            <Sparkles size={14} className="text-amber-500" />
-            <span>{totalCount} imóveis em Luanda</span>
-          </div>
-
           <button
             type="button"
             onClick={() => navigate("pesquisar")}
             className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-xl border border-ondjo-border bg-white px-4 text-xs font-bold text-ondjo-blue shadow-2xs transition hover:bg-blue-50/80 active:scale-95"
           >
             <span>Ver mapa de zonas</span>
-            <ArrowRight size={14} />
+            <ArrowRight size={15} />
           </button>
         </div>
       </div>

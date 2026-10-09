@@ -91,7 +91,7 @@ export function ZoneCard({ zone }: { zone: ZoneSummary }) {
     <a
       href={`#/pesquisar?location=${encodeURIComponent(name)}`}
       aria-label={`Explorar ${count} imóveis em ${name}, a partir de ${formatKz(minPrice)}`}
-      className="focus-ring group relative flex h-68 sm:h-72 w-full flex-col justify-between overflow-hidden rounded-[22px] border border-ondjo-border bg-ondjo-navy text-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-400/50 hover:shadow-xl hover:shadow-slate-900/15 active:scale-[0.99]"
+      className="focus-ring group relative flex h-68 sm:h-72 w-full flex-col justify-between overflow-hidden rounded-[25px] bg-ondjo-navy text-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-400/50 hover:shadow-xl hover:shadow-slate-900/15 active:scale-[0.99]"
     >
       {/* Imagem de Fundo com Formatos Modernos (WebP/AVIF), SrcSet e Carregamento Diferido */}
       <div className="absolute inset-0 overflow-hidden bg-ondjo-navy">
@@ -114,8 +114,8 @@ export function ZoneCard({ zone }: { zone: ZoneSummary }) {
 
       {/* Topo do Card: Badge de Imóveis + Botão com Seta */}
       <div className="relative z-10 flex items-center justify-between p-4 sm:p-5">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/45 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-md">
-          <MapPin size={12} className="text-blue-300" aria-hidden="true" />
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-black/45 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-md">
+          <MapPin size={15} className="text-blue-300" aria-hidden="true" />
           <span>{formatCount(count)}</span>
         </span>
 
@@ -150,10 +150,6 @@ export function ZoneCard({ zone }: { zone: ZoneSummary }) {
               {formatKz(minPrice)}
             </strong>
           </div>
-
-          <span className="inline-flex items-center text-xs font-bold text-blue-200 transition-transform duration-300 group-hover:translate-x-1">
-            Explorar →
-          </span>
         </div>
       </div>
     </a>
