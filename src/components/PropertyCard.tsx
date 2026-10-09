@@ -33,28 +33,26 @@ export function PropertyCard({
           priority={index < 2}
         />
 
-        {/* Badges de Destaque e Tipo de Negócio */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-3 z-10">
-          {property.featured ? (
+        {/* Badges agrupados no topo esquerdo: Destaque e Tipo de Negócio */}
+        <div className="pointer-events-none absolute left-3 top-3 z-10 flex items-center gap-1.5">
+          {property.featured && (
             <span className="rounded-full bg-ondjo-green px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-white shadow-xs">
               Destaque
             </span>
-          ) : (
-            <span />
           )}
           <span className="rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold text-ondjo-ink shadow-xs backdrop-blur-xs">
             Venda
           </span>
         </div>
 
-        {/* Botão de Favoritos - alvo de toque otimizado (min 44px) */}
+        {/* Botão de Favoritos isolado no topo direito - sem sobreposição, alvo tátil amplo */}
         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
             toggleFavorite(property.id);
           }}
-          className="focus-ring absolute right-2.5 top-11 z-10 grid min-h-11 min-w-11 place-items-center rounded-full bg-white/95 text-slate-700 shadow-md backdrop-blur-xs transition hover:scale-105 active:scale-90 hover:text-ondjo-danger"
+          className="focus-ring absolute right-3 top-3 z-10 grid min-h-10 min-w-10 place-items-center rounded-full bg-white/95 text-slate-700 shadow-md backdrop-blur-xs transition hover:scale-105 active:scale-90 hover:text-ondjo-danger cursor-pointer"
           aria-label={
             favorite
               ? `Remover ${property.title} dos favoritos`
