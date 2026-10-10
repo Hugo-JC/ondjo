@@ -21,6 +21,7 @@ Este projeto foi concebido como uma interface front-end funcional, com dados moc
 - Tailwind CSS
 - Framer Motion
 - Lucide React
+- Lenis (scroll suave)
 
 ## Requisitos
 
@@ -100,6 +101,7 @@ src/
 - estado de favoritos e partilha de link
 - layout responsivo e preparado para mobile
 - UX acessível com foco visível e suporte a `prefers-reduced-motion`
+- scroll suave com Lenis na roda do rato; scroll nativo mantido para toque, contentores internos e para quem prefere movimento reduzido
 
 ## Dados
 
