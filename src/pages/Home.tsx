@@ -19,6 +19,7 @@ import {
   type SearchFilters,
 } from "../components/SearchBar";
 import { TrustStrip } from "../components/TrustStrip";
+import { SectionHeader, Button } from "../components/ui";
 import { getImageSrcSet, getOptimizedImageUrl } from "../utils/images";
 
 const HERO_IMAGE_URL =
@@ -216,32 +217,27 @@ export function Home() {
           IMÓVEIS EM DESTAQUE (SELEÇÃO ONDJO)
           ========================================================= */}
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div className="min-w-0">
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/80 bg-emerald-50 px-2.5 py-0.5 text-xs font-extrabold uppercase tracking-wider text-ondjo-green">
-              <Sparkles size={15} aria-hidden="true" />
+        <SectionHeader
+          eyebrow={
+            <span className="inline-flex items-center gap-1.5">
+              <Sparkles size={14} aria-hidden="true" />
               Seleção ONDJO
-            </div>
-
-            <h2 className="mt-2 text-2xl font-black tracking-tight text-ondjo-ink sm:text-3xl">
-              Imóveis em destaque
-            </h2>
-
-            <p className="mt-1.5 max-w-xl text-xs sm:text-base leading-relaxed text-ondjo-muted">
-              Explore opções verificadas com fotografias reais e condições
-              transparentes em Luanda.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => navigate("pesquisar")}
-            className="hidden min-h-11 shrink-0 items-center gap-1.5 rounded-xl border border-ondjo-border bg-white px-4 py-2 text-sm font-semibold text-ondjo-blue shadow-2xs transition-colors hover:bg-ondjo-blue-soft/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ondjo-blue sm:inline-flex"
-          >
-            <span>Ver todos ({properties.length})</span>
-            <ArrowRight size={15} aria-hidden="true" />
-          </button>
-        </div>
+            </span>
+          }
+          title="Imóveis em destaque"
+          subtitle="Explore opções verificadas com fotografias reais e condições transparentes em Luanda."
+          action={
+            <Button
+              variant="outline"
+              size="md"
+              onClick={() => navigate("pesquisar")}
+              rightIcon={<ArrowRight size={15} aria-hidden="true" />}
+              className="hidden sm:inline-flex"
+            >
+              Ver todos ({properties.length})
+            </Button>
+          }
+        />
 
         {/* Indicador de Deslize no Telemóvel */}
         <div className="mt-3 flex items-center justify-between text-xs text-ondjo-muted sm:hidden">

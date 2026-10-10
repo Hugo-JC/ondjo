@@ -1,7 +1,8 @@
-import { BedDouble, Heart, MapPin, Ruler, ShowerHead, ShieldCheck } from "lucide-react";
+import { BedDouble, Heart, MapPin, Ruler, ShowerHead } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Property } from "../types";
 import { formatKz } from "../utils/format";
+import { Badge } from "./ui/Badge";
 import { navigate } from "../hooks/useHashRoute";
 import { useFavorites } from "../hooks/useFavorites";
 import { PropertyImageCarousel } from "./PropertyImageCarousel";
@@ -32,7 +33,7 @@ export function PropertyCard({
       viewport={{ once: true, margin: "0px 0px -60px" }}
       transition={{ duration: 0.24, ease: "easeOut", delay: Math.min(index * 0.035, 0.12) }}
       onMouseLeave={handleMouseLeave}
-      className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-ondjo-border bg-white shadow-[0_5px_18px_rgba(16,24,40,0.045)] hover:shadow-[0_14px_34px_rgba(16,24,40,0.10)] transition-shadow duration-300"
+      className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-ondjo-border bg-white shadow-ondjo-card hover:shadow-ondjo-card-hover transition-all duration-300"
     >
       {/* Carrossel de Fotos com Swipe, Lightbox e Sincronização entre Cartões */}
       <div className="relative">
@@ -47,13 +48,13 @@ export function PropertyCard({
         {/* Badges agrupados no topo esquerdo: Destaque e Tipo de Negócio */}
         <div className="pointer-events-none absolute left-3 top-3 z-10 flex items-center gap-1.5">
           {property.featured && (
-            <span className="rounded-full bg-ondjo-green px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-white shadow-xs">
+            <Badge variant="featured" size="sm">
               Destaque
-            </span>
+            </Badge>
           )}
-          <span className="rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold text-ondjo-ink shadow-xs backdrop-blur-xs">
+          <Badge variant="neutral" size="sm">
             {property.purpose === "arrendamento" ? "Arrendamento" : "Venda"}
-          </span>
+          </Badge>
         </div>
 
         {/* Botão de Favoritos isolado no topo direito - sem sobreposição, alvo tátil de 44px */}
@@ -98,14 +99,13 @@ export function PropertyCard({
               </p>
             </div>
             {property.verified && (
-              <span title="Imóvel Verificado ONDJO" className="shrink-0 inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold text-ondjo-green">
-                <ShieldCheck size={14} className="text-ondjo-green" aria-hidden="true" />
+              <Badge variant="verified" size="sm" title="Imóvel Verificado ONDJO">
                 <span className="hidden sm:inline">Verificado</span>
-              </span>
+              </Badge>
             )}
           </div>
 
-          <p className="mt-2.5 text-base sm:text-[17px] font-extrabold text-ondjo-green tracking-tight">
+          <p className="mt-2.5 text-base sm:text-[18px] font-bold text-ondjo-navy tracking-tight">
             {formatKz(property.price, { perMonth: property.purpose === "arrendamento" })}
           </p>
         </div>

@@ -20,6 +20,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { PropertyCard } from "../components/PropertyCard";
 import { formatKz, properties } from "../data/properties";
 import { useFavorites } from "../hooks/useFavorites";
+import { EmptyState } from "../components/ui";
 import { navigate } from "../hooks/useHashRoute";
 import type { Property } from "../types";
 
@@ -432,27 +433,17 @@ export function FavoritesPage() {
             </div>
           ) : (
             /* Estado de pesquisa sem resultados */
-            <div className="mt-6 rounded-2xl border border-dashed border-ondjo-border bg-white px-4 py-12 text-center sm:px-6 sm:py-16">
-              <div className="mx-auto grid size-12 place-items-center rounded-2xl bg-slate-100 text-ondjo-muted sm:size-14" aria-hidden="true">
-                <Search size={22} />
-              </div>
-              <h2 className="mt-4 text-base font-bold text-ondjo-navy sm:text-lg">
-                Nenhum imóvel corresponde aos filtros
-              </h2>
-              <p className="mx-auto mt-1 max-w-sm text-xs leading-5 text-ondjo-muted sm:text-sm">
-                Tente ajustar os termos de pesquisa ou reponha os filtros para visualizar todos os seus favoritos.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
+            <div className="mt-6 sm:mt-8">
+              <EmptyState
+                icon={<Search size={24} />}
+                title="Nenhum imóvel corresponde aos filtros"
+                description="Tente ajustar os termos de pesquisa ou reponha os filtros para visualizar todos os seus favoritos."
+                actionLabel="Limpar filtros de pesquisa"
+                onAction={() => {
                   setQuery("");
                   setType("Todos os tipos");
                 }}
-                className="focus-ring mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-ondjo-blue px-4 text-xs font-bold text-white transition hover:bg-ondjo-blue-dark active:bg-ondjo-blue-dark"
-              >
-                <RotateCcw size={14} aria-hidden="true" />
-                <span>Limpar filtros de pesquisa</span>
-              </button>
+              />
             </div>
           )}
 
@@ -790,37 +781,22 @@ export function FavoritesPage() {
         </>
       ) : (
         /* Empty State */
-        <motion.section
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
-          className="mt-6 rounded-2xl border border-dashed border-ondjo-border bg-white px-4 py-16 text-center sm:mt-8 sm:rounded-3xl sm:px-12 sm:py-20"
+          className="mt-6 sm:mt-8"
         >
-          <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-ondjo-blue-soft text-ondjo-blue sm:size-20 sm:rounded-3xl" aria-hidden="true">
-            <Heart size={32} className="text-ondjo-blue" />
-          </div>
-          <h2 className="mt-5 text-xl font-black text-ondjo-navy sm:text-2xl">
-            A sua lista de favoritos está vazia
-          </h2>
-          <p className="mx-auto mt-2 max-w-md text-xs leading-5 text-ondjo-muted sm:text-sm sm:leading-6">
-            Enquanto explora moradias, apartamentos e terrenos em Luanda e outras províncias, toque no ícone do coração para os guardar e comparar mais tarde.
-          </p>
-          <div className="mt-6 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-center">
-            <button
-              onClick={() => navigate("pesquisar")}
-              className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-ondjo-blue px-6 text-sm font-bold text-white shadow-xs transition hover:bg-ondjo-blue-dark active:bg-ondjo-blue-dark"
-            >
-              <Search size={16} aria-hidden="true" />
-              <span>Explorar todos os imóveis</span>
-            </button>
-            <button
-              onClick={() => navigate("")}
-              className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-ondjo-border bg-white px-5 text-sm font-bold text-ondjo-ink transition hover:bg-slate-50"
-            >
-              <span>Voltar à página inicial</span>
-            </button>
-          </div>
-        </motion.section>
+          <EmptyState
+            icon={<Heart size={28} className="text-ondjo-blue" />}
+            title="A sua lista de favoritos está vazia"
+            description="Enquanto explora moradias, apartamentos e terrenos em Luanda e outras províncias, toque no ícone do coração para os guardar e comparar mais tarde."
+            actionLabel="Explorar todos os imóveis"
+            onAction={() => navigate("pesquisar")}
+            secondaryActionLabel="Voltar à página inicial"
+            onSecondaryAction={() => navigate("")}
+          />
+        </motion.div>
       )}
 
       {/* Nota de privacidade */}

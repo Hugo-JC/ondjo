@@ -6,6 +6,20 @@
   --color-ondjo-blue: #174ea6; /* ÚNICA cor de ação: botões, links, seleção, foco */
   --color-ondjo-blue-dark: #113e85; /* hover da ação (derivada, não vem da paleta) */
   --color-ondjo-blue-soft: #dce7f5; /* seleção e fundos azuis */
+  --color-ondjo-blue-50: #eef4fd; /* hover subtil, fundos de secção */
+  --color-ondjo-blue-400: #5b8fe0; /* links e ícones sobre navy */
+
+  /* Raios de curvatura (escala única ONDJO / Airbnb / Houter) */
+  --radius-ondjo-sm: 0.75rem; /* 12px: inputs, chips */
+  --radius-ondjo-md: 1rem; /* 16px: cartões */
+  --radius-ondjo-lg: 1.5rem; /* 24px: hero, painéis, modais */
+  --radius-ondjo-full: 9999px; /* pílulas */
+
+  /* Sombras suaves e elegantes */
+  --shadow-ondjo-card: 0 1px 2px rgb(16 42 67 / 0.06), 0 4px 16px rgb(16 42 67 / 0.06);
+  --shadow-ondjo-card-hover: 0 6px 20px rgb(16 42 67 / 0.10), 0 2px 6px rgb(16 42 67 / 0.04);
+  --shadow-ondjo-popover: 0 8px 32px rgb(16 42 67 / 0.16);
+  --shadow-ondjo-pill: 0 2px 8px rgb(16 42 67 / 0.08);
 
   /* Superfícies escuras: preparadas para painéis e um futuro modo escuro. */
   --color-ondjo-navy-deep: #071a33;

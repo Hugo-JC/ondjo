@@ -4,6 +4,7 @@ import { properties } from "../data/properties";
 import { filterProperties } from "../utils/filterProperties";
 import { formatKz } from "../utils/format";
 import { PropertyCard } from "../components/PropertyCard";
+import { Chip, EmptyState, Badge, Button } from "../components/ui";
 import {
   SearchBar,
   defaultSearchFilters,
@@ -179,21 +180,25 @@ export function SearchPage() {
           </div>
 
           {chips.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="mt-4 flex flex-wrap items-center gap-2">
               {chips.map((chip) => (
-                <span
+                <Chip
                   key={chip}
-                  className="inline-flex items-center rounded-full bg-ondjo-blue-soft px-3 py-1.5 text-xs font-bold text-ondjo-blue"
+                  variant="soft"
+                  active
+                  className="cursor-default"
                 >
                   {chip}
-                </span>
+                </Chip>
               ))}
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={clear}
-                className="focus-ring inline-flex items-center gap-1 rounded-full px-2 py-1.5 text-xs font-bold text-ondjo-muted hover:bg-ondjo-bg"
+                leftIcon={<X size={13} aria-hidden="true" />}
               >
-                <X size={13} /> Limpar todos
-              </button>
+                Limpar todos
+              </Button>
             </div>
           )}
 
@@ -214,23 +219,14 @@ export function SearchPage() {
               )}
             </div>
           ) : (
-            <div className="mt-6 rounded-3xl border border-dashed border-ondjo-border bg-white px-6 py-16 text-center">
-              <div className="mx-auto grid size-12 place-items-center rounded-2xl bg-ondjo-blue-soft text-ondjo-blue">
-                <SlidersHorizontal size={22} />
-              </div>
-              <h2 className="mt-4 text-lg font-extrabold text-ondjo-ink">
-                Nenhum imóvel encontrado
-              </h2>
-              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-ondjo-muted">
-                Tente ajustar a faixa de preço, selecionar outra localização ou
-                remover algum filtro.
-              </p>
-              <button
-                onClick={clear}
-                className="focus-ring mt-5 rounded-xl bg-ondjo-blue px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-ondjo-blue-dark"
-              >
-                Limpar filtros
-              </button>
+            <div className="mt-6">
+              <EmptyState
+                icon={<SlidersHorizontal size={24} />}
+                title="Nenhum imóvel encontrado"
+                description="Tente ajustar a faixa de preço, selecionar outra localização ou remover algum filtro."
+                actionLabel="Limpar filtros"
+                onAction={clear}
+              />
             </div>
           )}
         </section>
@@ -388,7 +384,7 @@ function ListProperty({ property }: { property: (typeof properties)[number] }) {
       <div className="flex flex-col justify-center py-1 sm:py-3">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-bold text-ondjo-green">
+            <p className="text-xs font-bold uppercase tracking-wider text-ondjo-blue">
               {property.type}
             </p>
             <h3 className="mt-1 text-lg font-extrabold text-ondjo-ink">
@@ -399,9 +395,9 @@ function ListProperty({ property }: { property: (typeof properties)[number] }) {
             </p>
           </div>
           {property.verified && (
-            <span className="shrink-0 rounded-full bg-ondjo-green-soft px-2.5 py-1 text-[10px] font-extrabold text-ondjo-green">
+            <Badge variant="verified" size="sm" title="Imóvel Verificado ONDJO">
               Verificado
-            </span>
+            </Badge>
           )}
         </div>
         <p className="mt-4 text-lg font-black text-ondjo-navy">
