@@ -1,5 +1,5 @@
 import React from "react";
-import { Check } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 
 export type BadgeVariant =
   | "verified"
@@ -24,7 +24,7 @@ const variantStyles: Record<BadgeVariant, string> = {
   featured:
     "bg-ondjo-blue-50 text-ondjo-blue border border-ondjo-blue-soft font-bold",
   neutral:
-    "bg-white/90 backdrop-blur-xs text-ondjo-ink border border-ondjo-border font-medium",
+    "bg-white/90 text-ondjo-muted backdrop-blur-xs text-ondjo-ink border border-ondjo-border font-medium",
   navy:
     "bg-ondjo-navy text-white font-medium",
   warning:
@@ -34,7 +34,7 @@ const variantStyles: Record<BadgeVariant, string> = {
 };
 
 const sizeStyles: Record<BadgeSize, string> = {
-  sm: "text-[11px] px-2.5 py-0.5 gap-1 rounded-full",
+  sm: "text-[13px] px-2.5 py-0.5 gap-1 rounded-full",
   md: "text-xs px-3 py-1 gap-1.5 rounded-full",
 };
 
@@ -48,7 +48,7 @@ export const Badge: React.FC<BadgeProps> = ({
 }) => {
   const defaultIcon =
     variant === "verified" && !icon ? (
-      <Check size={12} strokeWidth={3} className="text-ondjo-green" aria-hidden="true" />
+      <ShieldCheck size={12} strokeWidth={3} className="text-ondjo-green" aria-hidden="true" />
     ) : (
       icon
     );

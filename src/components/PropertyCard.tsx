@@ -48,9 +48,8 @@ export function PropertyCard({
       tabIndex={0}
       role="link"
       aria-label={`${property.title}, ${property.neighborhood}, ${property.city}. Preço: ${formatKz(property.price, { perMonth: property.purpose === "arrendamento" })}`}
-      className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-ondjo-border/80 bg-white shadow-ondjo-card hover:shadow-ondjo-card-hover hover:-translate-y-1 transition-all duration-300 cursor-pointer focus-ring"
+      className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-ondjo-border/80 bg-white shadow-ondjo-card hover:shadow-ondjo-card-hover hover:-translate-y-1 transition-all duration-300 cursor-pointer focus-ring"
     >
-      {/* Carrossel de Fotos estilo Airbnb / Mobbin (Aspect 4:3, Swipe, Hover Chevrons e Dots) */}
       <div className="relative overflow-hidden bg-slate-100">
         <PropertyImageCarousel
           propertyId={property.id}
