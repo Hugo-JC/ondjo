@@ -8,48 +8,46 @@ import { FavoritesPage } from "./pages/FavoritesPage";
 import { ChatPage } from "./pages/ChatPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-
-function useRoute() {
-  const [hash, setHash] = useState(window.location.hash || "#/");
-  useEffect(() => {
-    const onHashChange = () => setHash(window.location.hash || "#/");
-    window.addEventListener("hashchange", onHashChange);
-    return () => window.removeEventListener("hashchange", onHashChange);
-  }, []);
-  return hash;
-}
+import { useHashRoute } from "./hooks/useHashRoute";
 
 export default function App() {
-  const hash = useRoute();
+  const route = useHashRoute();
 
-  if (hash.startsWith("#/login")) return <LoginPage />;
-  if (hash.startsWith("#/cadastro")) return <RegisterPage />;
+  if (route.page === "login") return <LoginPage />;
+  if (route.page === "register") return <RegisterPage />;
 
-  const propertyMatch = hash.match(/^#\/imovel\/([^?]+)/);
-  if (propertyMatch)
+  if (route.page === "property") {
     return (
       <AppShell>
-        <PropertyPage id={propertyMatch[1]} />
+        <PropertyPage id={route.id} />
       </AppShell>
     );
-  if (hash.startsWith("#/pesquisar"))
+  }
+
+  if (route.page === "search") {
     return (
       <AppShell>
         <SearchPage />
       </AppShell>
     );
-  if (hash.startsWith("#/favoritos"))
+  }
+
+  if (route.page === "favorites") {
     return (
       <AppShell>
         <FavoritesPage />
       </AppShell>
     );
-  if (hash.startsWith("#/mensagens") || hash.startsWith("#/chat"))
+  }
+
+  if (route.page === "chat") {
     return (
       <AppShell fixedContent>
         <ChatPage />
       </AppShell>
     );
+  }
+
   return (
     <AppShell>
       <Home />
@@ -78,7 +76,13 @@ function AppShell({
   }, [sidebarExpanded]);
 
   return (
-    <div className={fixedContent ? "h-dvh overflow-hidden bg-ondjo-bg" : "min-h-screen bg-ondjo-bg"}>
+    <div
+      className={
+        fixedContent
+          ? "h-dvh overflow-hidden bg-ondjo-bg"
+          : "min-h-screen bg-ondjo-bg"
+      }
+    >
       <Sidebar
         expanded={sidebarExpanded}
         onExpandedChange={setSidebarExpanded}

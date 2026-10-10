@@ -12,14 +12,16 @@ import {
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { locations, properties } from "../data/properties";
+import { filterProperties } from "../utils/filterProperties";
 
 export type SearchPurpose = "comprar" | "arrendar";
 
 export type SearchOrigin =
   | "todos"
   | "verificados"
-  | "particulares"
-  | "profissionais";
+  | "proprietario"
+  | "agentes"
+  | "particulares";
 
 export interface SearchFilters {
   query: string;
@@ -66,8 +68,8 @@ export const ORIGIN_OPTIONS: {
 }[] = [
   { id: "todos", label: "Todos os anúncios" },
   { id: "verificados", label: "Verificados ONDJO", icon: ShieldCheck },
-  { id: "particulares", label: "Proprietário" },
-  { id: "particulares", label: "Agentes" },
+  { id: "proprietario", label: "Proprietário" },
+  { id: "agentes", label: "Agentes" },
 ];
 
 export const PROPERTY_TYPES = [
@@ -76,7 +78,6 @@ export const PROPERTY_TYPES = [
   { value: "Casa", label: "Casa" },
   { value: "Moradia", label: "Vivenda/Moradia" },
   { value: "Terreno", label: "Terreno" },
-  { value: "Lojas", label: "Lojas" },
 ];
 
 export const BEDROOM_OPTIONS = [
@@ -155,47 +156,13 @@ export function SearchBar({
   const currentPurpose = value.purpose || "comprar";
   const currentOrigin = value.origin || "todos";
 
-  // Contagem dinâmica de imóveis que correspondem aos filtros
+  // Contagem dinâmica usando o filtro partilhado
   const matchingCount = useMemo(() => {
-    const q = (value.query || value.location).trim().toLowerCase();
-    const min = Number(value.minPrice) || 0;
-    const max = Number(value.maxPrice) || Number.POSITIVE_INFINITY;
-
-    return properties.filter((item) => {
-      const matchQ =
-        !q ||
-        item.title.toLowerCase().includes(q) ||
-        item.neighborhood.toLowerCase().includes(q) ||
-        item.city.toLowerCase().includes(q);
-
-      const matchLoc = !value.location || item.neighborhood === value.location;
-      const matchType = !value.type || item.type === value.type;
-      const matchPrice = item.price >= min && item.price <= max;
-      const matchBed =
-        !value.bedrooms ||
-        (value.bedrooms === "4"
-          ? item.bedrooms >= 4
-          : item.bedrooms === Number(value.bedrooms));
-
-      const matchBath =
-        !value.bathrooms || item.bathrooms >= Number(value.bathrooms);
-      const matchPark = !value.parking || item.parking >= Number(value.parking);
-
-      const matchVerified =
-        currentOrigin === "verificados" ? Boolean(item.verified) : true;
-
-      return (
-        matchQ &&
-        matchLoc &&
-        matchType &&
-        matchPrice &&
-        matchBed &&
-        matchBath &&
-        matchPark &&
-        matchVerified
-      );
+    return filterProperties(properties, {
+      ...value,
+      query: value.query || value.location,
     }).length;
-  }, [value, currentOrigin]);
+  }, [value]);
 
   const activeAdvancedCount = [
     value.minPrice,
@@ -577,7 +544,7 @@ export function SearchBar({
 
         <div className="flex items-center gap-2">
           {matchingCount > 0 && (
-            <span className="hidden text-2sm text-ondjo-navy sm:inline">
+            <span className="hidden text-xs font-semibold text-ondjo-navy sm:inline">
               <strong className="text-ondjo-ink">{matchingCount}</strong>{" "}
               disponíveis
             </span>

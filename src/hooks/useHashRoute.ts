@@ -5,16 +5,28 @@ export type Route =
   | { page: "search" }
   | { page: "property"; id: string }
   | { page: "favorites" }
-  | { page: "chat" };
+  | { page: "chat"; propertyId?: string }
+  | { page: "login" }
+  | { page: "register" };
 
 function readRoute(): Route {
-  const hash = window.location.hash.replace(/^#\/?/, "");
-  const [segment, id] = hash.split("/");
+  const fullHash = window.location.hash.replace(/^#\/?/, "");
+  const [pathPart, queryString] = fullHash.split("?");
+  const segments = pathPart ? pathPart.split("/") : [];
+  const segment = segments[0] || "";
+  const id = segments[1] || "";
+  const params = new URLSearchParams(queryString || "");
 
   if (segment === "imovel" && id) return { page: "property", id };
   if (segment === "pesquisar") return { page: "search" };
   if (segment === "favoritos") return { page: "favorites" };
-  if (segment === "mensagens" || segment === "chat") return { page: "chat" };
+  if (segment === "mensagens" || segment === "chat") {
+    const propertyId = params.get("property") || undefined;
+    return { page: "chat", propertyId };
+  }
+  if (segment === "login") return { page: "login" };
+  if (segment === "cadastro" || segment === "register") return { page: "register" };
+
   return { page: "home" };
 }
 

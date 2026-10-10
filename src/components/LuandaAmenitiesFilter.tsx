@@ -94,12 +94,12 @@ export function LuandaAmenitiesFilter({
     <div className={`w-full ${className}`}>
       <div className="flex items-center justify-between gap-2 mb-2 px-0.5">
         <div className="flex items-center gap-1.5">
-          <span className="size-2 rounded-full bg-ondjo-terracotta animate-pulse" />
+          <span className="size-2 rounded-full bg-ondjo-blue animate-pulse" />
           <span className="text-xs font-bold uppercase tracking-wider text-ondjo-ink">
             Comodidades Essenciais em Luanda
           </span>
           {selectedAmenities.length > 0 && (
-            <span className="inline-flex items-center justify-center size-5 rounded-full bg-ondjo-terracotta text-white text-[11px] font-bold">
+            <span className="inline-flex items-center justify-center size-5 rounded-full bg-ondjo-blue text-white text-[11px] font-bold">
               {selectedAmenities.length}
             </span>
           )}
@@ -110,7 +110,7 @@ export function LuandaAmenitiesFilter({
             <button
               type="button"
               onClick={clearAll}
-              className="text-xs font-semibold text-ondjo-muted hover:text-ondjo-terracotta flex items-center gap-1 px-2 py-0.5 rounded-md hover:bg-ondjo-bg transition-colors"
+              className="text-xs font-semibold text-ondjo-muted hover:text-ondjo-blue flex items-center gap-1 px-2 py-0.5 rounded-md hover:bg-ondjo-bg transition-colors"
             >
               <X size={13} />
               Limpar
@@ -120,7 +120,7 @@ export function LuandaAmenitiesFilter({
           <button
             type="button"
             onClick={() => setModalOpen(true)}
-            className="text-xs font-semibold text-ondjo-ink hover:text-ondjo-terracotta flex items-center gap-1 px-2 py-1 rounded-lg border border-ondjo-border/80 bg-white shadow-xs hover:border-ondjo-terracotta/40 transition-colors"
+            className="text-xs font-semibold text-ondjo-ink hover:text-ondjo-blue flex items-center gap-1 px-2 py-1 rounded-lg border border-ondjo-border/80 bg-white shadow-xs hover:border-ondjo-blue/40 transition-colors"
             title="Mais comodidades"
           >
             <SlidersHorizontal size={13} />
@@ -143,8 +143,8 @@ export function LuandaAmenitiesFilter({
               className={[
                 "group shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-200 border",
                 isSelected
-                  ? "bg-ondjo-terracotta/10 border-ondjo-terracotta text-ondjo-terracotta shadow-xs ring-1 ring-ondjo-terracotta/20"
-                  : "bg-white/90 border-ondjo-border text-ondjo-ink hover:border-ondjo-border-hover hover:bg-ondjo-bg/60",
+                  ? "bg-ondjo-blue/10 border-ondjo-blue text-ondjo-blue shadow-xs ring-1 ring-ondjo-blue/20"
+                  : "bg-white/90 border-ondjo-border text-ondjo-ink hover:border-ondjo-muted hover:bg-ondjo-bg/60",
               ].join(" ")}
               aria-pressed={isSelected}
             >
@@ -152,13 +152,13 @@ export function LuandaAmenitiesFilter({
                 size={14}
                 className={
                   isSelected
-                    ? "text-ondjo-terracotta"
+                    ? "text-ondjo-blue"
                     : "text-ondjo-muted group-hover:text-ondjo-ink"
                 }
               />
               <span>{amenity.label}</span>
               {isSelected && (
-                <span className="grid size-3.5 place-items-center rounded-full bg-ondjo-terracotta text-white text-[9px]">
+                <span className="grid size-3.5 place-items-center rounded-full bg-ondjo-blue text-white text-[9px]">
                   <Check size={9} strokeWidth={3} />
                 </span>
               )}
@@ -219,15 +219,15 @@ export function LuandaAmenitiesFilter({
                       className={[
                         "w-full text-left p-3 rounded-xl border transition-all flex items-start gap-3",
                         isSelected
-                          ? "border-ondjo-terracotta bg-ondjo-terracotta/5 shadow-xs"
-                          : "border-ondjo-border hover:border-ondjo-border-hover bg-white",
+                          ? "border-ondjo-blue bg-ondjo-blue/5 shadow-xs"
+                          : "border-ondjo-border hover:border-ondjo-muted bg-white",
                       ].join(" ")}
                     >
                       <div
                         className={[
                           "grid size-9 shrink-0 place-items-center rounded-lg mt-0.5",
                           isSelected
-                            ? "bg-ondjo-terracotta text-white"
+                            ? "bg-ondjo-blue text-white"
                             : "bg-ondjo-bg text-ondjo-muted",
                         ].join(" ")}
                       >
@@ -239,7 +239,7 @@ export function LuandaAmenitiesFilter({
                             {amenity.label}
                           </p>
                           {isSelected && (
-                            <span className="text-[11px] font-bold text-ondjo-terracotta flex items-center gap-1">
+                            <span className="text-[11px] font-bold text-ondjo-blue flex items-center gap-1">
                               <Check size={12} strokeWidth={3} /> Ativo
                             </span>
                           )}
@@ -257,14 +257,14 @@ export function LuandaAmenitiesFilter({
                 <button
                   type="button"
                   onClick={clearAll}
-                  className="text-xs font-semibold text-ondjo-muted hover:text-ondjo-terracotta px-3 py-2"
+                  className="text-xs font-semibold text-ondjo-muted hover:text-ondjo-blue px-3 py-2"
                 >
                   Limpar todos
                 </button>
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="rounded-xl bg-ondjo-terracotta text-white font-semibold text-xs px-5 py-2.5 shadow-sm hover:opacity-95"
+                  className="rounded-xl bg-ondjo-blue text-white font-semibold text-xs px-5 py-2.5 shadow-sm hover:opacity-95"
                 >
                   Aplicar ({selectedAmenities.length} selecionadas)
                 </button>

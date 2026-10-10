@@ -1,7 +1,7 @@
 import { BedDouble, Heart, MapPin, Ruler, ShowerHead, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Property } from "../types";
-import { formatKz } from "../data/properties";
+import { formatKz } from "../utils/format";
 import { navigate } from "../hooks/useHashRoute";
 import { useFavorites } from "../hooks/useFavorites";
 import { PropertyImageCarousel } from "./PropertyImageCarousel";
@@ -52,7 +52,7 @@ export function PropertyCard({
             </span>
           )}
           <span className="rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold text-ondjo-ink shadow-xs backdrop-blur-xs">
-            Venda
+            {property.purpose === "arrendamento" ? "Arrendamento" : "Venda"}
           </span>
         </div>
 
@@ -100,13 +100,13 @@ export function PropertyCard({
             {property.verified && (
               <span title="Imóvel Verificado ONDJO" className="shrink-0 inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold text-ondjo-green">
                 <ShieldCheck size={14} className="text-ondjo-green" aria-hidden="true" />
-                <span className="hidden xs:inline">Verificado</span>
+                <span className="hidden sm:inline">Verificado</span>
               </span>
             )}
           </div>
 
           <p className="mt-2.5 text-base sm:text-[17px] font-extrabold text-ondjo-green tracking-tight">
-            {formatKz(property.price)}
+            {formatKz(property.price, { perMonth: property.purpose === "arrendamento" })}
           </p>
         </div>
 

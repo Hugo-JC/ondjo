@@ -1,6 +1,8 @@
 import { ArrowDownUp, Grid2X2, List, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { properties } from "../data/properties";
+import { filterProperties } from "../utils/filterProperties";
+import { formatKz } from "../utils/format";
 import { PropertyCard } from "../components/PropertyCard";
 import {
   SearchBar,
@@ -37,42 +39,9 @@ export function SearchPage() {
   }, []);
 
   const results = useMemo(() => {
-    const query = (filters.query || filters.location).trim().toLowerCase();
-    const min = Number(filters.minPrice) || 0;
-    const max = Number(filters.maxPrice) || Number.POSITIVE_INFINITY;
-
-    const filtered = properties.filter((property) => {
-      const matchesQuery =
-        !query ||
-        property.title.toLowerCase().includes(query) ||
-        property.neighborhood.toLowerCase().includes(query) ||
-        property.city.toLowerCase().includes(query);
-      const matchesLocation =
-        !filters.location || property.neighborhood === filters.location;
-      const matchesType = !filters.type || property.type === filters.type;
-      const matchesPrice = property.price >= min && property.price <= max;
-      const matchesBedrooms =
-        !filters.bedrooms ||
-        (filters.bedrooms === "4"
-          ? property.bedrooms >= 4
-          : property.bedrooms === Number(filters.bedrooms));
-      const matchesBathrooms =
-        !filters.bathrooms || property.bathrooms >= Number(filters.bathrooms);
-      const matchesParking =
-        !filters.parking || property.parking >= Number(filters.parking);
-      const matchesVerified =
-        filters.origin === "verificados" ? Boolean(property.verified) : true;
-
-      return (
-        matchesQuery &&
-        matchesLocation &&
-        matchesType &&
-        matchesPrice &&
-        matchesBedrooms &&
-        matchesBathrooms &&
-        matchesParking &&
-        matchesVerified
-      );
+    const filtered = filterProperties(properties, {
+      ...filters,
+      query: filters.query || filters.location,
     });
 
     return [...filtered].sort((a, b) => {
@@ -102,13 +71,15 @@ export function SearchPage() {
   const chips = [
     filters.location && filters.location,
     filters.type && filters.type,
-    filters.minPrice && `≥ ${Number(filters.minPrice).toLocaleString("pt-AO")} Kz`,
-    filters.maxPrice && `≤ ${Number(filters.maxPrice).toLocaleString("pt-AO")} Kz`,
+    filters.minPrice && `≥ ${formatKz(Number(filters.minPrice))}`,
+    filters.maxPrice && `≤ ${formatKz(Number(filters.maxPrice))}`,
     filters.bedrooms &&
-      `${filters.bedrooms === "4" ? "4+" : filters.bedrooms} quartos`,
+      `${filters.bedrooms === "5" ? "5+" : filters.bedrooms === "4" ? "4+" : filters.bedrooms} quartos`,
     filters.bathrooms && `${filters.bathrooms}+ WC`,
     filters.parking && `${filters.parking}+ Vagas`,
     filters.origin === "verificados" && "Verificados",
+    filters.origin === "proprietario" && "Proprietário",
+    filters.origin === "agentes" && "Agentes",
   ].filter(Boolean) as string[];
 
   return (
@@ -434,7 +405,7 @@ function ListProperty({ property }: { property: (typeof properties)[number] }) {
           )}
         </div>
         <p className="mt-4 text-lg font-black text-ondjo-navy">
-          {new Intl.NumberFormat("pt-AO").format(property.price)} Kz
+          {formatKz(property.price, { perMonth: property.purpose === "arrendamento" })}
         </p>
         <p className="mt-2 text-xs font-semibold text-ondjo-muted">
           {property.bedrooms} quartos · {property.bathrooms} casas de banho ·{" "}

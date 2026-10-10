@@ -184,3 +184,19 @@ img {
     @apply h-11 w-full rounded-xl border border-ondjo-border bg-white px-3 text-sm font-medium text-ondjo-ink outline-none transition placeholder:text-slate-500 focus:border-ondjo-blue focus:ring-4 focus:ring-blue-100;
   }
 }
+
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

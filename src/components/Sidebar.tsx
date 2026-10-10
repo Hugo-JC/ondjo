@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronLeft, Plus, Sparkles, X } from "lucide-react";
 import { Logo } from "./Logo";
+import { useFavorites } from "../hooks/useFavorites";
 import {
   accountNavigation,
   mainNavigation,
@@ -28,36 +29,11 @@ export default function Sidebar({
   const [hash, setHash] = useState(() =>
     typeof window !== "undefined" ? window.location.hash || "#/" : "#/",
   );
-  const [favoritesCount, setFavoritesCount] = useState(0);
+  const { favoriteCount: favoritesCount } = useFavorites();
 
   const isControlled = controlledExpanded !== undefined;
   const expanded = controlledExpanded ?? internalExpanded;
   const wide = expanded || mobileOpen;
-
-  // Sincronizar contagem de favoritos
-  useEffect(() => {
-    const updateFavs = () => {
-      try {
-        const raw = window.localStorage.getItem("ondjo-favorites");
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          setFavoritesCount(Array.isArray(parsed) ? parsed.length : 0);
-        } else {
-          setFavoritesCount(0);
-        }
-      } catch {
-        setFavoritesCount(0);
-      }
-    };
-
-    updateFavs();
-    window.addEventListener("storage", updateFavs);
-    window.addEventListener("favorites-updated", updateFavs);
-    return () => {
-      window.removeEventListener("storage", updateFavs);
-      window.removeEventListener("favorites-updated", updateFavs);
-    };
-  }, []);
 
   function changeExpanded(next: boolean) {
     if (!isControlled) setInternalExpanded(next);

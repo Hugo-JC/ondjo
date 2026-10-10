@@ -114,7 +114,7 @@ export function TrustStrip() {
             A forma mais transparente de encontrar casa em Angola.
           </h2>
 
-          <p className="mt-1.5 text-xsleading-relaxed text-ondjo-muted sm:text-base">
+          <p className="mt-1.5 text-xs leading-relaxed text-ondjo-muted sm:text-base">
             Desenvolvido para responder aos desafios reais da procura de imóveis
             em Angola: segurança contra burlas, clareza nos preços e autonomia
             nas visitas.

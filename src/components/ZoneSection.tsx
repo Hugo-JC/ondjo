@@ -53,7 +53,7 @@ export function ZoneSection() {
         {zones.map((zone) => (
           <li
             key={zone.name}
-            className="w-[78vw] max-w-70] shrink-0 snap-center sm:w-auto sm:max-w-none sm:shrink list-none"
+            className="w-[78vw] max-w-[280px] shrink-0 snap-center sm:w-auto sm:max-w-none sm:shrink list-none"
           >
             <ZoneCard zone={zone} />
           </li>

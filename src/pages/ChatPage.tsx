@@ -291,6 +291,55 @@ export function ChatPage() {
     }
   });
 
+  // Ligar conversa ao imóvel passado pela rota (ex: #/mensagens?property=...)
+  useEffect(() => {
+    const hash = window.location.hash;
+    const queryPart = hash.includes("?") ? hash.split("?")[1] : "";
+    const params = new URLSearchParams(queryPart);
+    const propId = params.get("property");
+    if (!propId) return;
+
+    setConversations((prev) => {
+      const existing = prev.find((c) => c.propertyId === propId);
+      if (existing) {
+        setActiveChatId(existing.id);
+        setMobileView("chat");
+        return prev;
+      }
+      const prop = properties.find((p) => p.id === propId);
+      if (prop) {
+        const newConv: Conversation = {
+          id: `conv-prop-${prop.id}`,
+          contactName: prop.advertiser?.name || "Consultor ONDJO",
+          role:
+            prop.advertiser?.type === "particular"
+              ? "Proprietário particular"
+              : "Corretor verificado",
+          presence: "online",
+          verified: Boolean(prop.advertiser?.verified ?? prop.verified),
+          propertyId: prop.id,
+          unreadCount: 0,
+          lastActive: "Agora",
+          category: prop.advertiser?.type === "particular" ? "owner" : "agent",
+          avatarUrl: prop.images[0],
+          messages: [
+            {
+              id: `msg-${Date.now()}`,
+              sender: "agent",
+              text: `Olá! Obrigado pelo interesse no imóvel "${prop.title}". Estou disponível para agendar visita e tirar dúvidas.`,
+              timestamp: "Agora",
+              status: "delivered",
+            },
+          ],
+        };
+        setActiveChatId(newConv.id);
+        setMobileView("chat");
+        return [newConv, ...prev];
+      }
+      return prev;
+    });
+  }, []);
+
   // Estado da permissão nativa do navegador
   const isNotificationSupported = typeof window !== "undefined" && "Notification" in window;
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | "unsupported">(() => {
@@ -438,7 +487,7 @@ export function ChatPage() {
       try {
         const notif = new Notification(`ONDJO: Mensagem de ${senderName}`, {
           body: text,
-          icon: "/favicon.ico",
+          icon: "/icon.png",
           tag: `ondjo-conv-${convId}`, // evita acumular duplicadas da mesma conversa
         });
 
@@ -468,7 +517,7 @@ export function ChatPage() {
       if (permission === "granted") {
         const welcome = new Notification("Notificações ONDJO Ativadas!", {
           body: "Receberá alertas em tempo real sempre que corretores responderem ou enviarem propostas.",
-          icon: "/favicon.ico",
+          icon: "/icon.png",
         });
         welcome.onclick = () => {
           window.focus();

@@ -142,7 +142,7 @@ export function Home() {
 
             {/* Atalhos Rápidos por Zona (Chips Táteis Horizontais) */}
             <div className="mt-3.5 flex flex-col items-center gap-2 sm:mt-4 sm:flex-row sm:justify-center sm:gap-3">
-              <div className="flex items-center gap-1.5 text-2sm font-semibold text-ondjo-blue-soft/90 shrink-0">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-ondjo-blue-soft/90 shrink-0">
                 <MapPin
                   size={18}
                   className="text-ondjo-blue-soft"

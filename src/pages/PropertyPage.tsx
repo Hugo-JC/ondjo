@@ -27,7 +27,8 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMemo, useState } from "react";
-import { properties, formatKz } from "../data/properties";
+import { properties } from "../data/properties";
+import { formatKz } from "../utils/format";
 import { navigate } from "../hooks/useHashRoute";
 import { useFavorites } from "../hooks/useFavorites";
 import { PropertyCard } from "../components/PropertyCard";
@@ -147,7 +148,7 @@ export function PropertyPage({ id }: { id: string }) {
   };
 
   const handleContactAgent = () => {
-    navigate("mensagens");
+    navigate(`mensagens?property=${property.id}`);
   };
 
   // Referência visual curta para credibilidade
@@ -375,7 +376,7 @@ export function PropertyPage({ id }: { id: string }) {
                 </div>
                 <div className="mt-1.5 flex items-baseline gap-2">
                   <strong className="text-3xl font-black tracking-tight sm:text-4xl text-white">
-                    {formatKz(property.price)}
+                    {formatKz(property.price, { perMonth: property.purpose === "arrendamento" })}
                   </strong>
                 </div>
                 <div className="mt-2.5 flex items-center gap-1.5 border-t border-white/10 pt-2.5 text-xs text-blue-100/80">
@@ -502,20 +503,7 @@ export function PropertyPage({ id }: { id: string }) {
               {property.description}
             </p>
 
-            <div className="mt-6 flex flex-wrap gap-2 pt-4 border-t border-slate-100">
-              <div className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700">
-                <Check size={14} className="text-ondjo-green" /> Pronto para
-                habitar
-              </div>
-              <div className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700">
-                <Check size={14} className="text-ondjo-green" /> Documentação em
-                dia
-              </div>
-              <div className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700">
-                <Check size={14} className="text-ondjo-green" /> Acesso
-                asfaltado
-              </div>
-            </div>
+
           </section>
 
           {/* Comodidades & Equipamentos */}
@@ -659,7 +647,7 @@ export function PropertyPage({ id }: { id: string }) {
 
             {/* Dicas de Proteção ONDJO */}
             <div className="mt-5 rounded-xl bg-slate-50 p-3.5 border border-slate-100">
-              <div className="flex items-center gap-1.5 text-2xs font-bold text-ondjo-ink">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-ondjo-ink">
                 <Info size={18} className="text-ondjo-blue" />
                 <span>Dicas essenciais</span>
               </div>
@@ -725,7 +713,7 @@ export function PropertyPage({ id }: { id: string }) {
               Preço anunciado
             </span>
             <strong className="block truncate text-base font-black text-ondjo-ink sm:text-lg">
-              {formatKz(property.price)}
+              {formatKz(property.price, { perMonth: property.purpose === "arrendamento" })}
             </strong>
           </div>
 

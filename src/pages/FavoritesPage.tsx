@@ -379,7 +379,7 @@ export function FavoritesPage() {
                     </div>
 
                     {/* Barra de utilidade integrada: botões com touch target >= 44px */}
-                    <div className="flex items-center justify-between border-tb border-ondjo-border/80 bg-slate-50/80 px-3.5 py-2">
+                    <div className="flex items-center justify-between border-t border-ondjo-border/80 bg-slate-50/80 px-3.5 py-2">
                       <button
                         type="button"
                         onClick={() => toggleCompare(property.id)}
@@ -476,7 +476,7 @@ export function FavoritesPage() {
                       <p className="text-xs font-bold uppercase tracking-wider text-blue-200 truncate">
                         Comparar ({selectedForCompare.length}/3)
                       </p>
-                      <p className="text-xs text-slate-300 truncate hidden xs:block sm:block">
+                      <p className="text-xs text-slate-300 truncate hidden sm:block sm:block">
                         {selectedForCompare.length < 2
                           ? "Escolha mais 1 imóvel"
                           : "Pronto para comparar"}

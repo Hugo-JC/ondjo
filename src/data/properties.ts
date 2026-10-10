@@ -1,5 +1,7 @@
 import type { Property } from "../types";
 
+export { formatKz, formatCount } from "../utils/format";
+
 const img = (id: string, width = 1200, height = 800) =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${width}&h=${height}&q=82`;
 
@@ -11,13 +13,22 @@ export const properties: Property[] = [
     city: "Luanda",
     province: "Luanda",
     neighborhood: "Talatona",
-    price: 150000,
+    price: 250000,
+    priceUnit: "mes",
+    purpose: "arrendamento",
     bedrooms: 2,
     bathrooms: 2,
     area: 80,
     parking: 1,
     featured: true,
     verified: true,
+    advertiser: {
+      name: "Mauro dos Santos",
+      type: "agente",
+      verified: true,
+      phone: "+244 923 000 001",
+      whatsapp: "244923000001",
+    },
     description:
       "Apartamento moderno, luminoso e bem localizado, pensado para quem procura conforto, segurança e acesso rápido aos principais serviços de Talatona.",
     features: [
@@ -42,13 +53,22 @@ export const properties: Property[] = [
     city: "Luanda",
     province: "Luanda",
     neighborhood: "Kilamba",
-    price: 250000,
+    price: 45000000,
+    priceUnit: "total",
+    purpose: "venda",
     bedrooms: 3,
     bathrooms: 3,
     area: 200,
     parking: 2,
     featured: true,
     verified: true,
+    advertiser: {
+      name: "Ana Paula Silva",
+      type: "particular",
+      verified: true,
+      phone: "+244 912 000 002",
+      whatsapp: "244912000002",
+    },
     description:
       "Vivenda espaçosa com áreas sociais generosas e espaço exterior para a família, numa zona residencial em crescimento.",
     features: [
@@ -72,11 +92,20 @@ export const properties: Property[] = [
     province: "Luanda",
     neighborhood: "Viana",
     price: 120000,
+    priceUnit: "mes",
+    purpose: "arrendamento",
     bedrooms: 1,
     bathrooms: 1,
     area: 60,
     parking: 1,
     verified: true,
+    advertiser: {
+      name: "Imobiliária Luanda Sul",
+      type: "agente",
+      verified: true,
+      phone: "+244 931 000 003",
+      whatsapp: "244931000003",
+    },
     description:
       "Uma opção prática para quem procura um apartamento compacto, funcional e próximo de comércio e serviços.",
     features: ["Estacionamento", "Varanda", "Água canalizada", "Segurança"],
@@ -93,11 +122,20 @@ export const properties: Property[] = [
     province: "Luanda",
     neighborhood: "Belas",
     price: 180000,
+    priceUnit: "mes",
+    purpose: "arrendamento",
     bedrooms: 2,
     bathrooms: 2,
     area: 90,
     parking: 1,
     verified: true,
+    advertiser: {
+      name: "Carlos Mendes",
+      type: "particular",
+      verified: true,
+      phone: "+244 924 000 004",
+      whatsapp: "244924000004",
+    },
     description:
       "Apartamento com interiores contemporâneos, boa entrada de luz e localização conveniente para a rotina diária.",
     features: ["Vista aberta", "Ar condicionado", "Gerador", "Estacionamento"],
@@ -113,12 +151,21 @@ export const properties: Property[] = [
     city: "Luanda",
     province: "Luanda",
     neighborhood: "Maianga",
-    price: 220000,
+    price: 65000000,
+    priceUnit: "total",
+    purpose: "venda",
     bedrooms: 3,
     bathrooms: 2,
     area: 145,
     parking: 2,
     verified: true,
+    advertiser: {
+      name: "Teresa Domingos",
+      type: "particular",
+      verified: true,
+      phone: "+244 945 000 005",
+      whatsapp: "244945000005",
+    },
     description:
       "Casa familiar com boa distribuição de espaços e acesso fácil ao centro de Luanda.",
     features: ["Pátio", "Garagem", "Cozinha ampla", "Anexo"],
@@ -134,13 +181,22 @@ export const properties: Property[] = [
     city: "Luanda",
     province: "Luanda",
     neighborhood: "Benfica",
-    price: 480000,
+    price: 120000000,
+    priceUnit: "total",
+    purpose: "venda",
     bedrooms: 4,
     bathrooms: 4,
     area: 320,
     parking: 3,
     featured: true,
     verified: true,
+    advertiser: {
+      name: "Habita Angola Consultoria",
+      type: "agente",
+      verified: true,
+      phone: "+244 922 000 006",
+      whatsapp: "244922000006",
+    },
     description:
       "Moradia contemporânea de grandes dimensões, com espaços exteriores e acabamentos pensados para uma experiência residencial premium.",
     features: [
@@ -164,11 +220,20 @@ export const properties: Property[] = [
     province: "Luanda",
     neighborhood: "Talatona",
     price: 310000,
+    priceUnit: "mes",
+    purpose: "arrendamento",
     bedrooms: 3,
     bathrooms: 3,
     area: 145,
     parking: 2,
     verified: true,
+    advertiser: {
+      name: "Mauro dos Santos",
+      type: "agente",
+      verified: true,
+      phone: "+244 923 000 001",
+      whatsapp: "244923000001",
+    },
     description:
       "Apartamento amplo com três quartos, áreas sociais generosas e estacionamento para dois veículos.",
     features: ["Piscina comum", "Elevador", "Segurança 24h", "Garagem dupla"],
@@ -185,10 +250,19 @@ export const properties: Property[] = [
     province: "Luanda",
     neighborhood: "Camama",
     price: 165000,
+    priceUnit: "mes",
+    purpose: "arrendamento",
     bedrooms: 2,
     bathrooms: 2,
     area: 110,
     parking: 1,
+    advertiser: {
+      name: "João Manuel",
+      type: "particular",
+      verified: false,
+      phone: "+244 911 000 007",
+      whatsapp: "244911000007",
+    },
     description:
       "Casa confortável numa zona residencial, ideal para quem procura espaço e uma rotina mais tranquila.",
     features: ["Pátio", "Garagem", "Água canalizada", "Cozinha equipada"],
@@ -205,11 +279,20 @@ export const properties: Property[] = [
     province: "Luanda",
     neighborhood: "Morro Bento",
     price: 195000,
+    priceUnit: "mes",
+    purpose: "arrendamento",
     bedrooms: 2,
     bathrooms: 2,
     area: 92,
     parking: 1,
     verified: true,
+    advertiser: {
+      name: "Pedro Afonso",
+      type: "particular",
+      verified: true,
+      phone: "+244 934 000 008",
+      whatsapp: "244934000008",
+    },
     description:
       "Apartamento equilibrado entre localização, espaço e conforto, com serviços essenciais nas proximidades.",
     features: ["Elevador", "Segurança", "Estacionamento", "Varanda"],
@@ -225,11 +308,20 @@ export const properties: Property[] = [
     city: "Luanda",
     province: "Luanda",
     neighborhood: "Viana",
-    price: 85000,
+    price: 18000000,
+    priceUnit: "total",
+    purpose: "venda",
     bedrooms: 0,
     bathrooms: 0,
     area: 450,
     parking: 0,
+    advertiser: {
+      name: "Mateus Kiame",
+      type: "particular",
+      verified: false,
+      phone: "+244 928 000 009",
+      whatsapp: "244928000009",
+    },
     description:
       "Terreno com área generosa para um projeto residencial, numa zona em desenvolvimento.",
     features: [
@@ -254,7 +346,3 @@ export const locations = [
   "Camama",
   "Morro Bento",
 ];
-
-export const formatKz = (value: number) =>
-  new Intl.NumberFormat("pt-AO", { maximumFractionDigits: 0 }).format(value) +
-  " Kz";
