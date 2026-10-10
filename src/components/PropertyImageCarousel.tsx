@@ -26,9 +26,9 @@ interface PropertyImageCarouselProps {
 export function PropertyImageCarousel({
   images,
   title,
-  aspectRatio = "aspect-[1.38/1]",
+  aspectRatio = "aspect-[4/3]",
   className = "",
-  showLightboxButton = true,
+  showLightboxButton = false,
   priority = false,
   propertyId,
 }: PropertyImageCarouselProps) {
@@ -47,8 +47,7 @@ export function PropertyImageCarousel({
   const total = safeImages.length;
   const currentImage = safeImages[currentIndex];
 
-  // Sincronização entre cartões: se outro cartão for ativado para mostrar imagens,
-  // este cartão volta automaticamente ao estado inicial (foto 1)
+  // Sincronização entre cartões: se outro cartão for ativado, reseta para a foto 1
   useEffect(() => {
     if (!propertyId) return;
     return subscribeActiveCard((activeId) => {
@@ -71,7 +70,7 @@ export function PropertyImageCarousel({
     [propertyId]
   );
 
-  // Voltar ao estado inicial (foto 0) ao retirar o hover ou perder o foco
+  // Voltar ao estado inicial (foto 0) ao retirar o hover
   const resetToFirst = useCallback(() => {
     if (lightboxOpen) return;
     if (currentIndex !== 0) {
@@ -130,7 +129,6 @@ export function PropertyImageCarousel({
   useEffect(() => {
     if (!lightboxOpen) return;
 
-    // Foco automático no botão de fechar ao abrir
     const timer = setTimeout(() => {
       closeButtonRef.current?.focus();
     }, 50);
@@ -158,7 +156,6 @@ export function PropertyImageCarousel({
     return () => {
       clearTimeout(timer);
       window.removeEventListener("keydown", handleKeyDown);
-      // Restaura o foco para o botão que abriu a galeria
       triggerButtonRef.current?.focus();
     };
   }, [lightboxOpen, currentIndex, total, updateIndex]);
@@ -172,89 +169,117 @@ export function PropertyImageCarousel({
         onTouchEnd={handleTouchEnd}
         onMouseLeave={resetToFirst}
       >
-        {/* Imagem otimizada: WebP/AVIF via Unsplash, srcSet responsivo, decoding assíncrono */}
+        {/* Imagem otimizada com zoom suave no hover do card */}
         <img
           src={getOptimizedImageUrl(currentImage, priority ? 800 : 640)}
           srcSet={getImageSrcSet(currentImage, [360, 640, 960])}
-          sizes="(max-width: 640px) 85vw, (max-width: 1024px) 50vw, 320px)"
+          sizes="(max-width: 640px) 90vw, (max-width: 1024px) 50vw, 360px)"
           alt={`${title} - Foto ${currentIndex + 1} de ${total}`}
           loading={priority ? "eager" : "lazy"}
           decoding="async"
           {...(priority ? { fetchPriority: "high" as const } : { fetchPriority: "low" as const })}
-          className="h-full w-full object-cover transition-opacity duration-300"
+          className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         />
 
-        {/* Gradiente subtil na base para garantir legibilidade dos controlos */}
+        {/* Gradiente subtil na base para contraste dos pontos */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-black/65 via-black/25 to-transparent"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-linear-to-t from-black/50 via-black/20 to-transparent"
         />
 
-        {/* Barra inferior: Agrupamento compacto e ergonómico de controlos */}
-        <div className="absolute inset-x-0 bottom-2.5 flex items-center justify-between px-3 pointer-events-none z-10">
-          {/* Indicadores de fotos touch-friendly com padding de toque invisível */}
-          {total > 1 ? (
-            <div
-              className="flex items-center gap-1 pointer-events-auto"
-              role="tablist"
-              aria-label="Seleção rápida de foto"
-            >
-              {safeImages.slice(0, 6).map((_, idx) => (
+        {/* Setas de navegação desktop estilo Airbnb (aparecem no hover) */}
+        {total > 1 && (
+          <>
+            {currentIndex > 0 && (
+              <button
+                type="button"
+                onClick={prevImage}
+                aria-label={`Foto anterior de ${title}`}
+                className="focus-ring absolute left-2.5 top-1/2 -translate-y-1/2 z-20 flex size-8 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow-md backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110 hover:bg-white active:scale-95 cursor-pointer"
+              >
+                <ChevronLeft size={16} aria-hidden="true" className="-translate-x-0.25" />
+              </button>
+            )}
+            {currentIndex < total - 1 && (
+              <button
+                type="button"
+                onClick={nextImage}
+                aria-label={`Próxima foto de ${title}`}
+                className="focus-ring absolute right-2.5 top-1/2 -translate-y-1/2 z-20 flex size-8 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow-md backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110 hover:bg-white active:scale-95 cursor-pointer"
+              >
+                <ChevronRight size={16} aria-hidden="true" className="translate-x-0.25" />
+              </button>
+            )}
+          </>
+        )}
+
+        {/* Indicadores de fotos (Dots) centralizados estilo Airbnb */}
+        {total > 1 && (
+          <div
+            className="absolute inset-x-0 bottom-2.5 z-10 flex items-center justify-center gap-1.5 pointer-events-none"
+            role="tablist"
+            aria-label="Seleção rápida de foto"
+          >
+            {safeImages.slice(0, 5).map((_, idx) => {
+              const isActive = currentIndex === idx;
+              return (
                 <button
                   key={idx}
                   type="button"
                   role="tab"
-                  aria-selected={currentIndex === idx}
+                  aria-selected={isActive}
                   onClick={(e) => {
                     e.stopPropagation();
+                    e.preventDefault();
                     updateIndex(idx);
                   }}
                   aria-label={`Ir para a foto ${idx + 1} de ${total}`}
-                  className="p-1 cursor-pointer focus-ring rounded-full"
+                  className="pointer-events-auto p-1 cursor-pointer focus-ring rounded-full"
                 >
                   <span
                     className={[
-                      "block h-1.5 rounded-full transition-all duration-300",
-                      currentIndex === idx
-                        ? "w-4 bg-white shadow-xs"
-                        : "w-1.5 bg-white/55 hover:bg-white/90",
+                      "block rounded-full transition-all duration-300",
+                      isActive
+                        ? "h-1.75 w-1.75 bg-white shadow-xs scale-110"
+                        : "h-1.5 w-1.5 bg-white/60 hover:bg-white/90",
                     ].join(" ")}
                   />
                 </button>
-              ))}
-              {total > 6 && (
-                <span className="text-[10px] text-white/80 font-bold ml-1">
-                  +{total - 6}
-                </span>
-              )}
-            </div>
-          ) : (
-            <div />
-          )}
+              );
+            })}
+            {total > 5 && (
+              <span className="text-[10px] text-white/85 font-bold ml-0.5 pointer-events-none drop-shadow-xs">
+                +{total - 5}
+              </span>
+            )}
+          </div>
+        )}
 
-          {/* Botão de Galeria Compacto e Unificado: Ícone + Contador, alvo tátil amplo */}
-          {showLightboxButton && (
+        {/* Botão de Lightbox opcional */}
+        {showLightboxButton && (
+          <div className="absolute right-3 bottom-2.5 z-10">
             <button
               ref={triggerButtonRef}
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
+                e.preventDefault();
                 setLightboxOpen(true);
               }}
-              aria-label={`Abrir galeria de fotos de ${title} em ecrã inteiro (${total} fotos)`}
+              aria-label={`Abrir galeria de fotos de ${title} (${total} fotos)`}
               title="Abrir galeria completa"
-              className="focus-ring pointer-events-auto inline-flex min-h-8 sm:min-h-7.5 items-center gap-1.5 rounded-full bg-black/60 hover:bg-black/80 active:scale-95 px-2.5 py-1 text-white shadow-md backdrop-blur-md transition cursor-pointer"
+              className="focus-ring pointer-events-auto inline-flex min-h-7.5 items-center gap-1.5 rounded-full bg-black/60 hover:bg-black/80 active:scale-95 px-2.5 py-1 text-white shadow-md backdrop-blur-md transition cursor-pointer"
             >
               <Maximize2 size={12} aria-hidden="true" className="shrink-0" />
               <span className="text-[11px] font-bold tracking-tight whitespace-nowrap">
                 {total > 1 ? `${currentIndex + 1}/${total}` : "Galeria"}
               </span>
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
-      {/* Lightbox Modal com Acessibilidade Completa e Layout Alinhado */}
+      {/* Lightbox Modal com Acessibilidade Completa */}
       <AnimatePresence>
         {lightboxOpen && (
           <div
@@ -263,7 +288,6 @@ export function PropertyImageCarousel({
             aria-modal="true"
             aria-label={`Galeria de fotos: ${title}`}
           >
-            {/* Backdrop escuro com desfoque */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -272,7 +296,6 @@ export function PropertyImageCarousel({
               className="absolute inset-0 bg-black/90 backdrop-blur-md"
             />
 
-            {/* Painel da Galeria */}
             <motion.div
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -280,7 +303,6 @@ export function PropertyImageCarousel({
               transition={{ duration: 0.2, ease: "easeOut" }}
               className="relative z-10 flex flex-col items-center max-w-5xl w-full max-h-[92vh]"
             >
-              {/* Cabeçalho da Galeria: Título, Contador e Botão de Fechar sempre alinhados e visíveis */}
               <div className="w-full flex items-center justify-between gap-3 px-2 sm:px-3 py-2 text-white">
                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   <h2 className="font-bold text-sm sm:text-base truncate text-white">
@@ -303,7 +325,6 @@ export function PropertyImageCarousel({
                 </button>
               </div>
 
-              {/* Área da Imagem Principal com Navegação Lateral */}
               <div className="relative w-full flex-1 flex items-center justify-center overflow-hidden my-2 sm:my-3 rounded-2xl bg-black/40">
                 <img
                   src={getOptimizedImageUrl(currentImage, 1200, 85)}
@@ -336,7 +357,6 @@ export function PropertyImageCarousel({
                 )}
               </div>
 
-              {/* Linha de Miniaturas: Centralizada, sem distorção e com foco acessível */}
               {total > 1 && (
                 <div
                   className="flex items-center justify-center gap-2 sm:gap-2.5 overflow-x-auto max-w-full py-2 px-3 scrollbar-none"
@@ -374,7 +394,6 @@ export function PropertyImageCarousel({
                 </div>
               )}
 
-              {/* Notificação para leitores de ecrã */}
               <div className="sr-only" aria-live="polite" aria-atomic="true">
                 Foto {currentIndex + 1} de {total}: {title}
               </div>
