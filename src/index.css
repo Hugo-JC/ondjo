@@ -43,11 +43,9 @@
   --color-ondjo-surface: #ffffff;
   --color-ondjo-bg: #f4f7fb;
 
-  /* Estados. A cor base serve para texto, ícones e botões (texto branco);
-     soft = fundo; border = contorno. Soft/border de warning e danger e o
-     border de success são derivados. */
+  /* Estados */
   --color-ondjo-success: #176b52;
-  --color-ondjo-success-soft: #dcece5; /* Green Soft */
+  --color-ondjo-success-soft: #dcece5;
   --color-ondjo-success-border: #a9d1c0;
 
   --color-ondjo-warning: #854d0e;
@@ -69,26 +67,70 @@
   background: var(--color-ondjo-bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+  overflow-x: clip;
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
 html {
   scroll-behavior: auto;
+  overflow-x: clip;
+  width: 100%;
+  max-width: 100%;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
   min-width: 320px;
+  overflow-x: clip;
   background: var(--color-ondjo-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+}
+
+/* Evita que filhos de flex e grid quebrem a grelha por min-width intrínseca */
+.min-w-0 {
+  min-width: 0;
 }
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
+}
+
+/* Garante tamanho mínimo de 16px para inputs em mobile para impedir zoom involuntário no iOS */
+@media (max-width: 640px) {
+  input[type="text"],
+  input[type="number"],
+  input[type="search"],
+  input[type="password"],
+  input[type="email"],
+  input[type="tel"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
 }
 
 button {
@@ -100,39 +142,53 @@ button {
   color: var(--color-ondjo-navy);
 }
 
-img {
+img,
+video,
+canvas,
+svg {
   display: block;
   max-width: 100%;
+  height: auto;
 }
 
-/*
-  Foco por teclado: UMA única regra, fora de @layer para ganhar a
-  utilitários como `outline-none`. O anel branco interior garante
-  contraste também sobre fundos escuros (painel de auth, galeria).
-*/
+/* Foco por teclado consistente */
 .focus-ring:focus-visible {
   outline: 2px solid var(--color-ondjo-blue);
   outline-offset: 2px;
   box-shadow: 0 0 0 4px #fff;
 }
 
-.hide-scrollbar {
+.hide-scrollbar,
+.scrollbar-none,
+.no-scrollbar {
   scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-.hide-scrollbar::-webkit-scrollbar {
+.hide-scrollbar::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
   display: none;
 }
 
-/* Scrollbar subtil, global */
+/* Suporte para Safe Area no mobile */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Scrollbar subtil */
 * {
   scrollbar-width: thin;
   scrollbar-color: #cbd2dc transparent;
 }
 
 *::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 *::-webkit-scrollbar-track {
@@ -142,40 +198,12 @@ img {
 *::-webkit-scrollbar-thumb {
   background-color: #cbd2dc;
   border-radius: 9999px;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   background-clip: padding-box;
 }
 
 *::-webkit-scrollbar-thumb:hover {
   background-color: #a4adba;
-}
-
-/* Variante discreta para a navegação da sidebar */
-.scrollbar-subtle {
-  scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
-  transition: scrollbar-color 0.2s ease;
-}
-
-.scrollbar-subtle::-webkit-scrollbar {
-  width: 6px;
-}
-
-.scrollbar-subtle::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.scrollbar-subtle::-webkit-scrollbar-thumb {
-  background-color: transparent;
-  border-radius: 9999px;
-}
-
-.scrollbar-subtle:hover::-webkit-scrollbar-thumb {
-  background-color: #d3d8e0;
-}
-
-.scrollbar-subtle:hover {
-  scrollbar-color: #d3d8e0 transparent;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -195,22 +223,6 @@ img {
 
 @layer components {
   .filter-input {
-    @apply h-11 w-full rounded-xl border border-ondjo-border bg-white px-3 text-sm font-medium text-ondjo-ink outline-none transition placeholder:text-slate-500 focus:border-ondjo-blue focus:ring-4 focus:ring-blue-100;
-  }
-}
-
-@utility no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-@utility scrollbar-none {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-  &::-webkit-scrollbar {
-    display: none;
+    @apply h-11 w-full rounded-xl border border-ondjo-border bg-white px-3 text-base sm:text-sm font-medium text-ondjo-ink outline-none transition placeholder:text-slate-500 focus:border-ondjo-blue focus:ring-4 focus:ring-blue-100;
   }
 }

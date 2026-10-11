@@ -1,24 +1,28 @@
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { ReactLenis } from "lenis/react";
+import "lenis/dist/lenis.css";
 import "./index.css";
 import App from "./App";
 
 function ScrollEnhancement() {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() =>
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-  );
+  const [shouldEnable, setShouldEnable] = useState(false);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const updatePreference = () =>
-      setPrefersReducedMotion(mediaQuery.matches);
+    // Lenis apenas em desktops (rato/roda), nunca em dispositivos touch/móveis
+    // para evitar quebras em 100dvh, pull-to-refresh e headers fixos.
+    const isTouch = window.matchMedia("(pointer: coarse)").matches;
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const isMobileWidth = window.innerWidth < 768;
 
-    mediaQuery.addEventListener("change", updatePreference);
-    return () => mediaQuery.removeEventListener("change", updatePreference);
+    if (!isTouch && !prefersReducedMotion && !isMobileWidth) {
+      setShouldEnable(true);
+    }
   }, []);
 
-  if (prefersReducedMotion) return null;
+  if (!shouldEnable) return null;
 
   return (
     <ReactLenis
@@ -27,7 +31,6 @@ function ScrollEnhancement() {
         lerp: 0.1,
         smoothWheel: true,
         syncTouch: false,
-        allowNestedScroll: true,
       }}
     />
   );

@@ -206,7 +206,7 @@ export function LuandaAmenitiesFilter({
                 </button>
               </div>
 
-              <div className="mt-4 space-y-2.5 max-h-[60vh] overflow-y-auto pr-1">
+              <div className="mt-4 space-y-2.5 max-h-[60dvh] overflow-y-auto pr-1">
                 {ESSENTIAL_AMENITIES.map((amenity) => {
                   const Icon = amenity.icon;
                   const isSelected = selectedAmenities.includes(amenity.id);

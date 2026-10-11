@@ -7,6 +7,7 @@ import {
   Check,
 } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { locations, properties } from "../data/properties";
 import { filterProperties } from "../utils/filterProperties";
@@ -110,10 +111,11 @@ export function SearchBar({
   const reduceMotion = useReducedMotion();
   const barRef = useRef<HTMLDivElement>(null);
   const locationInputRef = useRef<HTMLInputElement>(null);
+  const sheetCloseRef = useRef<HTMLButtonElement>(null);
 
   const locationId = useId();
 
-  // Fechar dropdowns ao clicar fora
+  // Fechar dropdowns ao clicar fora em desktop
   useEffect(() => {
     const handleClickOutside = (event: PointerEvent) => {
       if (barRef.current && !barRef.current.contains(event.target as Node)) {
@@ -125,12 +127,40 @@ export function SearchBar({
     return () => document.removeEventListener("pointerdown", handleClickOutside);
   }, []);
 
+  // Bloqueio de scroll do body quando o sheet mobile está aberto
+  useEffect(() => {
+    if (!mobileModalOpen) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileModalOpen(false);
+    };
+    document.addEventListener("keydown", handleEsc);
+
+    return () => {
+      document.body.style.overflow = original;
+      document.removeEventListener("keydown", handleEsc);
+    };
+  }, [mobileModalOpen]);
+
   const set = (key: keyof SearchFilters, next: unknown) => {
     onChange({ ...value, [key]: next });
   };
 
   const currentPurpose = value.purpose || "comprar";
   const currentOrigin = value.origin || "todos";
+
+  // Contagem de filtros ativos (excluindo purpose padrão)
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (value.location || value.query) count++;
+    if (value.type) count++;
+    if (value.bedrooms) count++;
+    if (value.minPrice || value.maxPrice) count++;
+    if (value.origin === "verificados") count++;
+    return count;
+  }, [value]);
 
   // Contagem dinâmica usando o filtro partilhado
   const matchingCount = useMemo(() => {
@@ -162,12 +192,115 @@ export function SearchBar({
   };
 
   return (
-    <div ref={barRef} className={["relative w-full text-left", compact ? "max-w-3xl mx-auto" : ""].join(" ")}>
+    <div
+      ref={barRef}
+      className={["relative w-full text-left", compact ? "max-w-3xl mx-auto" : ""].join(" ")}
+    >
       {/* ========================================================
-          CABEÇALHO DA BUSCA: TABS COMPRAR/ARRENDAR & VERIFICADOS
+          CABEÇALHO DA BUSCA: MOBILE EM 2 NÍVEIS ESCALÁVEIS
+          Linha 1: Segmented Control Comprar | Arrendar (Largura total, alvo >= 44px)
+          Linha 2: Chips rápidos com scroll horizontal suave e selo Verificados
          ======================================================== */}
-      <div className="mb-3.5 flex items-center justify-between px-2 sm:px-4">
-        {/* Tabs arredondadas estilo pílula (Airbnb / Houter) */}
+      <div className="mb-3 flex flex-col gap-2.5 md:hidden">
+        {/* Linha 1 Mobile: Comprar / Arrendar largura total */}
+        <div
+          role="tablist"
+          aria-label="Modalidade de negócio"
+          className="grid grid-cols-2 w-full rounded-2xl bg-slate-100/90 p-1 backdrop-blur-xs border border-slate-200/70 shadow-2xs"
+        >
+          {PURPOSE_OPTIONS.map((opt) => {
+            const isSelected = currentPurpose === opt.id;
+            return (
+              <button
+                key={opt.id}
+                role="tab"
+                type="button"
+                aria-selected={isSelected}
+                onClick={() => set("purpose", opt.id)}
+                className={[
+                  "flex min-h-11 items-center justify-center rounded-xl text-xs font-bold transition-all cursor-pointer",
+                  isSelected
+                    ? "bg-white text-ondjo-navy shadow-xs font-black"
+                    : "text-slate-600 hover:text-ondjo-ink",
+                ].join(" ")}
+              >
+                <span>{opt.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Linha 2 Mobile: Chips rápidos roláveis horizontalmente com fade suave */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5 px-0.5">
+          {/* Chip Selo: Verificados ONDJO */}
+          <button
+            type="button"
+            onClick={() => set("origin", currentOrigin === "verificados" ? "todos" : "verificados")}
+            className={[
+              "inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-bold transition-all cursor-pointer active:scale-95",
+              currentOrigin === "verificados"
+                ? "border-emerald-500/40 bg-emerald-50 text-emerald-800 shadow-2xs"
+                : "border-slate-200/90 bg-white text-slate-700 hover:border-slate-300",
+            ].join(" ")}
+          >
+            <ShieldCheck
+              size={14}
+              className={currentOrigin === "verificados" ? "text-emerald-600" : "text-slate-400"}
+              aria-hidden="true"
+            />
+            <span>Verificados</span>
+          </button>
+
+          {/* Chip Rápido: Tipo de Imóvel */}
+          <button
+            type="button"
+            onClick={() => setMobileModalOpen(true)}
+            className={[
+              "inline-flex min-h-9 shrink-0 items-center gap-1 rounded-full border px-3 text-xs font-semibold transition-all cursor-pointer active:scale-95",
+              value.type
+                ? "border-ondjo-blue bg-ondjo-blue-soft text-ondjo-blue font-bold"
+                : "border-slate-200/90 bg-white text-slate-700",
+            ].join(" ")}
+          >
+            <span>{value.type || "Tipo"}</span>
+          </button>
+
+          {/* Chip Rápido: Tipologia Quartos */}
+          <button
+            type="button"
+            onClick={() => setMobileModalOpen(true)}
+            className={[
+              "inline-flex min-h-9 shrink-0 items-center gap-1 rounded-full border px-3 text-xs font-semibold transition-all cursor-pointer active:scale-95",
+              value.bedrooms
+                ? "border-ondjo-navy bg-ondjo-navy text-white font-bold"
+                : "border-slate-200/90 bg-white text-slate-700",
+            ].join(" ")}
+          >
+            <span>{value.bedrooms ? `T${value.bedrooms}` : "Quartos"}</span>
+          </button>
+
+          {/* Botão Todos os Filtros com Badge */}
+          <button
+            type="button"
+            onClick={() => setMobileModalOpen(true)}
+            className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border border-slate-200/90 bg-white px-3 text-xs font-bold text-ondjo-ink active:scale-95 cursor-pointer hover:bg-slate-50"
+          >
+            <SlidersHorizontal size={13} className="text-ondjo-blue" aria-hidden="true" />
+            <span>Filtros</span>
+            {activeFiltersCount > 0 && (
+              <span className="grid size-4.5 place-items-center rounded-full bg-ondjo-navy text-[10px] font-black text-white">
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* ========================================================
+          CABEÇALHO DA BUSCA: DESKTOP (LINHA ÚNICA DISTRIBUÍDA)
+         ======================================================== */}
+      <div className="hidden md:flex mb-3.5 items-center justify-between px-2 sm:px-4">
+        {/* Tabs Comprar / Arrendar */}
         <div
           role="tablist"
           aria-label="Modalidade de negócio"
@@ -195,7 +328,7 @@ export function SearchBar({
           })}
         </div>
 
-        {/* Toggle sutil de Verificados ONDJO */}
+        {/* Toggle de Verificados ONDJO Desktop */}
         <div className="flex items-center gap-2">
           {ORIGIN_OPTIONS.map((orig) => {
             const isSelected = currentOrigin === orig.id;
@@ -238,7 +371,7 @@ export function SearchBar({
             activeSegment ? "bg-slate-50/50" : "",
           ].join(" ")}
         >
-          {/* SEGMENTO 1: ONDE PROCURA? */}
+          {/* SEGMENTO 1: ONDE */}
           <button
             type="button"
             onClick={() => {
@@ -260,14 +393,13 @@ export function SearchBar({
             </span>
           </button>
 
-          {/* Divisor vertical */}
           <div
             className={`h-8 w-px bg-slate-200/80 shrink-0 transition-opacity ${
               activeSegment === "location" || activeSegment === "type" ? "opacity-0" : "opacity-100"
             }`}
           />
 
-          {/* SEGMENTO 2: TIPO DE IMÓVEL */}
+          {/* SEGMENTO 2: TIPO */}
           <button
             type="button"
             onClick={() => setActiveSegment(activeSegment === "type" ? null : "type")}
@@ -286,14 +418,13 @@ export function SearchBar({
             </span>
           </button>
 
-          {/* Divisor vertical */}
           <div
             className={`h-8 w-px bg-slate-200/80 shrink-0 transition-opacity ${
               activeSegment === "type" || activeSegment === "bedrooms" ? "opacity-0" : "opacity-100"
             }`}
           />
 
-          {/* SEGMENTO 3: TIPOLOGIA / QUARTOS */}
+          {/* SEGMENTO 3: QUARTOS */}
           <button
             type="button"
             onClick={() => setActiveSegment(activeSegment === "bedrooms" ? null : "bedrooms")}
@@ -312,14 +443,13 @@ export function SearchBar({
             </span>
           </button>
 
-          {/* Divisor vertical */}
           <div
             className={`h-8 w-px bg-slate-200/80 shrink-0 transition-opacity ${
               activeSegment === "bedrooms" || activeSegment === "price" ? "opacity-0" : "opacity-100"
             }`}
           />
 
-          {/* SEGMENTO 4: ORÇAMENTO / PREÇO */}
+          {/* SEGMENTO 4: ORÇAMENTO */}
           <button
             type="button"
             onClick={() => setActiveSegment(activeSegment === "price" ? null : "price")}
@@ -338,7 +468,7 @@ export function SearchBar({
             </span>
           </button>
 
-          {/* BOTÃO PRINCIPAL DE PESQUISA (PÍLULA ESTILO AIRBNB) */}
+          {/* BOTÃO PRINCIPAL */}
           <div className="p-2 shrink-0">
             <button
               type="button"
@@ -354,11 +484,8 @@ export function SearchBar({
           </div>
         </div>
 
-        {/* ========================================================
-            POPOVERS FLUTUANTES ARREDONDADOS (AIRBNB STYLE)
-           ======================================================== */}
+        {/* POPOVERS DESKTOP */}
         <AnimatePresence>
-          {/* Popover 1: Localização */}
           {activeSegment === "location" && (
             <motion.div
               initial={{ opacity: 0, y: 10, scale: 0.98 }}
@@ -420,7 +547,6 @@ export function SearchBar({
             </motion.div>
           )}
 
-          {/* Popover 2: Tipo de Imóvel */}
           {activeSegment === "type" && (
             <motion.div
               initial={{ opacity: 0, y: 10, scale: 0.98 }}
@@ -459,7 +585,6 @@ export function SearchBar({
             </motion.div>
           )}
 
-          {/* Popover 3: Tipologia */}
           {activeSegment === "bedrooms" && (
             <motion.div
               initial={{ opacity: 0, y: 10, scale: 0.98 }}
@@ -497,7 +622,6 @@ export function SearchBar({
             </motion.div>
           )}
 
-          {/* Popover 4: Preço */}
           {activeSegment === "price" && (
             <motion.div
               initial={{ opacity: 0, y: 10, scale: 0.98 }}
@@ -535,7 +659,6 @@ export function SearchBar({
                 </div>
               </div>
 
-              {/* Botão de Busca dentro do Popover */}
               <button
                 type="button"
                 onClick={() => handleSubmit()}
@@ -549,137 +672,323 @@ export function SearchBar({
       </div>
 
       {/* ========================================================
-          MOBILE: BARRA EM PÍLULA TOUCH ELEGANTE (AIRBNB MOBILE)
+          MOBILE: BARRA TOUCH COMPACTA EM PÍLULA (AIRBNB MOBILE)
          ======================================================== */}
       <div className="block md:hidden">
         <button
           type="button"
           onClick={() => setMobileModalOpen(true)}
-          className="flex w-full items-center gap-3.5 rounded-full border border-slate-200/90 bg-white p-2.5 shadow-[0_10px_30px_rgba(16,42,67,0.1)] active:scale-[0.99] transition-all cursor-pointer text-left"
+          className="flex min-h-14 w-full items-center gap-3.5 rounded-full border border-slate-200/90 bg-white p-2.5 shadow-[0_8px_24px_rgba(16,42,67,0.08)] active:scale-[0.99] transition-all cursor-pointer text-left"
+          aria-label="Abrir filtros de pesquisa de imóveis"
         >
           <div className="flex size-10 items-center justify-center rounded-full bg-ondjo-blue text-white shadow-xs shrink-0">
-            <Search size={18} />
+            <Search size={18} aria-hidden="true" />
           </div>
 
           <div className="flex-1 min-w-0">
             <h4 className="text-sm font-bold text-ondjo-ink truncate">
               {searchText || "Onde quer procurar?"}
             </h4>
-            <p className="text-[11px] font-medium text-slate-500 truncate">
+            <p className="text-[11px] font-medium text-slate-500 truncate mt-0.5">
               {value.type || "Qualquer tipo"} · {value.bedrooms ? `T${value.bedrooms}` : "Qualquer tipologia"}
             </p>
           </div>
 
           <div className="flex size-9 items-center justify-center rounded-full border border-slate-200/80 text-slate-600 shrink-0">
-            <SlidersHorizontal size={15} />
+            <SlidersHorizontal size={15} aria-hidden="true" />
           </div>
         </button>
-
-        {/* Modal / Bottom Sheet no Mobile */}
-        <AnimatePresence>
-          {mobileModalOpen && (
-            <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-xs sm:justify-center p-0 sm:p-4">
-              <motion.div
-                initial={{ opacity: 0, y: 100 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 100 }}
-                transition={{ duration: reduceMotion ? 0 : 0.22, ease: "easeOut" }}
-                className="w-full max-w-lg rounded-t-3xl sm:rounded-3xl bg-white p-5 shadow-2xl max-h-[85vh] overflow-y-auto"
-              >
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <h3 className="text-base font-bold text-ondjo-navy">Filtrar Pesquisa</h3>
-                  <button
-                    type="button"
-                    onClick={() => setMobileModalOpen(false)}
-                    className="p-1 rounded-full text-slate-400 hover:text-slate-600 cursor-pointer"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-
-                <div className="mt-4 space-y-4">
-                  {/* Onde */}
-                  <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-1">Localização</label>
-                    <div className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 bg-slate-50">
-                      <MapPin size={16} className="text-ondjo-blue shrink-0" />
-                      <input
-                        type="text"
-                        value={searchText}
-                        onChange={(e) => onChange({ ...value, location: "", query: e.target.value })}
-                        placeholder="Ex: Talatona, Maianga, Kilamba"
-                        className="w-full bg-transparent text-sm font-semibold outline-none text-ondjo-ink"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Tipo */}
-                  <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-1">Tipo de Imóvel</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {PROPERTY_TYPES.map((t) => (
-                        <button
-                          key={t.value}
-                          type="button"
-                          onClick={() => set("type", t.value)}
-                          className={[
-                            "p-2.5 rounded-xl text-xs font-semibold border transition text-center cursor-pointer",
-                            value.type === t.value
-                              ? "border-ondjo-blue bg-ondjo-blue-soft text-ondjo-blue font-bold"
-                              : "border-slate-200 text-slate-700",
-                          ].join(" ")}
-                        >
-                          {t.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Quartos */}
-                  <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-1">Tipologia</label>
-                    <div className="flex flex-wrap gap-2">
-                      {BEDROOM_OPTIONS.map((b) => (
-                        <button
-                          key={b.value}
-                          type="button"
-                          onClick={() => set("bedrooms", b.value)}
-                          className={[
-                            "px-3 py-2 rounded-xl text-xs font-bold border transition cursor-pointer",
-                            value.bedrooms === b.value
-                              ? "border-ondjo-navy bg-ondjo-navy text-white"
-                              : "border-slate-200 text-slate-700",
-                          ].join(" ")}
-                        >
-                          {b.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Ações no rodapé do modal */}
-                <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
-                  <button
-                    type="button"
-                    onClick={clearAllFilters}
-                    className="text-xs font-semibold text-slate-500 hover:text-ondjo-blue cursor-pointer"
-                  >
-                    Limpar tudo
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleSubmit()}
-                    className="flex-1 rounded-xl bg-ondjo-blue py-3 text-center text-sm font-bold text-white shadow-md active:scale-98 cursor-pointer"
-                  >
-                    {matchingCount > 0 ? `Ver ${matchingCount} imóveis` : "Pesquisar"}
-                  </button>
-                </div>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
       </div>
+
+      {/* ========================================================
+          BOTTOM SHEET MOBILE VIA PORTAL (100% IMUNE A CLIPPING)
+          - Renderizado no document.body com AnimatePresence
+          - Cabeçalho fixo (título + fechar 44x44px)
+          - Scroll interno fluído com max-h-[85dvh]
+          - Rodapé fixo com "Limpar tudo" e "Ver resultados (N)"
+          - Inputs com font-size >= 16px para evitar zoom no iOS
+         ======================================================== */}
+      {typeof document !== "undefined" &&
+        createPortal(
+          <AnimatePresence>
+            {mobileModalOpen && (
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-label="Filtros de pesquisa"
+                className="fixed inset-0 z-[100] flex flex-col justify-end bg-black/60 backdrop-blur-xs"
+              >
+                {/* Backdrop clicável */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: reduceMotion ? 0 : 0.2 }}
+                  onClick={() => setMobileModalOpen(false)}
+                  className="fixed inset-0 cursor-pointer"
+                  aria-hidden="true"
+                />
+
+                {/* Sheet que desliza de baixo para cima */}
+                <motion.div
+                  initial={{ y: "100%" }}
+                  animate={{ y: 0 }}
+                  exit={{ y: "100%" }}
+                  transition={{
+                    type: "spring",
+                    damping: 32,
+                    stiffness: 320,
+                  }}
+                  className="relative z-10 flex max-h-[88dvh] w-full flex-col overflow-hidden rounded-t-[28px] bg-white shadow-2xl pb-safe"
+                >
+                  {/* Traço indicador de arrasto */}
+                  <div className="pt-3 pb-1 flex justify-center shrink-0">
+                    <div className="h-1.5 w-12 rounded-full bg-slate-300" />
+                  </div>
+
+                  {/* Cabeçalho Fixo do Sheet */}
+                  <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3 shrink-0">
+                    <div>
+                      <h3 className="text-base font-extrabold text-ondjo-navy">
+                        Filtrar Pesquisa
+                      </h3>
+                      <p className="text-[11px] text-slate-500 font-medium">
+                        {matchingCount} {matchingCount === 1 ? "imóvel disponível" : "imóveis disponíveis"}
+                      </p>
+                    </div>
+                    <button
+                      ref={sheetCloseRef}
+                      type="button"
+                      onClick={() => setMobileModalOpen(false)}
+                      aria-label="Fechar filtros"
+                      className="focus-ring grid size-11 place-items-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 active:scale-95 cursor-pointer"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+
+                  {/* Conteúdo com Scroll Interno Fluído */}
+                  <div className="flex-1 overflow-y-auto p-5 space-y-5 overscroll-contain">
+                    {/* Modalidade de Negócio */}
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 block mb-1.5 uppercase tracking-wider">
+                        Modalidade
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {PURPOSE_OPTIONS.map((opt) => {
+                          const isSelected = currentPurpose === opt.id;
+                          return (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              onClick={() => set("purpose", opt.id)}
+                              className={[
+                                "flex min-h-11 items-center justify-center rounded-xl text-xs font-bold border transition-all cursor-pointer",
+                                isSelected
+                                  ? "border-ondjo-blue bg-ondjo-blue-soft text-ondjo-blue font-black"
+                                  : "border-slate-200 text-slate-700 hover:bg-slate-50",
+                              ].join(" ")}
+                            >
+                              {opt.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Localização com Auto-sugestões */}
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 block mb-1.5 uppercase tracking-wider">
+                        Localização em Luanda
+                      </label>
+                      <div className="flex items-center gap-2.5 rounded-xl border border-slate-200 px-3 py-2.5 bg-slate-50/70 focus-within:border-ondjo-blue focus-within:bg-white transition-colors">
+                        <MapPin size={18} className="text-ondjo-blue shrink-0" />
+                        <input
+                          type="text"
+                          value={searchText}
+                          onChange={(e) => onChange({ ...value, location: "", query: e.target.value })}
+                          placeholder="Ex: Talatona, Maianga, Kilamba..."
+                          className="w-full bg-transparent text-base font-semibold outline-none text-ondjo-ink placeholder:text-slate-400"
+                        />
+                        {searchText && (
+                          <button
+                            type="button"
+                            onClick={() => onChange({ ...value, location: "", query: "" })}
+                            className="p-1 rounded-full text-slate-400 hover:text-slate-600 cursor-pointer"
+                          >
+                            <X size={16} />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Chips de Zonas Populares */}
+                      <div className="mt-2.5 flex flex-wrap gap-1.5">
+                        {["Talatona", "Kilamba", "Maianga", "Benfica", "Camama", "Viana"].map((loc) => {
+                          const isSel = value.location === loc;
+                          return (
+                            <button
+                              key={loc}
+                              type="button"
+                              onClick={() => onChange({ ...value, location: isSel ? "" : loc, query: "" })}
+                              className={[
+                                "min-h-8 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-all cursor-pointer",
+                                isSel
+                                  ? "border-ondjo-blue bg-ondjo-blue-soft text-ondjo-blue font-bold"
+                                  : "border-slate-200 text-slate-600 hover:bg-slate-100",
+                              ].join(" ")}
+                            >
+                              {loc}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Tipo de Imóvel */}
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 block mb-1.5 uppercase tracking-wider">
+                        Tipo de Imóvel
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {PROPERTY_TYPES.map((t) => {
+                          const isSelected = value.type === t.value;
+                          return (
+                            <button
+                              key={t.value}
+                              type="button"
+                              onClick={() => set("type", t.value)}
+                              className={[
+                                "flex min-h-11 items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold border transition text-left cursor-pointer",
+                                isSelected
+                                  ? "border-ondjo-blue bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
+                                  : "border-slate-200 text-slate-700 hover:bg-slate-50",
+                              ].join(" ")}
+                            >
+                              <span>{t.label}</span>
+                              {isSelected && <Check size={14} />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Quartos / Tipologia */}
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 block mb-1.5 uppercase tracking-wider">
+                        Tipologia (Quartos)
+                      </label>
+                      <div className="grid grid-cols-4 gap-2">
+                        {BEDROOM_OPTIONS.map((b) => {
+                          const isSelected = value.bedrooms === b.value;
+                          return (
+                            <button
+                              key={b.value}
+                              type="button"
+                              onClick={() => set("bedrooms", b.value)}
+                              className={[
+                                "flex min-h-11 items-center justify-center rounded-xl text-xs font-bold border transition cursor-pointer",
+                                isSelected
+                                  ? "border-ondjo-navy bg-ondjo-navy text-white shadow-xs"
+                                  : "border-slate-200 text-slate-700 hover:bg-slate-50",
+                              ].join(" ")}
+                            >
+                              {b.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Faixa de Preço em Kz */}
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 block mb-1.5 uppercase tracking-wider">
+                        Preço em Kwanzas (Kz)
+                      </label>
+                      <div className="grid grid-cols-2 gap-2.5">
+                        <div>
+                          <span className="text-[10px] font-bold text-slate-500 uppercase">Mínimo</span>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="Sem mínimo"
+                            value={value.minPrice}
+                            onChange={(e) => set("minPrice", e.target.value.replace(/\D/g, ""))}
+                            className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-base font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue bg-slate-50/70"
+                          />
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-bold text-slate-500 uppercase">Máximo</span>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="Sem máximo"
+                            value={value.maxPrice}
+                            onChange={(e) => set("maxPrice", e.target.value.replace(/\D/g, ""))}
+                            className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-base font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue bg-slate-50/70"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Verificação Documental ONDJO */}
+                    <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/60 p-3.5 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="grid size-9 place-items-center rounded-xl bg-emerald-100 text-emerald-800 shrink-0">
+                          <ShieldCheck size={18} />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-emerald-950">
+                            Apenas Verificados ONDJO
+                          </h4>
+                          <p className="text-[11px] text-emerald-800">
+                            Imóveis com documentação e titularidade auditadas
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={currentOrigin === "verificados"}
+                        onClick={() => set("origin", currentOrigin === "verificados" ? "todos" : "verificados")}
+                        className={[
+                          "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                          currentOrigin === "verificados" ? "bg-emerald-600" : "bg-slate-300",
+                        ].join(" ")}
+                      >
+                        <span
+                          className={[
+                            "pointer-events-none inline-block size-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                            currentOrigin === "verificados" ? "translate-x-5" : "translate-x-0",
+                          ].join(" ")}
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Rodapé Fixo do Sheet */}
+                  <div className="shrink-0 border-t border-slate-100 bg-white p-4 flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={clearAllFilters}
+                      className="min-h-12 px-3 text-xs font-bold text-slate-600 hover:text-ondjo-blue active:scale-95 cursor-pointer"
+                    >
+                      Limpar tudo
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSubmit()}
+                      className="flex-1 min-h-12 rounded-xl bg-ondjo-blue px-4 py-3 text-center text-sm font-bold text-white shadow-md active:scale-98 cursor-pointer hover:bg-ondjo-blue-dark transition"
+                    >
+                      {matchingCount > 0 ? `Ver ${matchingCount} imóveis` : "Pesquisar imóveis"}
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>,
+          document.body,
+        )}
     </div>
   );
 }

@@ -6,6 +6,12 @@ export function MobileBottomNav() {
   const route = useHashRoute();
   const { favoriteCount } = useFavorites();
 
+  // No detalhe individual do imóvel, a página possui a sua própria barra de ação fixa
+  // (preço, favorito e contacto do corretor). Ocultamos o menu inferior global para evitar sobreposição.
+  if (route.page === "property") {
+    return null;
+  }
+
   const isHome = route.page === "home";
   const isSearch = route.page === "search";
   const isFavorites = route.page === "favorites";

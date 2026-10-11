@@ -111,7 +111,7 @@ export function ScheduleVisitPanel({
           <motion.div
             {...motionProps}
             transition={{ type: "spring", damping: 26, stiffness: 320 }}
-            className="relative z-10 flex max-h-[92vh] w-full max-w-md flex-col overflow-hidden rounded-t-[28px] border border-ondjo-border bg-ondjo-surface shadow-[0_24px_80px_rgba(16,42,67,0.18)] sm:rounded-[28px]"
+            className="relative z-10 flex max-h-[92dvh] pb-safe w-full max-w-md flex-col overflow-hidden rounded-t-[28px] border border-ondjo-border bg-ondjo-surface shadow-[0_24px_80px_rgba(16,42,67,0.18)] sm:rounded-[28px]"
           >
             <div className="border-b border-ondjo-border px-5 py-4 sm:px-6">
               <div

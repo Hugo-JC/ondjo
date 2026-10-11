@@ -139,7 +139,7 @@ export function Home() {
             tabIndex={-1}
           >
             {/* Barra de Pesquisa em Pílula */}
-            <div className="rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.35)] ring-1 ring-white/15">
+            <div className="w-full md:rounded-full md:shadow-[0_20px_50px_rgba(0,0,0,0.35)] md:ring-1 md:ring-white/15">
               <SearchBar
                 value={filters}
                 onChange={setFilters}
@@ -158,7 +158,7 @@ export function Home() {
                 <span>Zonas populares:</span>
               </div>
 
-              <div className="flex max-w-full w-full sm:w-auto overflow-x-auto no-scrollbar scroll-smooth gap-1.5 py-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:justify-center">
+              <div className="flex max-w-full w-full sm:w-auto overflow-x-auto no-scrollbar scroll-smooth gap-1.5 py-1 px-1 sm:px-0 sm:flex-wrap sm:justify-center">
                 {locations.slice(0, 6).map((location) => {
                   const selected = filters.location === location;
 
@@ -226,7 +226,7 @@ export function Home() {
         {/* =========================================================
             IMÓVEIS EM DESTAQUE (SELEÇÃO ONDJO)
             ========================================================= */}
-        <section aria-labelledby="featured-properties-title">
+        <section aria-labelledby="featured-properties-title" className="overflow-x-clip">
           <SectionHeader
             eyebrow={
               <span className="inline-flex items-center gap-1.5">

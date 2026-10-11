@@ -19,8 +19,8 @@ export default function AuthLayout({
   backHref = "#/",
 }: Props) {
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-950">
-      <div className="grid min-h-screen lg:grid-cols-[minmax(360px,0.82fr)_minmax(560px,1.18fr)]">
+    <main className="min-h-dvh bg-slate-50 text-slate-950">
+      <div className="grid min-h-dvh lg:grid-cols-[minmax(320px,0.82fr)_1fr]">
         <aside className="relative hidden overflow-hidden bg-ondjo-navy-deep p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
           <div className="absolute -left-32 -top-32 h-80 w-80 rounded-full bg-blue-500/20 blur-3xl" />
           <div className="absolute -bottom-32 -right-20 h-96 w-96 rounded-full bg-cyan-400/10 blur-3xl" />
@@ -53,7 +53,7 @@ export default function AuthLayout({
             © 2026 ONDJO. Todos os direitos reservados.
           </p>
         </aside>
-        <section className="flex min-h-screen flex-col">
+        <section className="flex min-h-dvh flex-col">
           <div className="flex items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
             <a
               href={backHref}

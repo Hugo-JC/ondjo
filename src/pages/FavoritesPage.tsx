@@ -533,7 +533,7 @@ export function FavoritesPage() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: "100%" }}
                   transition={{ type: "spring", damping: 25, stiffness: 220 }}
-                  className="relative z-10 flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-t-3xl border border-ondjo-border bg-white shadow-2xl sm:rounded-3xl sm:max-h-[88vh]"
+                  className="relative z-10 flex max-h-[92dvh] pb-safe w-full max-w-5xl flex-col overflow-hidden rounded-t-3xl border border-ondjo-border bg-white shadow-2xl sm:rounded-3xl sm:max-h-[88dvh]"
                 >
                   {/* Cabeçalho do modal com drag handle em mobile */}
                   <div className="border-b border-ondjo-border px-4 py-3.5 sm:px-6 sm:py-5">

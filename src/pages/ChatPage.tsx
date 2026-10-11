@@ -968,7 +968,7 @@ export function ChatPage() {
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className="fixed top-4 right-4 z-50 max-w-sm w-[calc(100vw-2rem)] rounded-2xl border border-ondjo-blue/30 bg-ondjo-surface p-3.5 shadow-lg ring-1 ring-ondjo-navy/5"
+            className="fixed top-4 right-4 z-50 max-w-sm w-[calc(100%-2rem)] rounded-2xl border border-ondjo-blue/30 bg-ondjo-surface p-3.5 shadow-lg ring-1 ring-ondjo-navy/5"
           >
             <div className="flex items-start gap-3">
               <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-ondjo-blue text-white shadow-xs">
@@ -1750,7 +1750,7 @@ export function ChatPage() {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 250 }}
-              className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-ondjo-surface p-5 shadow-2xl"
+              className="max-h-[85dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-ondjo-surface p-5 shadow-2xl"
             >
               <div className="flex items-center justify-between pb-3 border-b border-ondjo-border">
                 <div className="flex items-center gap-2">

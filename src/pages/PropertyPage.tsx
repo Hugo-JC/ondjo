@@ -705,7 +705,7 @@ export function PropertyPage({ id }: { id: string }) {
       <div
         role="region"
         aria-label="Ações rápidas do imóvel"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 p-3 shadow-[0_-8px_25px_rgba(16,24,40,0.08)] backdrop-blur-md lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 p-3 pb-safe shadow-[0_-8px_25px_rgba(16,24,40,0.08)] backdrop-blur-md lg:hidden"
       >
         <div className="mx-auto flex max-w-lg items-center justify-between gap-3">
           <div className="min-w-0">
@@ -778,7 +778,7 @@ export function PropertyPage({ id }: { id: string }) {
                 animate={{ opacity: 1, scale: 1 }}
                 src={property.images[active]}
                 alt={property.title}
-                className="max-h-[86vh] max-w-full rounded-2xl object-contain"
+                className="max-h-[86dvh] max-w-full rounded-2xl object-contain"
               />
               <button
                 onClick={next}

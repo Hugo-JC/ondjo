@@ -65,12 +65,12 @@ function AppShell({
     <div
       className={
         fixedContent
-          ? "h-dvh overflow-hidden bg-ondjo-bg flex flex-col"
-          : "min-h-screen bg-ondjo-bg flex flex-col pb-16 lg:pb-0"
+          ? "h-dvh w-full max-w-full overflow-hidden bg-ondjo-bg flex flex-col"
+          : "min-h-dvh w-full max-w-full overflow-x-clip bg-ondjo-bg flex flex-col pb-16 lg:pb-0"
       }
     >
       <Header />
-      <div className={fixedContent ? "flex-1 min-h-0 overflow-hidden" : "flex-1"}>
+      <div className={fixedContent ? "flex-1 min-h-0 overflow-hidden" : "flex-1 min-w-0"}>
         {children}
       </div>
       <MobileBottomNav />

@@ -149,7 +149,7 @@ export function PropertyCard({
         </div>
 
         {/* Linha 4: Preço em Navy e Convite Visual */}
-        <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-baseline justify-between">
+        <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-baseline justify-between gap-1.5 flex-wrap">
           <div className="flex items-baseline gap-1">
             <span className="text-[17px] sm:text-[18px] font-bold text-ondjo-navy tracking-tight">
               {formatKz(property.price, { perMonth: property.purpose === "arrendamento" })}

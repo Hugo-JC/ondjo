@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import {
   ChevronLeft,
   ChevronRight,
@@ -279,30 +280,32 @@ export function PropertyImageCarousel({
         )}
       </div>
 
-      {/* Lightbox Modal com Acessibilidade Completa */}
-      <AnimatePresence>
-        {lightboxOpen && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6"
-            role="dialog"
-            aria-modal="true"
-            aria-label={`Galeria de fotos: ${title}`}
-          >
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setLightboxOpen(false)}
-              className="absolute inset-0 bg-black/90 backdrop-blur-md"
-            />
+      {/* Lightbox Modal com Acessibilidade Completa portaled para o body */}
+      {typeof document !== "undefined" &&
+        createPortal(
+          <AnimatePresence>
+            {lightboxOpen && (
+              <div
+                className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6"
+                role="dialog"
+                aria-modal="true"
+                aria-label={`Galeria de fotos: ${title}`}
+              >
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setLightboxOpen(false)}
+                  className="absolute inset-0 bg-black/90 backdrop-blur-md"
+                />
 
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.96 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="relative z-10 flex flex-col items-center max-w-5xl w-full max-h-[92vh]"
-            >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="relative z-10 flex flex-col items-center max-w-5xl w-full max-h-[92dvh]"
+                >
               <div className="w-full flex items-center justify-between gap-3 px-2 sm:px-3 py-2 text-white">
                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   <h2 className="font-bold text-sm sm:text-base truncate text-white">
@@ -317,7 +320,7 @@ export function PropertyImageCarousel({
                   ref={closeButtonRef}
                   type="button"
                   onClick={() => setLightboxOpen(false)}
-                  className="focus-ring shrink-0 grid size-10 place-items-center rounded-full bg-white/10 text-white hover:bg-white/20 active:scale-95 transition-colors cursor-pointer"
+                  className="focus-ring shrink-0 grid size-11 place-items-center rounded-full bg-white/10 text-white hover:bg-white/20 active:scale-95 transition-colors cursor-pointer"
                   aria-label="Fechar galeria (Esc)"
                   title="Fechar galeria (Esc)"
                 >
@@ -330,7 +333,7 @@ export function PropertyImageCarousel({
                   src={getOptimizedImageUrl(currentImage, 1200, 85)}
                   alt={`${title} - Foto ${currentIndex + 1} de ${total} ampliada`}
                   decoding="async"
-                  className="max-h-[66vh] sm:max-h-[72vh] w-auto max-w-full object-contain rounded-lg select-none"
+                  className="max-h-[66dvh] sm:max-h-[72dvh] w-auto max-w-full object-contain rounded-lg select-none"
                 />
 
                 {total > 1 && (
@@ -398,9 +401,11 @@ export function PropertyImageCarousel({
                 Foto {currentIndex + 1} de {total}: {title}
               </div>
             </motion.div>
-          </div>
+              </div>
+            )}
+          </AnimatePresence>,
+          document.body,
         )}
-      </AnimatePresence>
     </>
   );
 }

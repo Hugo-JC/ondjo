@@ -8,7 +8,7 @@ export function ZoneSection() {
   const zones = useMemo(getZoneSummaries, []);
 
   return (
-    <section aria-labelledby="zonas-titulo" className="mt-14 sm:mt-20">
+    <section aria-labelledby="zonas-titulo" className="mt-14 sm:mt-20 overflow-x-clip">
       {/* Cabeçalho da Secção */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
