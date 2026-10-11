@@ -76,7 +76,9 @@ export const Skeleton: React.FC<SkeletonProps> = ({
         style={{ width, height, ...style }}
         {...props}
       >
-        <div className={["aspect-4/3 w-full rounded-xl", baseClasses].join(" ")} />
+        <div
+          className={["aspect-4/3 w-full rounded-xl", baseClasses].join(" ")}
+        />
         <div className="flex flex-col gap-2 p-1">
           <div className={["h-5 w-1/3 rounded-md", baseClasses].join(" ")} />
           <div className={["h-4 w-4/5 rounded-md", baseClasses].join(" ")} />

@@ -716,7 +716,7 @@ export function SearchBar({
                 role="dialog"
                 aria-modal="true"
                 aria-label="Filtros de pesquisa"
-                className="fixed inset-0 z-[100] flex flex-col justify-end bg-black/60 backdrop-blur-xs"
+                className="fixed inset-0 z-100 flex flex-col justify-end bg-black/60 backdrop-blur-xs"
               >
                 {/* Backdrop clicável */}
                 <motion.div

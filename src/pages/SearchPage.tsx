@@ -309,7 +309,7 @@ export function SearchPage() {
                 role="dialog"
                 aria-modal="true"
                 aria-label="Filtros avançados de pesquisa"
-                className="fixed inset-0 z-[100] flex flex-col justify-end bg-black/60 backdrop-blur-xs lg:hidden"
+                className="fixed inset-0 z-100 flex flex-col justify-end bg-black/60 backdrop-blur-xs lg:hidden"
               >
                 <motion.div
                   initial={{ opacity: 0 }}
@@ -461,7 +461,7 @@ function ListProperty({ property }: { property: (typeof properties)[number] }) {
       <img
         src={property.images[0]}
         alt={property.title}
-        className="aspect-[4/3] w-full rounded-xl object-cover"
+        className="aspect-4/3 w-full rounded-xl object-cover"
         loading="lazy"
       />
       <div className="flex flex-col justify-center py-1 sm:py-2">

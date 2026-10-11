@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  Coins,
   MapPin,
   MessageSquare,
   Search,
@@ -127,11 +126,6 @@ export function Home() {
             transition={{ duration: 0.35 }}
             className="mx-auto max-w-4xl text-center"
           >
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-bold text-white backdrop-blur-md mb-4 sm:mb-5">
-              <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>O Marketplace Imobiliário de Angola</span>
-            </div>
-
             <h1 className="mx-auto max-w-4xl text-3xl font-black leading-[1.12] tracking-tight text-white sm:text-5xl lg:text-[56px]">
               O próximo capítulo da sua vida{" "}
               <span className="text-ondjo-blue-soft">começa aqui.</span>
@@ -140,8 +134,7 @@ export function Home() {
             <div className="mx-auto mt-3 max-w-2xl sm:mt-4">
               <p className="text-sm sm:text-base leading-relaxed text-slate-200/90 sm:leading-7">
                 Casas, apartamentos e terrenos com preços 100% em Kwanzas,
-                verificação documental e ligação direta a quem decide em
-                Luanda.
+                verificação documental e ligação direta a quem decide em Luanda.
               </p>
             </div>
           </motion.div>
@@ -159,7 +152,7 @@ export function Home() {
             tabIndex={-1}
           >
             {/* Barra de Pesquisa em Pílula */}
-            <div className="w-full md:rounded-full md:shadow-[0_20px_50px_rgba(0,0,0,0.35)] md:ring-1 md:ring-white/15">
+            <div className="w-full">
               <SearchBar
                 value={filters}
                 onChange={setFilters}
@@ -201,40 +194,6 @@ export function Home() {
                 })}
               </div>
             </div>
-
-            {/* 3 Mensagens Reais de Confiança (Sem estatísticas falsas) */}
-            <div className="mt-8 sm:mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2.5 text-xs sm:text-sm text-slate-200">
-              <div className="inline-flex items-center gap-1.5 font-semibold text-white">
-                <ShieldCheck
-                  size={17}
-                  aria-hidden="true"
-                  className="text-emerald-400 shrink-0"
-                />
-                <span>Anúncios auditados e sem duplicações</span>
-              </div>
-
-              <span className="hidden sm:inline text-white/25">•</span>
-
-              <span className="inline-flex items-center font-semibold gap-1.5">
-                <Coins
-                  size={17}
-                  className="text-amber-300 shrink-0"
-                  aria-hidden="true"
-                />
-                Valores oficiais 100% em Kwanzas (Kz)
-              </span>
-
-              <span className="hidden sm:inline text-white/25">•</span>
-
-              <span className="inline-flex items-center font-semibold gap-1.5">
-                <CheckCircle2
-                  size={17}
-                  className="text-blue-300 shrink-0"
-                  aria-hidden="true"
-                />
-                Contacto direto com consultores credenciados
-              </span>
-            </div>
           </motion.div>
         </div>
       </section>
@@ -246,7 +205,10 @@ export function Home() {
         {/* =========================================================
             IMÓVEIS EM DESTAQUE (SELEÇÃO ONDJO)
             ========================================================= */}
-        <section aria-labelledby="featured-properties-title" className="w-full max-w-full min-w-0">
+        <section
+          aria-labelledby="featured-properties-title"
+          className="w-full max-w-full min-w-0"
+        >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-4 sm:mb-6">
             <div>
               <div className="mb-1.5 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ondjo-blue">
@@ -260,7 +222,8 @@ export function Home() {
                 Imóveis em destaque
               </h2>
               <p className="mt-1 text-xs sm:text-sm text-ondjo-muted leading-relaxed max-w-2xl">
-                Opções verificadas com fotografias reais e condições transparentes nas melhores zonas de Luanda.
+                Opções verificadas com fotografias reais e condições
+                transparentes nas melhores zonas de Luanda.
               </p>
             </div>
 
@@ -313,7 +276,7 @@ export function Home() {
             {featuredProperties.map((property, index) => (
               <div
                 key={property.id}
-                className="w-[80vw] sm:w-auto max-w-[310px] sm:max-w-none shrink-0 snap-start sm:shrink min-w-0"
+                className="w-[80vw] sm:w-auto max-w-77.5 sm:max-w-none shrink-0 snap-start sm:shrink min-w-0"
               >
                 <PropertyCard property={property} index={index} />
               </div>
@@ -369,14 +332,19 @@ export function Home() {
                   <span className="grid size-10 place-items-center rounded-xl bg-ondjo-blue-soft text-ondjo-blue font-black text-sm">
                     01
                   </span>
-                  <Search size={20} className="text-ondjo-blue" aria-hidden="true" />
+                  <Search
+                    size={20}
+                    className="text-ondjo-blue"
+                    aria-hidden="true"
+                  />
                 </div>
                 <h3 className="mt-3.5 text-sm sm:text-base font-black text-ondjo-ink">
                   Pesquise com filtros reais
                 </h3>
                 <p className="mt-1.5 text-xs sm:text-sm text-ondjo-muted leading-relaxed">
-                  Filtre por zona de Luanda, preços 100% em Kwanzas e infraestruturas
-                  essenciais: tanque de água, gerador de suporte e segurança 24h.
+                  Filtre por zona de Luanda, preços 100% em Kwanzas e
+                  infraestruturas essenciais: tanque de água, gerador de suporte
+                  e segurança 24h.
                 </p>
               </div>
 
@@ -393,7 +361,11 @@ export function Home() {
                   <span className="grid size-10 place-items-center rounded-xl bg-emerald-50 text-emerald-700 font-black text-sm">
                     02
                   </span>
-                  <MessageSquare size={20} className="text-emerald-600" aria-hidden="true" />
+                  <MessageSquare
+                    size={20}
+                    className="text-emerald-600"
+                    aria-hidden="true"
+                  />
                 </div>
                 <h3 className="mt-3.5 text-sm sm:text-base font-black text-ondjo-ink">
                   Contacto e chat direto
@@ -417,7 +389,11 @@ export function Home() {
                   <span className="grid size-10 place-items-center rounded-xl bg-amber-50 text-amber-800 font-black text-sm">
                     03
                   </span>
-                  <CalendarCheck size={20} className="text-amber-700" aria-hidden="true" />
+                  <CalendarCheck
+                    size={20}
+                    className="text-amber-700"
+                    aria-hidden="true"
+                  />
                 </div>
                 <h3 className="mt-3.5 text-sm sm:text-base font-black text-ondjo-ink">
                   Visita e verificação legal
@@ -462,8 +438,8 @@ export function Home() {
                 Tem um imóvel para vender ou arrendar em Luanda?
               </h2>
               <p className="mt-2 text-xs sm:text-sm leading-relaxed text-slate-200/90">
-                Anuncie na ONDJO e tenha visibilidade direta junto de milhares de
-                famílias e investidores à procura de casa em Angola. Sem
+                Anuncie na ONDJO e tenha visibilidade direta junto de milhares
+                de famílias e investidores à procura de casa em Angola. Sem
                 duplicações e com auditoria de qualidade.
               </p>
 

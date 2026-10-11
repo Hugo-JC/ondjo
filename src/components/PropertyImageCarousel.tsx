@@ -1,11 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Maximize2,
-  X,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Maximize2, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { getOptimizedImageUrl, getImageSrcSet } from "../utils/images";
 import {
@@ -46,7 +41,8 @@ export function PropertyImageCarousel({
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
 
-  const safeImages = images && images.length > 0 ? images : ["/placeholder.jpg"];
+  const safeImages =
+    images && images.length > 0 ? images : ["/placeholder.jpg"];
   const total = safeImages.length;
   const currentImage = safeImages[currentIndex];
 
@@ -70,7 +66,7 @@ export function PropertyImageCarousel({
         setActiveCard(propertyId);
       }
     },
-    [propertyId]
+    [propertyId],
   );
 
   // Voltar ao estado inicial (foto 0) ao retirar o hover
@@ -90,7 +86,7 @@ export function PropertyImageCarousel({
       e?.preventDefault();
       updateIndex((currentIndex + 1) % total);
     },
-    [currentIndex, total, updateIndex]
+    [currentIndex, total, updateIndex],
   );
 
   const prevImage = useCallback(
@@ -99,7 +95,7 @@ export function PropertyImageCarousel({
       e?.preventDefault();
       updateIndex((currentIndex - 1 + total) % total);
     },
-    [currentIndex, total, updateIndex]
+    [currentIndex, total, updateIndex],
   );
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -180,7 +176,9 @@ export function PropertyImageCarousel({
           alt={`${title} - Foto ${currentIndex + 1} de ${total}`}
           loading={priority ? "eager" : "lazy"}
           decoding="async"
-          {...(priority ? { fetchPriority: "high" as const } : { fetchPriority: "low" as const })}
+          {...(priority
+            ? { fetchPriority: "high" as const }
+            : { fetchPriority: "low" as const })}
           className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         />
 
@@ -200,7 +198,11 @@ export function PropertyImageCarousel({
                 aria-label={`Foto anterior de ${title}`}
                 className="focus-ring absolute left-2.5 top-1/2 -translate-y-1/2 z-20 flex size-8 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow-md backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110 hover:bg-white active:scale-95 cursor-pointer"
               >
-                <ChevronLeft size={16} aria-hidden="true" className="-translate-x-0.25" />
+                <ChevronLeft
+                  size={16}
+                  aria-hidden="true"
+                  className="-translate-x-px"
+                />
               </button>
             )}
             {currentIndex < total - 1 && (
@@ -210,7 +212,11 @@ export function PropertyImageCarousel({
                 aria-label={`Próxima foto de ${title}`}
                 className="focus-ring absolute right-2.5 top-1/2 -translate-y-1/2 z-20 flex size-8 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow-md backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110 hover:bg-white active:scale-95 cursor-pointer"
               >
-                <ChevronRight size={16} aria-hidden="true" className="translate-x-0.25" />
+                <ChevronRight
+                  size={16}
+                  aria-hidden="true"
+                  className="translate-x-px"
+                />
               </button>
             )}
           </>
@@ -288,7 +294,7 @@ export function PropertyImageCarousel({
           <AnimatePresence>
             {lightboxOpen && (
               <div
-                className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6"
+                className="fixed inset-0 z-100 flex items-center justify-center p-3 sm:p-6"
                 role="dialog"
                 aria-modal="true"
                 aria-label={`Galeria de fotos: ${title}`}
@@ -308,101 +314,113 @@ export function PropertyImageCarousel({
                   transition={{ duration: 0.2, ease: "easeOut" }}
                   className="relative z-10 flex flex-col items-center max-w-5xl w-full max-h-[92dvh]"
                 >
-              <div className="w-full flex items-center justify-between gap-3 px-2 sm:px-3 py-2 text-white">
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                  <h2 className="font-bold text-sm sm:text-base truncate text-white">
-                    {title}
-                  </h2>
-                  <span className="shrink-0 whitespace-nowrap rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-semibold text-white/90">
-                    {currentIndex + 1} de {total}
-                  </span>
-                </div>
+                  <div className="w-full flex items-center justify-between gap-3 px-2 sm:px-3 py-2 text-white">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <h2 className="font-bold text-sm sm:text-base truncate text-white">
+                        {title}
+                      </h2>
+                      <span className="shrink-0 whitespace-nowrap rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-semibold text-white/90">
+                        {currentIndex + 1} de {total}
+                      </span>
+                    </div>
 
-                <button
-                  ref={closeButtonRef}
-                  type="button"
-                  onClick={() => setLightboxOpen(false)}
-                  className="focus-ring shrink-0 grid size-11 place-items-center rounded-full bg-white/10 text-white hover:bg-white/20 active:scale-95 transition-colors cursor-pointer"
-                  aria-label="Fechar galeria (Esc)"
-                  title="Fechar galeria (Esc)"
-                >
-                  <X size={20} aria-hidden="true" />
-                </button>
-              </div>
-
-              <div className="relative w-full flex-1 flex items-center justify-center overflow-hidden my-2 sm:my-3 rounded-2xl bg-black/40">
-                <img
-                  src={getOptimizedImageUrl(currentImage, 1200, 85)}
-                  alt={`${title} - Foto ${currentIndex + 1} de ${total} ampliada`}
-                  decoding="async"
-                  className="max-h-[66dvh] sm:max-h-[72dvh] w-auto max-w-full object-contain rounded-lg select-none"
-                />
-
-                {total > 1 && (
-                  <>
                     <button
+                      ref={closeButtonRef}
                       type="button"
-                      onClick={prevImage}
-                      aria-label={`Ver foto anterior (atual: ${currentIndex + 1} de ${total})`}
-                      title="Foto anterior (Seta esquerda)"
-                      className="focus-ring absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 grid size-11 sm:size-12 place-items-center rounded-full bg-black/65 text-white hover:bg-black/90 active:scale-95 backdrop-blur-md shadow-lg transition cursor-pointer"
+                      onClick={() => setLightboxOpen(false)}
+                      className="focus-ring shrink-0 grid size-11 place-items-center rounded-full bg-white/10 text-white hover:bg-white/20 active:scale-95 transition-colors cursor-pointer"
+                      aria-label="Fechar galeria (Esc)"
+                      title="Fechar galeria (Esc)"
                     >
-                      <ChevronLeft size={24} aria-hidden="true" className="-translate-x-0.5" />
+                      <X size={20} aria-hidden="true" />
                     </button>
-                    <button
-                      type="button"
-                      onClick={nextImage}
-                      aria-label={`Ver próxima foto (atual: ${currentIndex + 1} de ${total})`}
-                      title="Próxima foto (Seta direita)"
-                      className="focus-ring absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 grid size-11 sm:size-12 place-items-center rounded-full bg-black/65 text-white hover:bg-black/90 active:scale-95 backdrop-blur-md shadow-lg transition cursor-pointer"
+                  </div>
+
+                  <div className="relative w-full flex-1 flex items-center justify-center overflow-hidden my-2 sm:my-3 rounded-2xl bg-black/40">
+                    <img
+                      src={getOptimizedImageUrl(currentImage, 1200, 85)}
+                      alt={`${title} - Foto ${currentIndex + 1} de ${total} ampliada`}
+                      decoding="async"
+                      className="max-h-[66dvh] sm:max-h-[72dvh] w-auto max-w-full object-contain rounded-lg select-none"
+                    />
+
+                    {total > 1 && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={prevImage}
+                          aria-label={`Ver foto anterior (atual: ${currentIndex + 1} de ${total})`}
+                          title="Foto anterior (Seta esquerda)"
+                          className="focus-ring absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 grid size-11 sm:size-12 place-items-center rounded-full bg-black/65 text-white hover:bg-black/90 active:scale-95 backdrop-blur-md shadow-lg transition cursor-pointer"
+                        >
+                          <ChevronLeft
+                            size={24}
+                            aria-hidden="true"
+                            className="-translate-x-0.5"
+                          />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={nextImage}
+                          aria-label={`Ver próxima foto (atual: ${currentIndex + 1} de ${total})`}
+                          title="Próxima foto (Seta direita)"
+                          className="focus-ring absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 grid size-11 sm:size-12 place-items-center rounded-full bg-black/65 text-white hover:bg-black/90 active:scale-95 backdrop-blur-md shadow-lg transition cursor-pointer"
+                        >
+                          <ChevronRight
+                            size={24}
+                            aria-hidden="true"
+                            className="translate-x-0.5"
+                          />
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  {total > 1 && (
+                    <div
+                      className="flex items-center justify-center gap-2 sm:gap-2.5 overflow-x-auto max-w-full py-2 px-3 scrollbar-none"
+                      role="tablist"
+                      aria-label="Miniaturas da galeria"
                     >
-                      <ChevronRight size={24} aria-hidden="true" className="translate-x-0.5" />
-                    </button>
-                  </>
-                )}
-              </div>
+                      {safeImages.map((img, idx) => {
+                        const isActive = currentIndex === idx;
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            role="tab"
+                            aria-selected={isActive}
+                            aria-label={`Ver foto ${idx + 1} de ${total}`}
+                            onClick={() => updateIndex(idx)}
+                            className={[
+                              "focus-ring relative size-13 sm:size-14 shrink-0 overflow-hidden rounded-lg transition-all cursor-pointer",
+                              isActive
+                                ? "ring-2 ring-white ring-offset-2 ring-offset-black/90 opacity-100 shadow-md"
+                                : "opacity-55 hover:opacity-95 ring-1 ring-white/20 hover:ring-white/50",
+                            ].join(" ")}
+                          >
+                            <img
+                              src={getOptimizedImageUrl(img, 120, 60)}
+                              alt=""
+                              aria-hidden="true"
+                              loading="lazy"
+                              decoding="async"
+                              className="h-full w-full object-cover select-none"
+                            />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
 
-              {total > 1 && (
-                <div
-                  className="flex items-center justify-center gap-2 sm:gap-2.5 overflow-x-auto max-w-full py-2 px-3 scrollbar-none"
-                  role="tablist"
-                  aria-label="Miniaturas da galeria"
-                >
-                  {safeImages.map((img, idx) => {
-                    const isActive = currentIndex === idx;
-                    return (
-                      <button
-                        key={idx}
-                        type="button"
-                        role="tab"
-                        aria-selected={isActive}
-                        aria-label={`Ver foto ${idx + 1} de ${total}`}
-                        onClick={() => updateIndex(idx)}
-                        className={[
-                          "focus-ring relative size-13 sm:size-14 shrink-0 overflow-hidden rounded-lg transition-all cursor-pointer",
-                          isActive
-                            ? "ring-2 ring-white ring-offset-2 ring-offset-black/90 opacity-100 shadow-md"
-                            : "opacity-55 hover:opacity-95 ring-1 ring-white/20 hover:ring-white/50",
-                        ].join(" ")}
-                      >
-                        <img
-                          src={getOptimizedImageUrl(img, 120, 60)}
-                          alt=""
-                          aria-hidden="true"
-                          loading="lazy"
-                          decoding="async"
-                          className="h-full w-full object-cover select-none"
-                        />
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-
-              <div className="sr-only" aria-live="polite" aria-atomic="true">
-                Foto {currentIndex + 1} de {total}: {title}
-              </div>
-            </motion.div>
+                  <div
+                    className="sr-only"
+                    aria-live="polite"
+                    aria-atomic="true"
+                  >
+                    Foto {currentIndex + 1} de {total}: {title}
+                  </div>
+                </motion.div>
               </div>
             )}
           </AnimatePresence>,

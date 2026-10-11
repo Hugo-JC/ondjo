@@ -175,9 +175,7 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <span className="text-slate-400">
-                  Suporte: Luanda, Angola
-                </span>
+                <span className="text-slate-400">Suporte: Luanda, Angola</span>
               </li>
             </ul>
           </div>

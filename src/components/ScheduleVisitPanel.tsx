@@ -96,7 +96,7 @@ export function ScheduleVisitPanel({
           aria-modal="true"
           aria-labelledby={titleId}
           aria-describedby={descId}
-          className="fixed inset-0 z-[70] flex items-end justify-center p-0 sm:items-center sm:p-4"
+          className="fixed inset-0 z-70 flex items-end justify-center p-0 sm:items-center sm:p-4"
         >
           <motion.button
             type="button"
@@ -129,9 +129,12 @@ export function ScheduleVisitPanel({
                       Agendar visita
                     </h2>
                   </div>
-                  <p id={descId} className="mt-1 text-xs leading-5 text-ondjo-muted">
-                    Escolha data e horário. O proprietário ou corretor confirmará
-                    consigo — sem taxas de agendamento na plataforma.
+                  <p
+                    id={descId}
+                    className="mt-1 text-xs leading-5 text-ondjo-muted"
+                  >
+                    Escolha data e horário. O proprietário ou corretor
+                    confirmará consigo — sem taxas de agendamento na plataforma.
                   </p>
                 </div>
                 <button
@@ -152,7 +155,11 @@ export function ScheduleVisitPanel({
                   {propertyTitle}
                 </p>
                 <p className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-ondjo-muted">
-                  <MapPin size={13} className="shrink-0 text-ondjo-blue" aria-hidden="true" />
+                  <MapPin
+                    size={13}
+                    className="shrink-0 text-ondjo-blue"
+                    aria-hidden="true"
+                  />
                   {propertyLocation}
                 </p>
               </div>
@@ -167,8 +174,9 @@ export function ScheduleVisitPanel({
                     Pedido enviado
                   </p>
                   <p className="mt-2 text-xs leading-5 text-ondjo-muted">
-                    Receberá confirmação por telefone ou mensagem quando o horário
-                    for aceite. Pode acompanhar também na área de conversas.
+                    Receberá confirmação por telefone ou mensagem quando o
+                    horário for aceite. Pode acompanhar também na área de
+                    conversas.
                   </p>
                   <button
                     type="button"
@@ -259,7 +267,7 @@ export function ScheduleVisitPanel({
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder="Ex.: visita com família, preferência por estacionamento..."
-                      className="filter-input min-h-[88px] resize-none py-2.5"
+                      className="filter-input min-h-22 resize-none py-2.5"
                     />
                   </label>
 

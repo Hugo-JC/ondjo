@@ -48,7 +48,9 @@ export default function Header() {
 
     // Foco inicial no botão fechar ou primeiro elemento
     const timer = setTimeout(() => {
-      const closeBtn = drawerRef.current?.querySelector<HTMLElement>('button[aria-label="Fechar menu"]');
+      const closeBtn = drawerRef.current?.querySelector<HTMLElement>(
+        'button[aria-label="Fechar menu"]',
+      );
       closeBtn?.focus();
     }, 50);
 
@@ -123,32 +125,26 @@ export default function Header() {
               className="focus-ring inline-flex items-center rounded-xl p-1 transition-transform hover:opacity-95 active:scale-98"
             >
               {/* Altura de 28px no mobile para não ocupar espaço excessivo, 34px em desktop */}
-              <Logo height={28} className="sm:hidden" decorative />
               <Logo height={34} className="hidden sm:block" decorative />
             </a>
-
-            <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-blue-200/60 bg-blue-50/70 px-2.5 py-0.5 text-[11px] font-bold text-ondjo-blue">
-              <ShieldCheck size={13} aria-hidden="true" />
-              Angola
-            </span>
           </div>
 
           {/* Centro: Navegação Principal Desktop (Estilo Airbnb com Identidade ONDJO) */}
           <nav
             aria-label="Navegação Principal"
-            className="hidden md:flex items-center gap-1 rounded-full border border-ondjo-border/80 bg-ondjo-bg/60 p-1.5 shadow-2xs"
+            className="hidden md:flex items-center gap-1 rounded-full border border-ondjo-border/80 bg-ondjo-bg/60 p-2 shadow-2xs"
           >
             <a
               href="#/"
               aria-current={isHome ? "page" : undefined}
               className={[
-                "focus-ring inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition-all",
+                "focus-ring inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-all",
                 isHome
                   ? "bg-white text-ondjo-blue shadow-xs"
                   : "text-ondjo-muted hover:text-ondjo-ink hover:bg-white/60",
               ].join(" ")}
             >
-              <Home size={15} aria-hidden="true" />
+              <Home size={18} aria-hidden="true" />
               <span>Início</span>
             </a>
 
@@ -156,13 +152,13 @@ export default function Header() {
               href="#/pesquisar"
               aria-current={isSearch ? "page" : undefined}
               className={[
-                "focus-ring inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition-all",
+                "focus-ring inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-all",
                 isSearch
                   ? "bg-white text-ondjo-blue shadow-xs"
                   : "text-ondjo-muted hover:text-ondjo-ink hover:bg-white/60",
               ].join(" ")}
             >
-              <Search size={15} aria-hidden="true" />
+              <Search size={18} aria-hidden="true" />
               <span>Pesquisar</span>
             </a>
 
@@ -170,14 +166,14 @@ export default function Header() {
               href="#/favoritos"
               aria-current={isFavorites ? "page" : undefined}
               className={[
-                "focus-ring inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition-all",
+                "focus-ring inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-all",
                 isFavorites
                   ? "bg-white text-ondjo-blue shadow-xs"
                   : "text-ondjo-muted hover:text-ondjo-ink hover:bg-white/60",
               ].join(" ")}
             >
               <Heart
-                size={15}
+                size={18}
                 className={isFavorites ? "fill-ondjo-blue/20" : ""}
                 aria-hidden="true"
               />
@@ -193,13 +189,13 @@ export default function Header() {
               href="#/chat"
               aria-current={isChat ? "page" : undefined}
               className={[
-                "focus-ring inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition-all",
+                "focus-ring inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-all",
                 isChat
                   ? "bg-white text-ondjo-blue shadow-xs"
                   : "text-ondjo-muted hover:text-ondjo-ink hover:bg-white/60",
               ].join(" ")}
             >
-              <MessageSquare size={15} aria-hidden="true" />
+              <MessageSquare size={18} aria-hidden="true" />
               <span>Mensagens</span>
             </a>
           </nav>
@@ -209,9 +205,9 @@ export default function Header() {
             {/* Botão Secundário: Publicar Imóvel */}
             <a
               href="#/login"
-              className="focus-ring hidden lg:inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-bold text-ondjo-ink transition hover:bg-ondjo-bg active:scale-95"
+              className="focus-ring hidden lg:inline-flex items-center gap-1.5 rounded-full px-3.5 py-3.5 text-sm font-bold text-ondjo-ink transition hover:bg-ondjo-bg active:scale-95"
             >
-              <Plus size={14} className="text-ondjo-blue" aria-hidden="true" />
+              <Plus size={17} className="text-ondjo-blue" aria-hidden="true" />
               <span>Publicar imóvel</span>
             </a>
 
@@ -225,9 +221,13 @@ export default function Header() {
                 aria-label="Menu da conta de utilizador"
                 className="focus-ring flex items-center gap-2.5 rounded-full border border-ondjo-border bg-white py-1.5 pl-3.5 pr-1.5 text-ondjo-ink shadow-2xs transition hover:border-slate-300 hover:shadow-xs active:scale-98 cursor-pointer"
               >
-                <Menu size={16} className="text-ondjo-muted" aria-hidden="true" />
+                <Menu
+                  size={16}
+                  className="text-ondjo-muted"
+                  aria-hidden="true"
+                />
                 <div className="grid size-7.5 place-items-center rounded-full bg-ondjo-navy text-white text-xs font-bold">
-                  <UserRound size={15} aria-hidden="true" />
+                  <UserRound size={18} aria-hidden="true" />
                 </div>
               </button>
 
@@ -346,7 +346,7 @@ export default function Header() {
                 role="dialog"
                 aria-modal="true"
                 aria-label="Menu principal de navegação"
-                className="fixed inset-0 z-[100] md:hidden"
+                className="fixed inset-0 z-100 md:hidden"
               >
                 {/* Backdrop com desfoque e opacidade animada */}
                 <motion.div
@@ -370,7 +370,7 @@ export default function Header() {
                     damping: 30,
                     stiffness: 300,
                   }}
-                  className="fixed inset-y-0 right-0 z-[101] flex h-dvh w-[86vw] max-w-xs flex-col justify-between bg-white p-5 shadow-2xl border-l border-ondjo-border/80 overflow-y-auto"
+                  className="fixed inset-y-0 right-0 z-101 flex h-dvh w-[86vw] max-w-xs flex-col justify-between bg-white p-5 shadow-2xl border-l border-ondjo-border/80 overflow-y-auto"
                 >
                   <div>
                     {/* Topo da Gaveta: Logótipo + Botão Fechar (44x44px) */}
@@ -387,7 +387,10 @@ export default function Header() {
                     </div>
 
                     {/* Links Principais com alvos de toque grandes */}
-                    <nav className="mt-4 flex flex-col gap-1.5" aria-label="Navegação móvel">
+                    <nav
+                      className="mt-4 flex flex-col gap-1.5"
+                      aria-label="Navegação móvel"
+                    >
                       <a
                         href="#/"
                         onClick={() => setMobileDrawerOpen(false)}
@@ -461,7 +464,9 @@ export default function Header() {
                           <Building2 size={18} />
                         </div>
                         <div>
-                          <span className="block font-bold text-ondjo-navy text-sm">Publicar Imóvel</span>
+                          <span className="block font-bold text-ondjo-navy text-1rem">
+                            Publicar Imóvel
+                          </span>
                           <span className="block text-[11px] text-ondjo-muted font-normal mt-0.5">
                             Venda ou arrende o seu imóvel em Luanda
                           </span>

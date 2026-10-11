@@ -27,7 +27,7 @@ export function MobileBottomNav() {
         <a
           href="#/"
           aria-current={isHome ? "page" : undefined}
-          className={`flex flex-col items-center justify-center min-w-[56px] min-h-[48px] py-1 rounded-xl transition-colors ${
+          className={`flex flex-col items-center justify-center min-w-14 min-h-12 py-1 rounded-xl transition-colors ${
             isHome
               ? "text-ondjo-blue font-bold"
               : "text-ondjo-muted hover:text-ondjo-ink"
@@ -44,7 +44,7 @@ export function MobileBottomNav() {
         <a
           href="#/pesquisar"
           aria-current={isSearch ? "page" : undefined}
-          className={`flex flex-col items-center justify-center min-w-[56px] min-h-[48px] py-1 rounded-xl transition-colors ${
+          className={`flex flex-col items-center justify-center min-w-14 min-h-12 py-1 rounded-xl transition-colors ${
             isSearch
               ? "text-ondjo-blue font-bold"
               : "text-ondjo-muted hover:text-ondjo-ink"
@@ -66,7 +66,7 @@ export function MobileBottomNav() {
               ? `Favoritos, ${favoriteCount} guardados`
               : "Favoritos"
           }
-          className={`relative flex flex-col items-center justify-center min-w-[56px] min-h-[48px] py-1 rounded-xl transition-colors ${
+          className={`relative flex flex-col items-center justify-center min-w-14 min-h-12 py-1 rounded-xl transition-colors ${
             isFavorites
               ? "text-ondjo-blue font-bold"
               : "text-ondjo-muted hover:text-ondjo-ink"
@@ -95,7 +95,7 @@ export function MobileBottomNav() {
         <a
           href="#/chat"
           aria-current={isChat ? "page" : undefined}
-          className={`flex flex-col items-center justify-center min-w-[56px] min-h-[48px] py-1 rounded-xl transition-colors ${
+          className={`flex flex-col items-center justify-center min-w-14 min-h-12 py-1 rounded-xl transition-colors ${
             isChat
               ? "text-ondjo-blue font-bold"
               : "text-ondjo-muted hover:text-ondjo-ink"
@@ -112,7 +112,7 @@ export function MobileBottomNav() {
         <a
           href="#/login"
           aria-current={isLogin ? "page" : undefined}
-          className={`flex flex-col items-center justify-center min-w-[56px] min-h-[48px] py-1 rounded-xl transition-colors ${
+          className={`flex flex-col items-center justify-center min-w-14 min-h-12 py-1 rounded-xl transition-colors ${
             isLogin
               ? "text-ondjo-blue font-bold"
               : "text-ondjo-muted hover:text-ondjo-ink"

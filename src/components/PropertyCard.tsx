@@ -1,5 +1,12 @@
 import { useRef } from "react";
-import { BedDouble, ChevronRight, Heart, MapPin, Ruler, ShowerHead } from "lucide-react";
+import {
+  BedDouble,
+  ChevronRight,
+  Heart,
+  MapPin,
+  Ruler,
+  ShowerHead,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import type { Property } from "../types";
 import { formatKz } from "../utils/format";
@@ -54,7 +61,11 @@ export function PropertyCard({
       initial={{ opacity: 0, y: 12 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "0px 0px -60px" }}
-      transition={{ duration: 0.24, ease: "easeOut", delay: Math.min(index * 0.035, 0.12) }}
+      transition={{
+        duration: 0.24,
+        ease: "easeOut",
+        delay: Math.min(index * 0.035, 0.12),
+      }}
       onPointerDown={handlePointerDown}
       onMouseLeave={handleMouseLeave}
       onClick={handleCardClick}
@@ -119,11 +130,22 @@ export function PropertyCard({
           {/* Linha 1: Localização & Verificação */}
           <div className="flex items-start justify-between gap-2">
             <p className="flex items-center gap-1 text-xs font-medium text-ondjo-muted truncate">
-              <MapPin size={13} aria-hidden="true" className="shrink-0 text-slate-400" />
-              <span className="truncate">{property.neighborhood}, {property.city}</span>
+              <MapPin
+                size={13}
+                aria-hidden="true"
+                className="shrink-0 text-slate-400"
+              />
+              <span className="truncate">
+                {property.neighborhood}, {property.city}
+              </span>
             </p>
             {property.verified && (
-              <Badge variant="verified" size="sm" title="Imóvel Verificado ONDJO" className="shrink-0">
+              <Badge
+                variant="verified"
+                size="sm"
+                title="Imóvel Verificado ONDJO"
+                className="shrink-0"
+              >
                 Verificado
               </Badge>
             )}
@@ -141,20 +163,32 @@ export function PropertyCard({
           <div className="mt-2 flex items-center gap-2 text-xs font-medium text-slate-600">
             {property.bedrooms > 0 && (
               <span className="flex items-center gap-1">
-                <BedDouble size={14} className="text-slate-400" aria-hidden="true" />
+                <BedDouble
+                  size={14}
+                  className="text-slate-400"
+                  aria-hidden="true"
+                />
                 <span>T{property.bedrooms}</span>
               </span>
             )}
             {property.bedrooms > 0 && property.bathrooms > 0 && (
-              <span className="text-slate-300" aria-hidden="true">·</span>
+              <span className="text-slate-300" aria-hidden="true">
+                ·
+              </span>
             )}
             {property.bathrooms > 0 && (
               <span className="flex items-center gap-1">
-                <ShowerHead size={14} className="text-slate-400" aria-hidden="true" />
+                <ShowerHead
+                  size={14}
+                  className="text-slate-400"
+                  aria-hidden="true"
+                />
                 <span>{property.bathrooms} WC</span>
               </span>
             )}
-            <span className="text-slate-300" aria-hidden="true">·</span>
+            <span className="text-slate-300" aria-hidden="true">
+              ·
+            </span>
             <span className="flex items-center gap-1">
               <Ruler size={14} className="text-slate-400" aria-hidden="true" />
               <span>{property.area} m²</span>
@@ -166,7 +200,9 @@ export function PropertyCard({
         <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-baseline justify-between gap-1.5 flex-wrap">
           <div className="flex items-baseline gap-1">
             <span className="text-[17px] sm:text-[18px] font-bold text-ondjo-navy tracking-tight">
-              {formatKz(property.price, { perMonth: property.purpose === "arrendamento" })}
+              {formatKz(property.price, {
+                perMonth: property.purpose === "arrendamento",
+              })}
             </span>
           </div>
           <span className="text-xs font-semibold text-ondjo-blue group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-0.5">
