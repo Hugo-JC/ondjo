@@ -8,7 +8,7 @@ export function ZoneSection() {
   const zones = useMemo(getZoneSummaries, []);
 
   return (
-    <section aria-labelledby="zonas-titulo" className="mt-14 sm:mt-20 overflow-x-clip">
+    <section aria-labelledby="zonas-titulo" className="mt-14 sm:mt-20 w-full max-w-full min-w-0 overflow-x-clip">
       {/* Cabeçalho da Secção */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
@@ -49,11 +49,11 @@ export function ZoneSection() {
       </div>
 
       {/* Lista com scroll horizontal e snap no mobile, e grelha responsiva no desktop */}
-      <ul className="mt-4 sm:mt-7 flex overflow-x-auto snap-x snap-mandatory gap-3.5 pb-4 -mx-4 px-4 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:mx-0 sm:px-0 sm:overflow-visible no-scrollbar">
+      <ul className="mt-4 sm:mt-7 flex w-full max-w-full min-w-0 overflow-x-auto snap-x snap-mandatory gap-3.5 pb-4 pt-1 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-5 sm:overflow-visible no-scrollbar overscroll-x-contain">
         {zones.map((zone) => (
           <li
             key={zone.name}
-            className="w-[78vw] max-w-[280px] shrink-0 snap-center sm:w-auto sm:max-w-none sm:shrink list-none"
+            className="w-[76vw] sm:w-auto max-w-[280px] sm:max-w-none shrink-0 snap-start sm:shrink list-none min-w-0"
           >
             <ZoneCard zone={zone} />
           </li>

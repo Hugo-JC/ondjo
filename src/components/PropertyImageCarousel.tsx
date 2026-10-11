@@ -22,6 +22,7 @@ interface PropertyImageCarouselProps {
   showLightboxButton?: boolean;
   priority?: boolean;
   propertyId?: string;
+  enableTouchSwipe?: boolean;
 }
 
 export function PropertyImageCarousel({
@@ -32,6 +33,7 @@ export function PropertyImageCarousel({
   showLightboxButton = false,
   priority = false,
   propertyId,
+  enableTouchSwipe = false,
 }: PropertyImageCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -165,9 +167,9 @@ export function PropertyImageCarousel({
     <>
       <div
         className={`group/carousel relative overflow-hidden bg-slate-100 ${aspectRatio} ${className}`}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        onTouchStart={enableTouchSwipe ? handleTouchStart : undefined}
+        onTouchMove={enableTouchSwipe ? handleTouchMove : undefined}
+        onTouchEnd={enableTouchSwipe ? handleTouchEnd : undefined}
         onMouseLeave={resetToFirst}
       >
         {/* Imagem otimizada com zoom suave no hover do card */}

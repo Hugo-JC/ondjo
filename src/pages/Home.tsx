@@ -3,6 +3,8 @@ import {
   Building2,
   CalendarCheck,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Coins,
   MapPin,
   MessageSquare,
@@ -11,7 +13,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { properties, locations } from "../data/properties";
 import { navigate } from "../hooks/useHashRoute";
@@ -23,7 +25,7 @@ import {
   type SearchFilters,
 } from "../components/SearchBar";
 import { Footer } from "../components/Footer";
-import { SectionHeader, Button } from "../components/ui";
+import { Button } from "../components/ui";
 import { getImageSrcSet, getOptimizedImageUrl } from "../utils/images";
 
 const HERO_IMAGE_URL =
@@ -33,6 +35,7 @@ export function Home() {
   const [filters, setFilters] = useState<SearchFilters>(defaultSearchFilters());
 
   const searchRef = useRef<HTMLDivElement>(null);
+  const featuredScrollerRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
 
   const search = () => {
@@ -57,19 +60,36 @@ export function Home() {
     });
   };
 
-  const featuredProperties = properties
-    .filter((property) => property.featured)
-    .slice(0, 4);
+  // Seleciona até 8 imóveis com destaque primeiro, garantindo variedade e scroll rico
+  const featuredProperties = useMemo(() => {
+    return [...properties]
+      .sort((a, b) => {
+        if (a.featured && !b.featured) return -1;
+        if (!a.featured && b.featured) return 1;
+        return 0;
+      })
+      .slice(0, 8);
+  }, []);
+
+  // Controlos de scroll horizontal suave para a secção de destaques
+  const scrollFeatured = (direction: "left" | "right") => {
+    if (!featuredScrollerRef.current) return;
+    const scrollAmount = featuredScrollerRef.current.clientWidth * 0.75;
+    featuredScrollerRef.current.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    });
+  };
 
   return (
-    <main className="min-h-screen bg-ondjo-bg flex flex-col">
+    <main className="w-full max-w-full min-w-0 flex flex-col bg-ondjo-bg overflow-x-clip">
       {/* =========================================================
           HERO SECTION — MODELO FOTOGRÁFICO COM ALMA ONDJO
           - Fotografia de arquitetura visível e acolhedora
           - Pílula de pesquisa suave e central
           - Preços 100% em Kwanzas e garantias de confiança
           ========================================================= */}
-      <section className="relative isolate overflow-hidden bg-ondjo-navy">
+      <section className="relative isolate w-full max-w-full overflow-hidden bg-ondjo-navy">
         {/* Fotografia Real de Fundo com Tratamento Sóbrio (Visível & Elegante) */}
         <div
           aria-hidden="true"
@@ -82,7 +102,7 @@ export function Home() {
               [390, 640, 828, 1080, 1400, 1920],
               80,
             )}
-            sizes="100vw"
+            sizes="100%"
             alt=""
             aria-hidden="true"
             fetchPriority="high"
@@ -99,7 +119,7 @@ export function Home() {
         </div>
 
         {/* Conteúdo Central do Hero */}
-        <div className="relative mx-auto max-w-7xl px-4 pb-12 pt-8 sm:px-6 sm:pb-18 sm:pt-14 lg:px-8 lg:pb-22 lg:pt-16">
+        <div className="relative mx-auto w-full max-w-7xl px-4 pb-10 pt-7 sm:px-6 sm:pb-16 sm:pt-12 lg:px-8 lg:pb-20 lg:pt-14">
           {/* Título & Mensagem */}
           <motion.div
             initial={reduceMotion ? undefined : { opacity: 0, y: 12 }}
@@ -135,7 +155,7 @@ export function Home() {
               duration: 0.38,
               delay: reduceMotion ? 0 : 0.05,
             }}
-            className="mx-auto mt-7 max-w-5xl scroll-mt-4 sm:mt-9"
+            className="mx-auto mt-6 max-w-5xl scroll-mt-4 sm:mt-8 w-full"
             tabIndex={-1}
           >
             {/* Barra de Pesquisa em Pílula */}
@@ -148,7 +168,7 @@ export function Home() {
             </div>
 
             {/* Atalhos Rápidos por Zona (Chips Táteis) */}
-            <div className="mt-4 flex flex-col items-center gap-2 sm:mt-5 sm:flex-row sm:justify-center sm:gap-3">
+            <div className="mt-4 flex flex-col items-center gap-2 sm:mt-5 sm:flex-row sm:justify-center sm:gap-3 w-full">
               <div className="flex items-center gap-1.5 text-xs font-semibold text-ondjo-blue-soft/90 shrink-0">
                 <MapPin
                   size={16}
@@ -169,7 +189,7 @@ export function Home() {
                       onClick={() => selectLocation(location)}
                       aria-pressed={selected}
                       className={[
-                        "min-h-9 shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
+                        "min-h-9 shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white cursor-pointer",
                         selected
                           ? "border-white bg-white text-ondjo-navy shadow-xs font-bold"
                           : "border-white/20 bg-white/10 text-white hover:border-white/40 hover:bg-white/15",
@@ -183,7 +203,7 @@ export function Home() {
             </div>
 
             {/* 3 Mensagens Reais de Confiança (Sem estatísticas falsas) */}
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2.5 text-xs sm:text-sm text-slate-200">
+            <div className="mt-8 sm:mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2.5 text-xs sm:text-sm text-slate-200">
               <div className="inline-flex items-center gap-1.5 font-semibold text-white">
                 <ShieldCheck
                   size={17}
@@ -222,58 +242,89 @@ export function Home() {
       {/* =========================================================
           CORPO PRINCIPAL: DESTAQUES, ZONAS E EXPERIÊNCIA
           ========================================================= */}
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20 flex-1">
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-14 lg:px-8 lg:py-18 flex-1 min-w-0">
         {/* =========================================================
             IMÓVEIS EM DESTAQUE (SELEÇÃO ONDJO)
             ========================================================= */}
-        <section aria-labelledby="featured-properties-title" className="overflow-x-clip">
-          <SectionHeader
-            eyebrow={
-              <span className="inline-flex items-center gap-1.5">
+        <section aria-labelledby="featured-properties-title" className="w-full max-w-full min-w-0">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-4 sm:mb-6">
+            <div>
+              <div className="mb-1.5 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ondjo-blue">
                 <Sparkles size={14} aria-hidden="true" />
-                Seleção ONDJO
-              </span>
-            }
-            title="Imóveis em destaque"
-            subtitle="Opções verificadas com fotografias reais e condições transparentes nas melhores zonas de Luanda."
-            action={
+                <span>Seleção ONDJO</span>
+              </div>
+              <h2
+                id="featured-properties-title"
+                className="text-2xl sm:text-3xl font-black tracking-tight text-ondjo-navy leading-tight"
+              >
+                Imóveis em destaque
+              </h2>
+              <p className="mt-1 text-xs sm:text-sm text-ondjo-muted leading-relaxed max-w-2xl">
+                Opções verificadas com fotografias reais e condições transparentes nas melhores zonas de Luanda.
+              </p>
+            </div>
+
+            {/* Ações em Desktop & Tablet: Botões de navegação + Ver todos */}
+            <div className="hidden sm:flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => scrollFeatured("left")}
+                aria-label="Ver imóveis anteriores"
+                className="focus-ring grid size-10 place-items-center rounded-full border border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50 active:scale-95 transition cursor-pointer shadow-2xs"
+              >
+                <ChevronLeft size={18} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollFeatured("right")}
+                aria-label="Ver próximos imóveis"
+                className="focus-ring grid size-10 place-items-center rounded-full border border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50 active:scale-95 transition cursor-pointer shadow-2xs"
+              >
+                <ChevronRight size={18} aria-hidden="true" />
+              </button>
+
               <Button
                 variant="outline"
                 size="md"
                 onClick={() => navigate("pesquisar")}
                 rightIcon={<ArrowRight size={15} aria-hidden="true" />}
-                className="hidden sm:inline-flex"
+                className="ml-1"
               >
                 Ver todos ({properties.length})
               </Button>
-            }
-          />
+            </div>
+          </div>
 
           {/* Dica de Swipe no Telemóvel */}
-          <div className="mt-3 flex items-center justify-between text-xs text-ondjo-muted sm:hidden">
-            <span>Deslize para ver os imóveis</span>
+          <div className="flex items-center justify-between text-xs text-ondjo-muted sm:hidden mb-3">
+            <span className="flex items-center gap-1 font-medium">
+              <span>← Deslize para explorar →</span>
+            </span>
             <span className="font-bold text-ondjo-blue">
-              1 - {featuredProperties.length} de {properties.length}
+              {featuredProperties.length} imóveis selecionados
             </span>
           </div>
 
-          {/* Grelha no Desktop & Carrossel Snap no Mobile */}
-          <div className="mt-4 sm:mt-7 flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 -mx-4 px-4 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:mx-0 sm:px-0 sm:overflow-visible no-scrollbar">
+          {/* Grelha no Desktop & Carrossel Snap Suave no Mobile */}
+          <div
+            ref={featuredScrollerRef}
+            className="flex w-full max-w-full min-w-0 overflow-x-auto snap-x snap-mandatory gap-3.5 pb-3 pt-1 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-6 sm:overflow-visible no-scrollbar overscroll-x-contain"
+          >
             {featuredProperties.map((property, index) => (
               <div
                 key={property.id}
-                className="w-[85vw] max-w-82.5 shrink-0 snap-center sm:w-auto sm:max-w-none sm:shrink"
+                className="w-[80vw] sm:w-auto max-w-[310px] sm:max-w-none shrink-0 snap-start sm:shrink min-w-0"
               >
                 <PropertyCard property={property} index={index} />
               </div>
             ))}
           </div>
 
-          {/* Botão de Ação no Mobile */}
+          {/* Botão de Ação no Mobile — Perfeitamente contido dentro das margens da página */}
           <button
             type="button"
             onClick={() => navigate("pesquisar")}
-            className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-ondjo-border bg-white px-4 py-3.5 text-sm font-bold text-ondjo-blue shadow-2xs transition-colors hover:bg-ondjo-bg active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ondjo-blue sm:hidden"
+            className="mt-4 flex min-h-12 w-full max-w-full items-center justify-center gap-2 rounded-xl border border-ondjo-border bg-white px-4 py-3 text-sm font-bold text-ondjo-blue shadow-2xs transition-colors hover:bg-ondjo-bg active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ondjo-blue sm:hidden cursor-pointer"
           >
             <span>Ver todos os {properties.length} imóveis</span>
             <ArrowRight size={16} aria-hidden="true" />
@@ -290,81 +341,96 @@ export function Home() {
             ========================================================= */}
         <section
           aria-labelledby="how-it-works-title"
-          className="mt-16 sm:mt-24 rounded-3xl border border-ondjo-border/80 bg-white p-6 sm:p-10 lg:p-12 shadow-[0_16px_50px_rgba(16,42,67,0.04)]"
+          className="mt-14 sm:mt-20 w-full max-w-full min-w-0 rounded-2xl sm:rounded-3xl border border-ondjo-border/80 bg-white p-5 sm:p-8 lg:p-12 shadow-[0_12px_40px_rgba(16,42,67,0.04)] overflow-hidden"
         >
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200/80 bg-blue-50 px-3 py-1 text-xs font-bold text-ondjo-blue">
               <ShieldCheck size={14} aria-hidden="true" />
-              Processo Transparente
+              <span>Processo Transparente</span>
             </span>
             <h2
               id="how-it-works-title"
-              className="mt-3 text-2xl font-black tracking-tight text-ondjo-navy sm:text-3xl"
+              className="mt-2.5 text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-ondjo-navy leading-snug"
             >
               Como encontrar o seu imóvel na ONDJO
             </h2>
             <p className="mt-2 text-xs sm:text-sm leading-relaxed text-ondjo-muted">
               Desenvolvido para eliminar as incertezas do mercado imobiliário em
-              Angola: sem burlas, sem intermediários falsos e com foco na
+              Angola: sem burlas, sem intermediários fantasmas e com foco na
               realidade do terreno.
             </p>
           </div>
 
-          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3 sm:gap-8 border-t border-slate-100 pt-8">
+          <div className="mt-6 sm:mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6 border-t border-slate-100 pt-6 sm:pt-8 w-full max-w-full min-w-0">
             {/* Passo 1 */}
-            <div className="relative flex flex-col justify-between rounded-2xl border border-slate-100 bg-slate-50/60 p-5 sm:p-6">
+            <div className="relative flex flex-col justify-between rounded-xl sm:rounded-2xl border border-slate-100 bg-slate-50/70 p-4.5 sm:p-6 w-full max-w-full min-w-0 transition hover:bg-slate-50">
               <div>
                 <div className="flex items-center justify-between">
-                  <div className="grid size-11 place-items-center rounded-xl bg-ondjo-blue-soft text-ondjo-blue font-black text-sm">
+                  <span className="grid size-10 place-items-center rounded-xl bg-ondjo-blue-soft text-ondjo-blue font-black text-sm">
                     01
-                  </div>
-                  <Search size={20} className="text-ondjo-muted" />
+                  </span>
+                  <Search size={20} className="text-ondjo-blue" aria-hidden="true" />
                 </div>
-                <h3 className="mt-4 text-base font-black text-ondjo-ink">
+                <h3 className="mt-3.5 text-sm sm:text-base font-black text-ondjo-ink">
                   Pesquise com filtros reais
                 </h3>
                 <p className="mt-1.5 text-xs sm:text-sm text-ondjo-muted leading-relaxed">
-                  Filtre por zona de Luanda, preço 100% em Kwanzas e infraestrutura
-                  essencial: água da rede ou tanque, gerador de suporte e segurança 24h.
+                  Filtre por zona de Luanda, preços 100% em Kwanzas e infraestruturas
+                  essenciais: tanque de água, gerador de suporte e segurança 24h.
                 </p>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-slate-200/60 flex items-center gap-1.5 text-[11px] font-bold text-ondjo-blue">
+                <CheckCircle2 size={13} />
+                <span>Preços auditados em Kz</span>
               </div>
             </div>
 
             {/* Passo 2 */}
-            <div className="relative flex flex-col justify-between rounded-2xl border border-slate-100 bg-slate-50/60 p-5 sm:p-6">
+            <div className="relative flex flex-col justify-between rounded-xl sm:rounded-2xl border border-slate-100 bg-slate-50/70 p-4.5 sm:p-6 w-full max-w-full min-w-0 transition hover:bg-slate-50">
               <div>
                 <div className="flex items-center justify-between">
-                  <div className="grid size-11 place-items-center rounded-xl bg-emerald-50 text-ondjo-green font-black text-sm">
+                  <span className="grid size-10 place-items-center rounded-xl bg-emerald-50 text-emerald-700 font-black text-sm">
                     02
-                  </div>
-                  <MessageSquare size={20} className="text-ondjo-muted" />
+                  </span>
+                  <MessageSquare size={20} className="text-emerald-600" aria-hidden="true" />
                 </div>
-                <h3 className="mt-4 text-base font-black text-ondjo-ink">
+                <h3 className="mt-3.5 text-sm sm:text-base font-black text-ondjo-ink">
                   Contacto e chat direto
                 </h3>
                 <p className="mt-1.5 text-xs sm:text-sm text-ondjo-muted leading-relaxed">
                   Tire dúvidas em tempo real com consultores credenciados e
-                  proprietários identificados, sem intermediários intermediários ou taxas surpresa.
+                  proprietários identificados, sem intermediários clandestinos.
                 </p>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-slate-200/60 flex items-center gap-1.5 text-[11px] font-bold text-emerald-700">
+                <CheckCircle2 size={13} />
+                <span>Respostas em tempo real</span>
               </div>
             </div>
 
             {/* Passo 3 */}
-            <div className="relative flex flex-col justify-between rounded-2xl border border-slate-100 bg-slate-50/60 p-5 sm:p-6">
+            <div className="relative flex flex-col justify-between rounded-xl sm:rounded-2xl border border-slate-100 bg-slate-50/70 p-4.5 sm:p-6 w-full max-w-full min-w-0 transition hover:bg-slate-50">
               <div>
                 <div className="flex items-center justify-between">
-                  <div className="grid size-11 place-items-center rounded-xl bg-amber-50 text-amber-800 font-black text-sm">
+                  <span className="grid size-10 place-items-center rounded-xl bg-amber-50 text-amber-800 font-black text-sm">
                     03
-                  </div>
-                  <CalendarCheck size={20} className="text-ondjo-muted" />
+                  </span>
+                  <CalendarCheck size={20} className="text-amber-700" aria-hidden="true" />
                 </div>
-                <h3 className="mt-4 text-base font-black text-ondjo-ink">
-                  Visita e verificação documental
+                <h3 className="mt-3.5 text-sm sm:text-base font-black text-ondjo-ink">
+                  Visita e verificação legal
                 </h3>
                 <p className="mt-1.5 text-xs sm:text-sm text-ondjo-muted leading-relaxed">
-                  Agende a visita presencial, confirme a Certidão do Registo
-                  Predial e o IPU antes de qualquer compromisso ou adiantamento de valor.
+                  Agende visita presencial, confirme a Certidão do Registo
+                  Predial e o IPU antes de qualquer compromisso ou adiantamento.
                 </p>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-slate-200/60 flex items-center gap-1.5 text-[11px] font-bold text-amber-800">
+                <CheckCircle2 size={13} />
+                <span>Segurança jurídica garantida</span>
               </div>
             </div>
           </div>
@@ -375,23 +441,23 @@ export function Home() {
             ========================================================= */}
         <section
           aria-labelledby="owners-banner-title"
-          className="mt-12 sm:mt-18 relative overflow-hidden rounded-3xl bg-ondjo-navy p-6 sm:p-10 lg:p-12 text-white shadow-xl"
+          className="mt-12 sm:mt-18 relative w-full max-w-full min-w-0 overflow-hidden rounded-2xl sm:rounded-3xl bg-ondjo-navy p-5 sm:p-8 lg:p-12 text-white shadow-xl"
         >
-          {/* Efeitos de iluminação de fundo */}
+          {/* Efeitos de iluminação de fundo contidos */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute -right-20 -top-20 size-80 rounded-full bg-ondjo-blue/30 blur-3xl"
+            className="pointer-events-none absolute -right-10 -top-10 size-60 sm:size-80 rounded-full bg-ondjo-blue/20 blur-2xl sm:blur-3xl"
           />
 
-          <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div className="max-w-xl">
+          <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between w-full max-w-full min-w-0">
+            <div className="max-w-xl min-w-0">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-ondjo-blue-soft backdrop-blur-md">
                 <Building2 size={14} aria-hidden="true" />
-                Para Proprietários e Agências
+                <span>Para Proprietários e Agências</span>
               </span>
               <h2
                 id="owners-banner-title"
-                className="mt-3 text-2xl font-black tracking-tight sm:text-3xl"
+                className="mt-3 text-xl sm:text-2xl lg:text-3xl font-black tracking-tight leading-snug"
               >
                 Tem um imóvel para vender ou arrendar em Luanda?
               </h2>
@@ -400,12 +466,29 @@ export function Home() {
                 famílias e investidores à procura de casa em Angola. Sem
                 duplicações e com auditoria de qualidade.
               </p>
+
+              {/* Pilares rápidos de valor */}
+              <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-slate-200/80">
+                <span className="flex items-center gap-1">
+                  <CheckCircle2 size={13} className="text-emerald-400" />
+                  Sem taxas ocultas
+                </span>
+                <span className="flex items-center gap-1">
+                  <CheckCircle2 size={13} className="text-emerald-400" />
+                  Preços oficiais em Kwanzas
+                </span>
+                <span className="flex items-center gap-1">
+                  <CheckCircle2 size={13} className="text-emerald-400" />
+                  Notificações de visitas no telemóvel
+                </span>
+              </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+            {/* Ações Mobile-First (Largura Total em telas pequenas, lado a lado em desktop) */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto shrink-0 min-w-0">
               <a
                 href="#/login"
-                className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white px-6 text-xs sm:text-sm font-bold text-ondjo-navy shadow-md transition hover:bg-slate-100 active:scale-98"
+                className="focus-ring inline-flex min-h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-white px-5 sm:px-6 text-sm font-bold text-ondjo-navy shadow-md transition hover:bg-slate-100 active:scale-98 text-center"
               >
                 <span>Publicar Imóvel</span>
                 <ArrowRight size={15} aria-hidden="true" />
@@ -413,7 +496,7 @@ export function Home() {
 
               <a
                 href="#/pesquisar"
-                className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-6 text-xs sm:text-sm font-bold text-white transition hover:bg-white/15 active:scale-98"
+                className="focus-ring inline-flex min-h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 sm:px-6 text-sm font-bold text-white transition hover:bg-white/15 active:scale-98 text-center"
               >
                 <span>Explorar Mercado</span>
               </a>

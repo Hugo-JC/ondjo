@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { BedDouble, ChevronRight, Heart, MapPin, Ruler, ShowerHead } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Property } from "../types";
@@ -25,7 +26,19 @@ export function PropertyCard({
     }
   };
 
-  const handleCardClick = () => {
+  const pointerDownPos = useRef({ x: 0, y: 0 });
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    pointerDownPos.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Se o utilizador moveu o ponteiro mais de 10px, estava a fazer scroll/swipe e não clique
+    const diffX = Math.abs(e.clientX - pointerDownPos.current.x);
+    const diffY = Math.abs(e.clientY - pointerDownPos.current.y);
+    if (diffX > 10 || diffY > 10) {
+      return;
+    }
     navigate(`imovel/${property.id}`);
   };
 
@@ -42,13 +55,14 @@ export function PropertyCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "0px 0px -60px" }}
       transition={{ duration: 0.24, ease: "easeOut", delay: Math.min(index * 0.035, 0.12) }}
+      onPointerDown={handlePointerDown}
       onMouseLeave={handleMouseLeave}
       onClick={handleCardClick}
       onKeyDown={handleCardKeyDown}
       tabIndex={0}
       role="link"
       aria-label={`${property.title}, ${property.neighborhood}, ${property.city}. Preço: ${formatKz(property.price, { perMonth: property.purpose === "arrendamento" })}`}
-      className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-ondjo-border/80 bg-white shadow-ondjo-card hover:shadow-ondjo-card-hover hover:-translate-y-1 transition-all duration-300 cursor-pointer focus-ring"
+      className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-ondjo-border/80 bg-white shadow-ondjo-card hover:shadow-ondjo-card-hover hover:-translate-y-1 transition-all duration-300 cursor-pointer focus-ring w-full max-w-full min-w-0"
     >
       <div className="relative overflow-hidden bg-slate-100">
         <PropertyImageCarousel
