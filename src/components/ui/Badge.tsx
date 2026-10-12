@@ -20,22 +20,22 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 
 const variantStyles: Record<BadgeVariant, string> = {
   verified:
-    "bg-ondjo-green-soft text-ondjo-green border border-ondjo-success-border/50 font-bold",
+    "border border-ondjo-success-border bg-ondjo-green-soft text-ondjo-green font-semibold",
   featured:
-    "bg-ondjo-blue-50 text-ondjo-blue border border-ondjo-blue-soft font-bold",
+    "border border-ondjo-blue bg-ondjo-blue text-white font-semibold shadow-ondjo-pill",
   neutral:
-    "bg-white/90 text-ondjo-muted backdrop-blur-xs text-ondjo-ink border border-ondjo-border font-medium",
+    "border border-white/80 bg-white/95 text-ondjo-navy font-semibold shadow-ondjo-pill backdrop-blur-sm",
   navy:
-    "bg-ondjo-navy text-white font-medium",
+    "border border-ondjo-navy bg-ondjo-navy text-white font-semibold",
   warning:
-    "bg-ondjo-warning-soft text-ondjo-warning border border-ondjo-warning-border font-medium",
+    "border border-ondjo-warning-border bg-ondjo-warning-soft text-ondjo-warning font-semibold",
   danger:
-    "bg-ondjo-danger-soft text-ondjo-danger border border-ondjo-danger-border font-medium",
+    "border border-ondjo-danger-border bg-ondjo-danger-soft text-ondjo-danger font-semibold",
 };
 
 const sizeStyles: Record<BadgeSize, string> = {
-  sm: "text-[13px] px-2.5 py-0.5 gap-1 rounded-full",
-  md: "text-xs px-3 py-1 gap-1.5 rounded-full",
+  sm: "text-[13px] px-2.5 py-1 gap-1.5 rounded-full",
+  md: "text-sm px-3 py-1.5 gap-1.5 rounded-full",
 };
 
 export const Badge: React.FC<BadgeProps> = ({
@@ -48,7 +48,12 @@ export const Badge: React.FC<BadgeProps> = ({
 }) => {
   const defaultIcon =
     variant === "verified" && !icon ? (
-      <ShieldCheck size={12} strokeWidth={3} className="text-ondjo-green" aria-hidden="true" />
+      <ShieldCheck
+        size={14}
+        strokeWidth={2.5}
+        className="text-ondjo-green"
+        aria-hidden="true"
+      />
     ) : (
       icon
     );
@@ -56,7 +61,7 @@ export const Badge: React.FC<BadgeProps> = ({
   return (
     <span
       className={[
-        "inline-flex items-center justify-center select-none tracking-tight leading-none",
+        "inline-flex max-w-full items-center justify-center select-none leading-none tracking-wide",
         variantStyles[variant],
         sizeStyles[size],
         className,
@@ -65,7 +70,9 @@ export const Badge: React.FC<BadgeProps> = ({
         .join(" ")}
       {...props}
     >
-      {defaultIcon && <span className="shrink-0 flex items-center">{defaultIcon}</span>}
+      {defaultIcon && (
+        <span className="flex shrink-0 items-center">{defaultIcon}</span>
+      )}
       <span className="truncate">{children}</span>
     </span>
   );

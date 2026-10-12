@@ -5,13 +5,12 @@ import {
   Heart,
   MapPin,
   Ruler,
-  ShieldCheck,
   ShowerHead,
-  Sparkles,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Property } from "../types";
 import { formatKz } from "../utils/format";
+import { Badge } from "./ui/Badge";
 import { navigate } from "../hooks/useHashRoute";
 import { useFavorites } from "../hooks/useFavorites";
 import { PropertyImageCarousel } from "./PropertyImageCarousel";
@@ -51,6 +50,8 @@ export function PropertyCard({
   };
 
   const handleCardKeyDown = (e: React.KeyboardEvent) => {
+    if (e.target !== e.currentTarget) return;
+
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       navigate(`imovel/${property.id}`);
@@ -76,9 +77,9 @@ export function PropertyCard({
       tabIndex={0}
       role="link"
       aria-label={`${property.title}, ${property.neighborhood}, ${property.city}. Preço: ${formatKz(property.price, { perMonth: isArrendamento })}`}
-      className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-ondjo-border/80 bg-white shadow-ondjo-card hover:shadow-ondjo-card-hover hover:-translate-y-1 transition-all duration-300 cursor-pointer focus-ring w-full max-w-full min-w-0"
+      className="group relative flex min-w-0 w-full max-w-full cursor-pointer flex-col overflow-hidden rounded-3xl border border-ondjo-border/80 bg-white shadow-ondjo-card transition-all duration-300 hover:-translate-y-1 hover:shadow-ondjo-card-hover focus-ring"
     >
-      <div className="relative overflow-hidden bg-slate-100">
+      <div className="relative overflow-hidden bg-ondjo-blue-50">
         <PropertyImageCarousel
           propertyId={property.id}
           images={property.images}
@@ -88,23 +89,15 @@ export function PropertyCard({
           showLightboxButton={false}
         />
 
-        {/* Badges no topo esquerdo estilo Airbnb ("Preferido dos hóspedes") adaptado para ONDJO */}
-        <div className="pointer-events-none absolute left-3 top-3 z-10 flex flex-wrap items-center gap-1.5 max-w-[calc(100%-60px)]">
-          {property.verified ? (
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1 text-xs font-bold text-ondjo-navy shadow-xs backdrop-blur-md border border-white/60">
-              <ShieldCheck size={13} className="text-ondjo-blue shrink-0" aria-hidden="true" />
-              <span>Verificado</span>
-            </div>
-          ) : property.featured ? (
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1 text-xs font-bold text-ondjo-navy shadow-xs backdrop-blur-md border border-white/60">
-              <Sparkles size={13} className="text-amber-500 shrink-0" aria-hidden="true" />
-              <span>Destaque</span>
-            </div>
-          ) : null}
-
-          <span className="inline-flex items-center rounded-full bg-ondjo-navy/85 px-2.5 py-0.5 text-[11px] font-bold text-white shadow-xs backdrop-blur-md">
-            {isArrendamento ? "Arrendar" : "Venda"}
-          </span>
+        <div className="pointer-events-none absolute left-3 top-3 z-10 flex max-w-[calc(100%-6rem)] flex-wrap items-center gap-2">
+          {property.featured && (
+            <Badge variant="featured" size="sm">
+              Destaque
+            </Badge>
+          )}
+          <Badge variant="neutral" size="sm">
+            {isArrendamento ? "Arrendamento" : "Venda"}
+          </Badge>
         </div>
 
         {/* Botão de Favoritos estilo Airbnb no topo direito (Toque mínimo >= 44px) */}
@@ -115,7 +108,7 @@ export function PropertyCard({
             e.stopPropagation();
             toggleFavorite(property.id);
           }}
-          className="focus-ring absolute right-3 top-3 z-20 flex size-9 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-sm backdrop-blur-xs transition hover:scale-110 hover:bg-white active:scale-90 cursor-pointer before:absolute before:-inset-2 before:content-['']"
+          className="focus-ring absolute right-3 top-3 z-20 grid size-11 place-items-center rounded-full border border-white/80 bg-white/95 text-ondjo-ink shadow-ondjo-pill backdrop-blur-sm transition hover:scale-105 hover:bg-white active:scale-95 cursor-pointer"
           aria-label={
             favorite
               ? `Remover ${property.title} dos favoritos`
@@ -124,69 +117,90 @@ export function PropertyCard({
           aria-pressed={favorite}
         >
           <Heart
-            size={18}
+            size={20}
             className={`transition-colors duration-200 ${
               favorite
                 ? "fill-ondjo-danger text-ondjo-danger"
-                : "text-slate-600 hover:text-ondjo-ink"
+                : "text-ondjo-muted group-hover:text-ondjo-danger"
             }`}
           />
         </button>
       </div>
 
-      {/* Conteúdo Informativo do Imóvel com Hierarquia Estilo Airbnb */}
-      <div className="flex flex-1 flex-col justify-between p-3.5 sm:p-4">
-        <div>
-          {/* Linha 1: Tipo e Localização (Estilo Airbnb: "Apartamento · Centro de Dubai") */}
-          <div className="flex items-baseline justify-between gap-2">
-            <h3
-              className="font-bold text-[15px] sm:text-[16px] text-ondjo-navy leading-snug truncate group-hover:text-ondjo-blue transition-colors"
-              title={`${property.type} · ${property.neighborhood}, ${property.city}`}
-            >
-              {property.type} · {property.neighborhood}
-            </h3>
-          </div>
-
-          {/* Linha 2: Título do Anúncio / Descrição curta */}
-          <p className="mt-0.5 text-xs text-ondjo-muted line-clamp-1" title={property.title}>
-            {property.title}
-          </p>
-
-          {/* Linha 3: Especificações Limpas no Estilo Airbnb (T2 · 2 WC · 80 m²) */}
-          <div className="mt-2 flex items-center gap-1.5 text-xs font-medium text-slate-500">
-            {property.bedrooms > 0 && (
-              <span className="flex items-center gap-1">
-                <BedDouble size={13} className="text-slate-400" aria-hidden="true" />
-                <span>T{property.bedrooms}</span>
-              </span>
-            )}
-            {property.bedrooms > 0 && property.bathrooms > 0 && (
-              <span className="text-slate-300 select-none">·</span>
-            )}
-            {property.bathrooms > 0 && (
-              <span className="flex items-center gap-1">
-                <ShowerHead size={13} className="text-slate-400" aria-hidden="true" />
-                <span>{property.bathrooms} WC</span>
-              </span>
-            )}
-            <span className="text-slate-300 select-none">·</span>
-            <span className="flex items-center gap-1">
-              <Ruler size={13} className="text-slate-400" aria-hidden="true" />
-              <span>{property.area} m²</span>
+      <div className="flex flex-1 flex-col p-4 sm:p-5">
+        <div className="flex min-w-0 items-center justify-between gap-2">
+          <p className="flex min-w-0 items-center gap-1.5 text-sm font-medium text-ondjo-muted">
+            <MapPin
+              size={15}
+              aria-hidden="true"
+              className="shrink-0 text-ondjo-blue"
+            />
+            <span className="truncate">
+              {property.neighborhood}, {property.city}
             </span>
-          </div>
+          </p>
+          {property.verified && (
+            <Badge
+              variant="verified"
+              size="sm"
+              title="Imóvel Verificado ONDJO"
+              className="shrink-0"
+            >
+              Verificado
+            </Badge>
+          )}
         </div>
 
-        {/* Linha 4: Preço em Kz em grande destaque + Link para detalhes */}
-        <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-baseline justify-between gap-1.5 flex-wrap">
-          <div className="flex items-baseline gap-1">
-            <span className="text-[17px] sm:text-[18px] font-bold text-ondjo-navy tracking-tight">
-              {formatKz(property.price, { perMonth: isArrendamento })}
+        <h3
+          className="mt-2 line-clamp-2 min-h-11 text-base font-semibold leading-snug text-ondjo-ink transition-colors group-hover:text-ondjo-blue"
+          title={property.title}
+        >
+          {property.title}
+        </h3>
+
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] font-medium text-ondjo-muted">
+          {property.bedrooms > 0 && (
+            <span className="inline-flex items-center gap-1.5">
+              <BedDouble
+                size={15}
+                className="text-ondjo-blue"
+                aria-hidden="true"
+              />
+              <span>T{property.bedrooms}</span>
+            </span>
+          )}
+          {property.bathrooms > 0 && (
+            <span className="inline-flex items-center gap-1.5">
+              <ShowerHead
+                size={15}
+                className="text-ondjo-blue"
+                aria-hidden="true"
+              />
+              <span>{property.bathrooms} WC</span>
+            </span>
+          )}
+          <span className="inline-flex items-center gap-1.5">
+            <Ruler
+              size={15}
+              className="text-ondjo-blue"
+              aria-hidden="true"
+            />
+            <span>{property.area} m²</span>
+          </span>
+        </div>
+
+        <div className="mt-4 flex items-end justify-between gap-2 border-t border-ondjo-border/70 pt-3">
+          <div className="min-w-0">
+            <span className="sr-only">Preço</span>
+            <span className="block truncate text-lg font-bold tracking-tight text-ondjo-navy sm:text-xl">
+              {formatKz(property.price, {
+                perMonth: isArrendamento,
+              })}
             </span>
           </div>
-          <span className="text-xs font-semibold text-ondjo-blue group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-0.5">
+          <span className="inline-flex shrink-0 items-center gap-0.5 pb-0.5 text-xs font-semibold text-ondjo-blue transition-transform group-hover:translate-x-0.5">
             Ver detalhes
-            <ChevronRight size={13} aria-hidden="true" />
+            <ChevronRight size={14} aria-hidden="true" />
           </span>
         </div>
       </div>

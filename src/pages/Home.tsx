@@ -3,8 +3,6 @@ import {
   Building2,
   CalendarCheck,
   CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
   MapPin,
   MessageSquare,
   Search,
@@ -69,16 +67,6 @@ export function Home() {
       })
       .slice(0, 8);
   }, []);
-
-  // Controlos de scroll horizontal suave para a secção de destaques
-  const scrollFeatured = (direction: "left" | "right") => {
-    if (!featuredScrollerRef.current) return;
-    const scrollAmount = featuredScrollerRef.current.clientWidth * 0.75;
-    featuredScrollerRef.current.scrollBy({
-      left: direction === "left" ? -scrollAmount : scrollAmount,
-      behavior: "smooth",
-    });
-  };
 
   return (
     <main className="w-full max-w-full min-w-0 flex flex-col bg-ondjo-bg overflow-x-clip">
@@ -229,23 +217,6 @@ export function Home() {
 
             {/* Ações em Desktop & Tablet: Botões de navegação + Ver todos */}
             <div className="hidden sm:flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={() => scrollFeatured("left")}
-                aria-label="Ver imóveis anteriores"
-                className="focus-ring grid size-10 place-items-center rounded-full border border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50 active:scale-95 transition cursor-pointer shadow-2xs"
-              >
-                <ChevronLeft size={18} aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollFeatured("right")}
-                aria-label="Ver próximos imóveis"
-                className="focus-ring grid size-10 place-items-center rounded-full border border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50 active:scale-95 transition cursor-pointer shadow-2xs"
-              >
-                <ChevronRight size={18} aria-hidden="true" />
-              </button>
-
               <Button
                 variant="outline"
                 size="md"
@@ -259,10 +230,7 @@ export function Home() {
           </div>
 
           {/* Dica de Swipe no Telemóvel */}
-          <div className="flex items-center justify-between text-xs text-ondjo-muted sm:hidden mb-3">
-            <span className="flex items-center gap-1 font-medium">
-              <span>← Deslize para explorar →</span>
-            </span>
+          <div className="flex items-center justify-end text-sm text-ondjo-muted sm:hidden mb-3">
             <span className="font-bold text-ondjo-blue">
               {featuredProperties.length} imóveis selecionados
             </span>
