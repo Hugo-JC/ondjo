@@ -125,6 +125,7 @@ export default function Header() {
               className="focus-ring inline-flex items-center rounded-xl p-1 transition-transform hover:opacity-95 active:scale-98"
             >
               {/* Altura de 28px no mobile para não ocupar espaço excessivo, 34px em desktop */}
+              <Logo height={28} className="sm:hidden" decorative />
               <Logo height={34} className="hidden sm:block" decorative />
             </a>
           </div>
@@ -464,7 +465,7 @@ export default function Header() {
                           <Building2 size={18} />
                         </div>
                         <div>
-                          <span className="block font-bold text-ondjo-navy text-1rem">
+                          <span className="block font-bold text-ondjo-navy text-base">
                             Publicar Imóvel
                           </span>
                           <span className="block text-[11px] text-ondjo-muted font-normal mt-0.5">
