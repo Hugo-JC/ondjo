@@ -366,7 +366,7 @@ export function SearchBar({
       <div className="hidden md:block">
         <div
           className={[
-            "relative flex items-center rounded-full bg-white transition-all duration-300",
+            "relative z-30 flex items-center rounded-full bg-white transition-all duration-300",
             "border border-slate-200/80 shadow-[0_16px_40px_rgba(16,42,67,0.08)] hover:shadow-[0_20px_50px_rgba(16,42,67,0.14)]",
             activeSegment ? "bg-slate-50/50" : "",
           ].join(" ")}
@@ -492,7 +492,7 @@ export function SearchBar({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 8, scale: 0.98 }}
               transition={{ duration: reduceMotion ? 0 : 0.16 }}
-              className="absolute left-0 top-full mt-3 w-96 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-[0_20px_50px_rgba(16,42,67,0.16)] z-40"
+              className="absolute left-0 top-full mt-3 w-96 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-[0_20px_50px_rgba(16,42,67,0.22)] z-50"
             >
               <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                 <MapPin size={18} className="text-ondjo-blue shrink-0" />
@@ -553,7 +553,7 @@ export function SearchBar({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 8, scale: 0.98 }}
               transition={{ duration: reduceMotion ? 0 : 0.16 }}
-              className="absolute left-1/4 top-full mt-3 w-80 rounded-3xl border border-slate-200/80 bg-white p-4 shadow-[0_20px_50px_rgba(16,42,67,0.16)] z-40"
+              className="absolute left-1/4 top-full mt-3 w-80 rounded-3xl border border-slate-200/80 bg-white p-4 shadow-[0_20px_50px_rgba(16,42,67,0.22)] z-50"
             >
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2 px-1">
                 Selecione o tipo
@@ -591,7 +591,7 @@ export function SearchBar({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 8, scale: 0.98 }}
               transition={{ duration: reduceMotion ? 0 : 0.16 }}
-              className="absolute left-1/2 top-full mt-3 w-80 -translate-x-1/4 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-[0_20px_50px_rgba(16,42,67,0.16)] z-40"
+              className="absolute left-1/2 top-full mt-3 w-80 -translate-x-1/4 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-[0_20px_50px_rgba(16,42,67,0.22)] z-50"
             >
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-3">
                 Número de quartos
@@ -628,7 +628,7 @@ export function SearchBar({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 8, scale: 0.98 }}
               transition={{ duration: reduceMotion ? 0 : 0.16 }}
-              className="absolute right-0 top-full mt-3 w-88 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-[0_20px_50px_rgba(16,42,67,0.16)] z-40"
+              className="absolute right-0 top-full mt-3 w-88 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-[0_20px_50px_rgba(16,42,67,0.22)] z-50"
             >
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-3">
                 Faixa de preço (Kz)

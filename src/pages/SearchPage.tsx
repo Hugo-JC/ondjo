@@ -10,7 +10,6 @@ import {
   Search,
   ShieldCheck,
   SlidersHorizontal,
-  Sparkles,
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -21,13 +20,12 @@ import { filterProperties } from "../utils/filterProperties";
 import { formatKz } from "../utils/format";
 import { PropertyCard } from "../components/PropertyCard";
 import { PropertyImageCarousel } from "../components/PropertyImageCarousel";
-import { Chip, EmptyState, Badge, Button } from "../components/ui";
+import { EmptyState } from "../components/ui";
 import {
   defaultSearchFilters,
   type SearchFilters,
   PROPERTY_TYPES,
   BEDROOM_OPTIONS,
-  BATHROOM_OPTIONS,
 } from "../components/SearchBar";
 import { navigate } from "../hooks/useHashRoute";
 import { useFavorites } from "../hooks/useFavorites";
@@ -244,12 +242,12 @@ export function SearchPage() {
           ========================================================= */}
       <section
         aria-label="Filtros rápidos de pesquisa"
-        className="sticky top-14 sm:top-18 lg:top-20 z-30 w-full border-b border-ondjo-border/80 bg-white/95 backdrop-blur-md shadow-2xs transition-all"
+        className="sticky top-14 sm:top-18 lg:top-20 z-40 w-full border-b border-ondjo-border/80 bg-white/95 backdrop-blur-md shadow-2xs transition-all"
         ref={popoverRef}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-3.5 sm:px-6 lg:px-8 py-2.5 sm:py-3">
           {/* Scroll horizontal fluido no mobile com snap */}
-          <div className="flex flex-1 items-center gap-2 overflow-x-auto no-scrollbar snap-x py-0.5">
+          <div className="flex flex-1 items-center gap-2 overflow-x-auto md:overflow-visible no-scrollbar snap-x py-0.5">
             {/* 1. Toggle Segmentado: Comprar / Arrendar */}
             <div
               role="group"
@@ -287,9 +285,13 @@ export function SearchPage() {
             <div className="relative shrink-0 snap-start">
               <button
                 type="button"
-                onClick={() =>
-                  setActivePopover(activePopover === "type" ? null : "type")
-                }
+                onClick={() => {
+                  if (typeof window !== "undefined" && window.innerWidth < 768) {
+                    setMobileModalOpen(true);
+                  } else {
+                    setActivePopover(activePopover === "type" ? null : "type");
+                  }
+                }}
                 className={`focus-ring inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 text-xs font-bold transition-all cursor-pointer select-none ${
                   filters.type
                     ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue shadow-2xs"
@@ -309,7 +311,7 @@ export function SearchPage() {
 
               {/* Popover Dropdown de Tipo */}
               {activePopover === "type" && (
-                <div className="absolute left-0 top-full mt-2 z-50 w-52 rounded-2xl border border-ondjo-border bg-white p-2 shadow-ondjo-popover">
+                <div className="absolute left-0 top-full mt-2 z-60 w-52 rounded-2xl shadow-xl border border-ondjo-border bg-white p-2 shadow-ondjo-popover">
                   <div className="flex flex-col gap-1">
                     {PROPERTY_TYPES.map((pt) => {
                       const isSelected = filters.type === pt.value;
@@ -341,9 +343,13 @@ export function SearchPage() {
             <div className="relative shrink-0 snap-start">
               <button
                 type="button"
-                onClick={() =>
-                  setActivePopover(activePopover === "bedrooms" ? null : "bedrooms")
-                }
+                onClick={() => {
+                  if (typeof window !== "undefined" && window.innerWidth < 768) {
+                    setMobileModalOpen(true);
+                  } else {
+                    setActivePopover(activePopover === "bedrooms" ? null : "bedrooms");
+                  }
+                }}
                 className={`focus-ring inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 text-xs font-bold transition-all cursor-pointer select-none ${
                   filters.bedrooms
                     ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue shadow-2xs"
@@ -369,7 +375,7 @@ export function SearchPage() {
 
               {/* Popover Dropdown de Quartos */}
               {activePopover === "bedrooms" && (
-                <div className="absolute left-0 top-full mt-2 z-50 w-48 rounded-2xl border border-ondjo-border bg-white p-2 shadow-ondjo-popover">
+                <div className="absolute left-0 top-full mt-2 z-60 w-48 rounded-2xl shadow-xl border border-ondjo-border bg-white p-2 shadow-ondjo-popover">
                   <div className="flex flex-col gap-1">
                     {BEDROOM_OPTIONS.map((bed) => {
                       const isSelected = filters.bedrooms === bed.value;
@@ -401,9 +407,13 @@ export function SearchPage() {
             <div className="relative shrink-0 snap-start">
               <button
                 type="button"
-                onClick={() =>
-                  setActivePopover(activePopover === "price" ? null : "price")
-                }
+                onClick={() => {
+                  if (typeof window !== "undefined" && window.innerWidth < 768) {
+                    setMobileModalOpen(true);
+                  } else {
+                    setActivePopover(activePopover === "price" ? null : "price");
+                  }
+                }}
                 className={`focus-ring inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 text-xs font-bold transition-all cursor-pointer select-none ${
                   filters.minPrice || filters.maxPrice
                     ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue shadow-2xs"
@@ -425,7 +435,7 @@ export function SearchPage() {
 
               {/* Popover de Preço */}
               {activePopover === "price" && (
-                <div className="absolute left-0 top-full mt-2 z-50 w-72 rounded-2xl border border-ondjo-border bg-white p-4 shadow-ondjo-popover">
+                <div className="absolute left-0 top-full mt-2 z-60 w-72 rounded-2xl shadow-xl border border-ondjo-border bg-white p-4 shadow-ondjo-popover">
                   <p className="text-xs font-extrabold text-ondjo-ink uppercase tracking-wider mb-2">
                     Faixa de Preço (Kz)
                   </p>

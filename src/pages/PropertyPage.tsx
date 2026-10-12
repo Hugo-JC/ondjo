@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Clock,
   Droplets,
+  ExternalLink,
   Flame,
   Heart,
   Home,
@@ -16,8 +17,10 @@ import {
   MapPin,
   Maximize2,
   MessageCircle,
+  Phone,
   Ruler,
   Share2,
+  ShieldAlert,
   ShieldCheck,
   ShowerHead,
   Sparkles,
@@ -26,73 +29,89 @@ import {
   Zap,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { properties } from "../data/properties";
 import { formatKz } from "../utils/format";
 import { navigate } from "../hooks/useHashRoute";
 import { useFavorites } from "../hooks/useFavorites";
 import { PropertyCard } from "../components/PropertyCard";
 import { ScheduleVisitPanel } from "../components/ScheduleVisitPanel";
+import { getOptimizedImageUrl, getImageSrcSet } from "../utils/images";
 
-// Ícones contextuais para comodidades habituais em Angola
+// Mapeamento semântico de ícones de comodidades locais em Angola
 function getFeatureIcon(featureName: string) {
   const lower = featureName.toLowerCase();
   if (
     lower.includes("gerador") ||
     lower.includes("energia") ||
-    lower.includes("luz")
+    lower.includes("luz") ||
+    lower.includes("pt")
   ) {
-    return <Zap className="size-4 text-amber-600" aria-hidden="true" />;
+    return <Zap className="size-4.5 text-amber-500" aria-hidden="true" />;
   }
   if (
     lower.includes("água") ||
     lower.includes("tanque") ||
     lower.includes("bomba") ||
+    lower.includes("electrobomba") ||
+    lower.includes("cisterna") ||
     lower.includes("piscina")
   ) {
-    return <Droplets className="size-4 text-sky-600" aria-hidden="true" />;
+    return <Droplets className="size-4.5 text-sky-500" aria-hidden="true" />;
   }
   if (
     lower.includes("ar condicionado") ||
     lower.includes("ac") ||
-    lower.includes("climatiz")
+    lower.includes("climatiz") ||
+    lower.includes("split")
   ) {
-    return <Wind className="size-4 text-teal-600" aria-hidden="true" />;
+    return <Wind className="size-4.5 text-teal-500" aria-hidden="true" />;
   }
   if (
     lower.includes("segurança") ||
     lower.includes("portaria") ||
-    lower.includes("guarda")
+    lower.includes("guarda") ||
+    lower.includes("cerca") ||
+    lower.includes("cctv")
   ) {
-    return (
-      <ShieldCheck className="size-4 text-emerald-600" aria-hidden="true" />
-    );
+    return <ShieldCheck className="size-4.5 text-emerald-600" aria-hidden="true" />;
   }
   if (
     lower.includes("garagem") ||
     lower.includes("estacionamento") ||
-    lower.includes("vaga")
+    lower.includes("vaga") ||
+    lower.includes("parqueamento")
   ) {
-    return <CarFront className="size-4 text-blue-600" aria-hidden="true" />;
+    return <CarFront className="size-4.5 text-blue-600" aria-hidden="true" />;
   }
-  if (lower.includes("gás") || lower.includes("aquec")) {
-    return <Flame className="size-4 text-orange-600" aria-hidden="true" />;
+  if (lower.includes("gás") || lower.includes("fogão") || lower.includes("aquec")) {
+    return <Flame className="size-4.5 text-orange-500" aria-hidden="true" />;
   }
-  return <Check className="size-4 text-ondjo-green" aria-hidden="true" />;
+  return <Check className="size-4.5 text-ondjo-green" aria-hidden="true" />;
 }
 
 export function PropertyPage({ id }: { id: string }) {
   const property = properties.find((item) => item.id === id);
-  const [active, setActive] = useState(0);
-  const [gallery, setGallery] = useState(false);
-  const [shared, setShared] = useState(false);
+  const [activePhoto, setActivePhoto] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
   const [scheduleVisitOpen, setScheduleVisitOpen] = useState(false);
+  const [showFullDescription, setShowFullDescription] = useState(false);
 
-  // Hook global de favoritos sincronizado com o sistema ONDJO
+  // Sincronização de favoritos global
   const { isFavorite, toggleFavorite } = useFavorites();
   const favorite = property ? isFavorite(property.id) : false;
 
-  const similar = useMemo(
+  // Referência para fechar a lightbox
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  // Touch Swipe para carrossel móvel
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+
+  // Imóveis semelhantes na mesma zona ou perfil
+  const similarProperties = useMemo(
     () =>
       properties
         .filter(
@@ -105,22 +124,51 @@ export function PropertyPage({ id }: { id: string }) {
     [id, property?.neighborhood, property?.type],
   );
 
+  // Acessibilidade por teclado na Lightbox (Escape, Setas)
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setLightboxOpen(false);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        if (property) {
+          setActivePhoto((curr) => (curr + 1) % property.images.length);
+        }
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        if (property) {
+          setActivePhoto((curr) => (curr - 1 + property.images.length) % property.images.length);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [lightboxOpen, property]);
+
   if (!property) {
     return (
       <main className="mx-auto max-w-3xl px-4 py-20 text-center">
-        <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-slate-100 text-slate-400">
+        <div className="mx-auto grid size-16 place-items-center rounded-3xl bg-slate-100 text-slate-400">
           <Home size={32} />
         </div>
-        <h1 className="mt-4 text-2xl font-black text-ondjo-ink">
+        <h1 className="mt-4 text-2xl font-black text-ondjo-navy">
           Imóvel não encontrado
         </h1>
         <p className="mt-2 text-sm text-ondjo-muted">
-          O imóvel que procura pode ter sido removido ou o código de referência
-          não existe.
+          O imóvel que procura pode ter sido retirado do mercado ou o endereço está incorreto.
         </p>
         <button
           onClick={() => navigate("pesquisar")}
-          className="focus-ring mt-6 inline-flex items-center gap-2 rounded-xl bg-ondjo-blue px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-ondjo-blue-dark"
+          className="focus-ring mt-6 inline-flex items-center gap-2 rounded-full bg-ondjo-blue px-6 py-3 text-sm font-bold text-white shadow-sm hover:bg-ondjo-blue-dark active:scale-95 transition cursor-pointer"
         >
           <ArrowLeft size={16} /> Voltar à pesquisa de imóveis
         </button>
@@ -128,673 +176,876 @@ export function PropertyPage({ id }: { id: string }) {
     );
   }
 
-  // Controlo das imagens (mantendo a funcionalidade nativa intacta)
-  const next = () => setActive((value) => (value + 1) % property.images.length);
-  const prev = () =>
-    setActive(
-      (value) => (value - 1 + property.images.length) % property.images.length,
-    );
+  const isArrendamento = property.purpose === "arrendamento";
+  const propertyRef = `OND-${property.neighborhood.slice(0, 3).toUpperCase()}-${property.id.slice(-4).toUpperCase()}`;
+  const totalPhotos = property.images.length;
 
-  const share = async () => {
+  // Partilha moderna com Web Share API e fallback para Clipboard
+  const handleShare = async () => {
+    const shareData = {
+      title: `${property.title} | ONDJO`,
+      text: `Veja este imóvel em ${property.neighborhood}, ${property.city} no ONDJO:`,
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch {
+        // Fallback para cópia
+      }
+    }
+
     try {
       if (navigator.clipboard) {
         await navigator.clipboard.writeText(window.location.href);
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 2200);
       }
-      setShared(true);
-      window.setTimeout(() => setShared(false), 2000);
     } catch {
-      setShared(false);
+      setCopiedLink(false);
     }
   };
 
-  const handleContactAgent = () => {
+  // Mensagem e link direto do WhatsApp angolano
+  const whatsappNumber =
+    property.advertiser?.whatsapp?.replace(/\D/g, "") || "244923000000";
+  const whatsappMessage = encodeURIComponent(
+    `Olá! Vi o anúncio do imóvel "${property.title}" (Ref: ${propertyRef}) no ONDJO e gostaria de obter mais detalhes e agendar uma visita.`,
+  );
+  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
+
+  const handleContactChat = () => {
     navigate(`mensagens?property=${property.id}`);
   };
 
-  // Referência visual curta para credibilidade
-  const propertyRef = `OND-${property.neighborhood.slice(0, 3).toUpperCase()}-${property.id.slice(-4).toUpperCase()}`;
+  const nextPhoto = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setActivePhoto((curr) => (curr + 1) % totalPhotos);
+  };
+
+  const prevPhoto = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setActivePhoto((curr) => (curr - 1 + totalPhotos) % totalPhotos);
+  };
+
+  // Gestos táticos no mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+    const distance = touchStartX.current - touchEndX.current;
+    if (Math.abs(distance) > 40) {
+      if (distance > 0) {
+        nextPhoto();
+      } else {
+        prevPhoto();
+      }
+    }
+    touchStartX.current = null;
+    touchEndX.current = null;
+  };
 
   return (
-    <main className="mx-auto max-w-7xl px-3 pb-28 pt-4 sm:px-6 sm:pb-16 lg:px-8 lg:pt-6">
-      {/* Barra de Navegação Superior / Breadcrumb Semântico & Ações */}
-      <nav
-        aria-label="Navegação estrutural"
-        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-      >
-        <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-ondjo-muted">
-          <button
-            onClick={() => navigate("home")}
-            className="focus-ring rounded-md text-ondjo-muted hover:text-ondjo-blue"
-          >
-            Início
-          </button>
-          <span aria-hidden="true" className="text-slate-300">
-            /
-          </span>
-          <button
-            onClick={() => navigate("pesquisar")}
-            className="focus-ring rounded-md text-ondjo-muted hover:text-ondjo-blue"
-          >
-            Pesquisar
-          </button>
-          <span aria-hidden="true" className="text-slate-300">
-            /
-          </span>
-          <span className="font-semibold text-ondjo-ink">
-            {property.neighborhood}
-          </span>
-          <span aria-hidden="true" className="text-slate-300">
-            /
-          </span>
-          <span
-            className="max-w-50 truncate text-slate-500 sm:max-w-[320px]"
-            title={property.title}
-          >
-            {property.title}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2 self-end sm:self-auto">
-          <button
-            onClick={share}
-            aria-label={
-              shared ? "Link copiado com sucesso" : "Partilhar este imóvel"
-            }
-            className="focus-ring relative inline-flex min-h-10 items-center gap-2 rounded-xl border border-ondjo-border bg-white px-3.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50"
-          >
-            {shared ? (
-              <>
-                <Check size={15} className="text-ondjo-green" />
-                <span className="text-ondjo-green">Link copiado!</span>
-              </>
-            ) : (
-              <>
-                <Share2 size={15} />
-                <span>Partilhar</span>
-              </>
-            )}
-          </button>
-
-          <button
-            onClick={() => toggleFavorite(property.id)}
-            aria-pressed={favorite}
-            aria-label={
-              favorite ? "Remover dos favoritos" : "Guardar nos favoritos"
-            }
-            className={`focus-ring inline-flex min-h-10 items-center gap-2 rounded-xl border px-3.5 text-xs font-bold shadow-sm transition ${
-              favorite
-                ? "border-red-200 bg-red-50 text-red-600 hover:bg-red-100"
-                : "border-ondjo-border bg-white text-slate-700 hover:bg-slate-50"
-            }`}
-          >
-            <Heart
-              size={15}
-              fill={favorite ? "currentColor" : "none"}
-              className={favorite ? "text-red-500" : ""}
-            />
-            <span>{favorite ? "Guardado" : "Guardar"}</span>
-          </button>
-
-          <button
-            onClick={() => navigate("pesquisar")}
-            className="focus-ring inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-ondjo-border bg-white px-3.5 text-xs font-bold text-ondjo-blue shadow-sm hover:bg-blue-50"
-          >
-            <ArrowLeft size={14} />
-            <span className="hidden sm:inline">Voltar</span>
-          </button>
-        </div>
-      </nav>
-
-      {/* Cartão Principal: Módulo Visual das Imagens + Informação Chave Instantânea */}
-      <section
-        aria-label="Apresentação do imóvel"
-        className="mt-4 overflow-hidden rounded-[26px] border border-ondjo-border bg-white shadow-[0_12px_45px_rgba(16,24,40,0.06)]"
-      >
-        <div className="grid gap-0 lg:grid-cols-[1.35fr_1fr]">
-          {/* Módulo das Imagens (mantido idêntico na lógica e renderização) */}
-          <div className="relative bg-slate-100 p-2 sm:p-2.5">
-            <button
-              onClick={() => setGallery(true)}
-              className="focus-ring group relative block w-full overflow-hidden rounded-[20px] text-left"
-              aria-label="Abrir galeria de fotos em ecrã inteiro"
+    <main className="min-h-screen w-full bg-ondjo-bg pb-28 pt-4 sm:pt-6 lg:pb-24">
+      <div className="mx-auto max-w-7xl px-3.5 sm:px-6 lg:px-8">
+        {/* =========================================================
+            BREADCRUMBS & AÇÕES SUPERIORES (PARTILHAR, GUARDAR, VOLTAR)
+            ========================================================= */}
+        <nav
+          aria-label="Breadcrumb e ações"
+          className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold text-ondjo-muted">
+            <a
+              href="#/"
+              className="hover:text-ondjo-blue transition-colors focus-ring rounded-md"
             >
-              <img
-                src={property.images[active]}
-                alt={`${property.title} — foto ${active + 1}`}
-                className="aspect-4/3 w-full object-cover transition duration-500 group-hover:scale-[1.015] sm:aspect-16/10 lg:aspect-[1.12/1] lg:min-h-145"
-              />
-              <div className="absolute inset-x-0 bottom-0 flex items-end justify-between bg-linear-to-t from-black/75 via-black/20 to-transparent p-4 pt-16 text-white sm:p-5 sm:pt-20">
-                <span className="rounded-full bg-black/40 px-3 py-1.5 text-xs font-bold backdrop-blur">
-                  {active + 1} / {property.images.length} fotos
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1.5 text-xs font-bold backdrop-blur transition hover:bg-white/30">
-                  <Maximize2 size={13} /> Galeria completa
-                </span>
-              </div>
-            </button>
-
-            <button
-              onClick={prev}
-              aria-label="Foto anterior"
-              className="focus-ring absolute left-4 top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60 sm:left-6"
+              Início
+            </a>
+            <span className="text-slate-300">/</span>
+            <a
+              href="#/pesquisar"
+              className="hover:text-ondjo-blue transition-colors focus-ring rounded-md"
             >
-              <ChevronLeft size={20} />
-            </button>
-            <button
-              onClick={next}
-              aria-label="Próxima foto"
-              className="focus-ring absolute right-4 top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60 sm:right-6"
+              Pesquisar
+            </a>
+            <span className="text-slate-300">/</span>
+            <a
+              href={`#/pesquisar?location=${encodeURIComponent(property.neighborhood)}`}
+              className="hover:text-ondjo-blue transition-colors focus-ring rounded-md"
             >
-              <ChevronRight size={20} />
-            </button>
-
-            {/* Miniaturas em Mobile/Tablet */}
-            <div className="hide-scrollbar mt-2.5 flex gap-2 overflow-x-auto px-1 pb-1 lg:hidden">
-              {property.images.map((image, index) => (
-                <button
-                  key={image}
-                  onClick={() => setActive(index)}
-                  aria-label={`Ver foto ${index + 1}`}
-                  className={`focus-ring shrink-0 overflow-hidden rounded-xl border-2 transition ${
-                    active === index
-                      ? "border-ondjo-blue ring-2 ring-blue-100"
-                      : "border-transparent opacity-80 hover:opacity-100"
-                  }`}
-                >
-                  <img
-                    src={image}
-                    alt=""
-                    className="size-14 object-cover"
-                    loading="lazy"
-                  />
-                </button>
-              ))}
-            </div>
+              {property.neighborhood}
+            </a>
+            <span className="text-slate-300">/</span>
+            <span className="max-w-[200px] truncate sm:max-w-xs text-ondjo-ink font-bold">
+              {property.title}
+            </span>
           </div>
 
-          {/* Painel de Informação Imediata */}
-          <div className="flex flex-col justify-between p-5 sm:p-7 lg:p-8">
-            <div>
-              {/* Badges de Estado & Referência */}
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[13px] font-bold text-slate-700">
-                    <Building2 size={17} className="text-ondjo-blue" />
-                    {property.type}
-                  </span>
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            {/* Botão de Partilha */}
+            <button
+              type="button"
+              onClick={handleShare}
+              aria-label={copiedLink ? "Link copiado" : "Partilhar este imóvel"}
+              className="focus-ring inline-flex min-h-10 items-center gap-1.5 rounded-full border border-ondjo-border/90 bg-white px-3.5 text-xs font-bold text-ondjo-ink shadow-2xs hover:bg-slate-50 active:scale-95 transition cursor-pointer"
+            >
+              {copiedLink ? (
+                <>
+                  <Check size={14} className="text-emerald-600" />
+                  <span className="text-emerald-700">Link copiado!</span>
+                </>
+              ) : (
+                <>
+                  <Share2 size={14} className="text-slate-600" />
+                  <span>Partilhar</span>
+                </>
+              )}
+            </button>
 
-                  {property.verified && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-ondjo-green-soft px-2.5 py-1 text-[13px] font-extrabold text-ondjo-green">
-                      <ShieldCheck size={17} /> Verificado ONDJO
-                    </span>
-                  )}
+            {/* Botão de Favoritos */}
+            <button
+              type="button"
+              onClick={() => toggleFavorite(property.id)}
+              aria-pressed={favorite}
+              aria-label={favorite ? "Remover dos favoritos" : "Guardar nos favoritos"}
+              className={`focus-ring inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3.5 text-xs font-bold shadow-2xs transition active:scale-95 cursor-pointer ${
+                favorite
+                  ? "border-red-200 bg-red-50 text-red-600"
+                  : "border-ondjo-border/90 bg-white text-ondjo-ink hover:bg-slate-50"
+              }`}
+            >
+              <Heart
+                size={14}
+                className={favorite ? "fill-red-500 text-red-500" : "text-slate-600"}
+              />
+              <span>{favorite ? "Guardado" : "Guardar"}</span>
+            </button>
 
-                  {property.featured && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[13px] font-extrabold text-amber-700 border border-amber-200">
-                      <Sparkles size={17} /> Destaque
-                    </span>
-                  )}
-                </div>
+            {/* Botão Voltar */}
+            <button
+              type="button"
+              onClick={() => navigate("pesquisar")}
+              className="focus-ring inline-flex min-h-10 items-center gap-1.5 rounded-full border border-ondjo-border/90 bg-white px-3.5 text-xs font-bold text-ondjo-blue shadow-2xs hover:bg-blue-50 active:scale-95 transition cursor-pointer"
+            >
+              <ArrowLeft size={14} />
+              <span className="hidden sm:inline">Voltar</span>
+            </button>
+          </div>
+        </nav>
 
-                <span
-                  className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-400"
-                  title="Código de Referência do Anúncio"
+        {/* =========================================================
+            TÍTULO PRINCIPAL & SUBTÍTULO
+            ========================================================= */}
+        <div className="mt-3.5 sm:mt-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1 rounded-full bg-ondjo-navy px-3 py-1 text-xs font-bold text-white shadow-xs">
+              {isArrendamento ? "Arrendamento" : "Venda"}
+            </span>
+
+            {property.verified && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800 shadow-2xs">
+                <ShieldCheck size={13} className="text-emerald-600" />
+                <span>Verificado ONDJO</span>
+              </span>
+            )}
+
+            {property.featured && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-800 shadow-2xs">
+                <Sparkles size={13} className="text-amber-600" />
+                <span>Destaque</span>
+              </span>
+            )}
+
+            <span className="ml-auto text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-400">
+              Ref: {propertyRef}
+            </span>
+          </div>
+
+          <h1 className="mt-2 text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-ondjo-navy leading-tight">
+            {property.title}
+          </h1>
+
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm font-semibold text-ondjo-muted">
+            <span className="flex items-center gap-1.5 text-ondjo-ink">
+              <Building2 size={16} className="text-ondjo-blue" aria-hidden="true" />
+              <span>{property.type}</span>
+            </span>
+            <span className="text-slate-300">·</span>
+            <span className="flex items-center gap-1.5 text-ondjo-ink">
+              <MapPin size={16} className="text-ondjo-blue" aria-hidden="true" />
+              <span>
+                {property.neighborhood}, {property.city}
+              </span>
+            </span>
+          </div>
+        </div>
+
+        {/* =========================================================
+            GALERIA DE FOTOS AIRBNB (1+4 NO DESKTOP, CARROSSEL NO MOBILE)
+            ========================================================= */}
+        <section aria-label="Galeria de fotografias do imóvel" className="mt-5 sm:mt-6">
+          {/* 1. Grelha 1+4 Desktop (>= 768px / md) */}
+          <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-2 h-105 lg:h-125 rounded-3xl overflow-hidden relative group">
+            {/* Foto Principal (50% de largura, 2 colunas x 2 linhas) */}
+            <div
+              onClick={() => {
+                setActivePhoto(0);
+                setLightboxOpen(true);
+              }}
+              className="col-span-2 row-span-2 relative h-full w-full overflow-hidden bg-slate-100 cursor-pointer"
+            >
+              <img
+                src={getOptimizedImageUrl(property.images[0], 1200, 85)}
+                srcSet={getImageSrcSet(property.images[0], [640, 960, 1200])}
+                sizes="(max-width: 1024px) 50vw, 600px)"
+                alt={`${property.title} — Foto principal`}
+                fetchPriority="high"
+                loading="eager"
+                decoding="async"
+                className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.015] select-none"
+              />
+              <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors" />
+            </div>
+
+            {/* 4 Fotos Secundárias em Grelha 2x2 */}
+            {property.images.slice(1, 5).map((imgUrl, idx) => {
+              const photoIdx = idx + 1;
+              return (
+                <div
+                  key={imgUrl}
+                  onClick={() => {
+                    setActivePhoto(photoIdx);
+                    setLightboxOpen(true);
+                  }}
+                  className="relative h-full w-full overflow-hidden bg-slate-100 cursor-pointer"
                 >
-                  Ref: {propertyRef}
-                </span>
-              </div>
-
-              {/* Localização com Hierarquia */}
-              <div className="mt-4 flex items-center gap-1.5 text-sm font-semibold text-ondjo-muted">
-                <MapPin
-                  size={16}
-                  className="shrink-0 text-ondjo-blue"
-                  aria-hidden="true"
-                />
-                <span>
-                  {property.neighborhood}, {property.city}
-                  {property.province && property.province !== property.city
-                    ? ` (${property.province})`
-                    : ""}
-                </span>
-              </div>
-
-              {/* Título Principal */}
-              <h1 className="mt-2 text-2xl font-black leading-tight tracking-tight text-ondjo-ink sm:text-3xl lg:text-3xl">
-                {property.title}
-              </h1>
-
-              {/* Cartão de Preço Exclusivo de Angola (Kz Puro, sem conversor externo) */}
-              <div className="mt-5 overflow-hidden rounded-2xl bg-linear-to-br from-ondjo-navy-deep to-[#132c4a] p-4 text-white shadow-md sm:p-5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-blue-200">
-                    Preço anunciado em Angola
-                  </span>
-                  <span className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-bold text-blue-100">
-                    Kwanzas (Kz)
-                  </span>
+                  <img
+                    src={getOptimizedImageUrl(imgUrl, 640, 80)}
+                    alt={`${property.title} — Foto ${photoIdx + 1}`}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover transition-transform duration-500 ease-out hover:scale-105 select-none"
+                  />
+                  <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors" />
                 </div>
-                <div className="mt-1.5 flex items-baseline gap-2">
-                  <strong className="text-3xl font-black tracking-tight sm:text-4xl text-white">
-                    {formatKz(property.price, { perMonth: property.purpose === "arrendamento" })}
-                  </strong>
-                </div>
-                <div className="mt-2.5 flex items-center gap-1.5 border-t border-white/10 pt-2.5 text-xs text-blue-100/80">
-                  <Check size={14} className="text-emerald-400 shrink-0" />
-                  <span>
-                    Valor oficial para negociação direta e sem comissões ocultas
-                  </span>
-                </div>
-              </div>
+              );
+            })}
 
-              {/* Ficha Técnica Rápida em Grelha Limpa */}
-              <div className="mt-4 grid grid-cols-4 gap-2 rounded-2xl border border-ondjo-border bg-slate-50/80 p-2 text-center">
-                <div className="flex flex-col items-center justify-center rounded-xl bg-white p-2.5 shadow-xs">
-                  <span className="text-ondjo-blue mb-1">
-                    <BedDouble size={18} aria-hidden="true" />
-                  </span>
-                  <strong className="text-base font-black text-ondjo-ink">
-                    {property.bedrooms}
-                  </strong>
-                  <span className="text-[11px] font-medium text-slate-500">
-                    Quartos
-                  </span>
-                </div>
+            {/* Botão "Ver todas as fotos" flutuante no canto inferior direito */}
+            <button
+              type="button"
+              onClick={() => {
+                setActivePhoto(0);
+                setLightboxOpen(true);
+              }}
+              className="focus-ring absolute right-4 bottom-4 z-10 inline-flex items-center gap-2 rounded-xl border border-white/70 bg-white/95 px-3.5 py-2 text-xs font-bold text-ondjo-navy shadow-md backdrop-blur-md hover:bg-white active:scale-95 transition cursor-pointer"
+            >
+              <Maximize2 size={14} className="text-ondjo-blue" aria-hidden="true" />
+              <span>Ver todas as fotos ({totalPhotos})</span>
+            </button>
+          </div>
 
-                <div className="flex flex-col items-center justify-center rounded-xl bg-white p-2.5 shadow-xs">
-                  <span className="text-ondjo-blue mb-1">
-                    <ShowerHead size={18} aria-hidden="true" />
-                  </span>
-                  <strong className="text-base font-black text-ondjo-ink">
-                    {property.bathrooms}
-                  </strong>
-                  <span className="text-[11px] font-medium text-slate-500">
-                    Banhos
-                  </span>
-                </div>
+          {/* 2. Carrossel Mobile com Swipe (< md) */}
+          <div
+            className="md:hidden relative overflow-hidden rounded-2xl bg-slate-100 aspect-4/3 w-full"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <img
+              src={getOptimizedImageUrl(property.images[activePhoto], 800, 80)}
+              alt={`${property.title} — Foto ${activePhoto + 1} de ${totalPhotos}`}
+              loading="eager"
+              decoding="async"
+              onClick={() => setLightboxOpen(true)}
+              className="h-full w-full object-cover cursor-pointer select-none"
+            />
 
-                <div className="flex flex-col items-center justify-center rounded-xl bg-white p-2.5 shadow-xs">
-                  <span className="text-ondjo-blue mb-1">
-                    <Ruler size={18} aria-hidden="true" />
-                  </span>
-                  <strong className="text-base font-black text-ondjo-ink">
-                    {property.area}
-                  </strong>
-                  <span className="text-[11px] font-medium text-slate-500">
-                    m² de área
-                  </span>
-                </div>
-
-                <div className="flex flex-col items-center justify-center rounded-xl bg-white p-2.5 shadow-xs">
-                  <span className="text-ondjo-blue mb-1">
-                    <CarFront size={18} aria-hidden="true" />
-                  </span>
-                  <strong className="text-base font-black text-ondjo-ink">
-                    {property.parking}
-                  </strong>
-                  <span className="text-[11px] font-medium text-slate-500">
-                    Vagas
-                  </span>
-                </div>
-              </div>
-
-              {/* Botões de Ação Imediata */}
-              <div className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+            {/* Setas de navegação direta */}
+            {totalPhotos > 1 && (
+              <>
                 <button
-                  onClick={handleContactAgent}
-                  className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-ondjo-blue px-4 text-sm font-extrabold text-white shadow-sm transition hover:bg-ondjo-blue-dark active:scale-[0.99]"
+                  type="button"
+                  onClick={prevPhoto}
+                  aria-label="Foto anterior"
+                  className="focus-ring absolute left-2.5 top-1/2 -translate-y-1/2 z-10 grid size-9 place-items-center rounded-full bg-black/50 text-white backdrop-blur-md active:scale-90"
                 >
-                  <MessageCircle size={17} /> Contactar Corretor
+                  <ChevronLeft size={20} />
                 </button>
                 <button
                   type="button"
-                  onClick={() => setScheduleVisitOpen(true)}
-                  aria-haspopup="dialog"
-                  className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border-2 border-ondjo-blue bg-white px-4 text-sm font-extrabold text-ondjo-blue shadow-xs transition hover:bg-blue-50/70 active:scale-[0.99]"
+                  onClick={nextPhoto}
+                  aria-label="Próxima foto"
+                  className="focus-ring absolute right-2.5 top-1/2 -translate-y-1/2 z-10 grid size-9 place-items-center rounded-full bg-black/50 text-white backdrop-blur-md active:scale-90"
                 >
-                  <CalendarDays size={17} /> Agendar Visita
+                  <ChevronRight size={20} />
                 </button>
-              </div>
+              </>
+            )}
+
+            {/* Contador de fotos no mobile */}
+            <div className="absolute bottom-3 left-3 z-10 inline-flex items-center rounded-full bg-black/60 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-md">
+              {activePhoto + 1} / {totalPhotos}
             </div>
 
-            {/* Aviso de Confiança e Segurança Local */}
-            <div className="mt-6 border-t border-slate-100 pt-4">
-              <div className="flex items-start gap-2.5 rounded-xl border border-slate-200/80 bg-slate-50 p-3 text-sm leading-relaxed text-slate-600">
-                <ShieldCheck
-                  size={20}
-                  className="mt-0.5 shrink-0 text-ondjo-green"
-                  aria-hidden="true"
-                />
-                <p>
-                  <strong className="font-semibold text-ondjo-ink">
-                    Garantia ONDJO:
-                  </strong>{" "}
-                  Visite sempre o imóvel presencialmente antes de qualquer
-                  compromisso financeiro. Todos os corretores são verificados.
-                </p>
-              </div>
-            </div>
+            {/* Botão de tela cheia no mobile */}
+            <button
+              type="button"
+              onClick={() => setLightboxOpen(true)}
+              aria-label="Abrir galeria em ecrã inteiro"
+              className="focus-ring absolute bottom-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-md active:scale-95"
+            >
+              <Maximize2 size={12} />
+              <span>Galeria</span>
+            </button>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Seções de Informação Detalhada: Grid com Conteúdo Principal + Aside Sticky */}
-      <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_340px]">
-        {/* Coluna Principal */}
-        <div className="space-y-6">
-          {/* Descrição Completa */}
-          <section
-            aria-labelledby="desc-heading"
-            className="rounded-[22px] border border-ondjo-border bg-white p-6 shadow-xs sm:p-7"
-          >
-            <div className="border-b border-slate-100 pb-3">
-              <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-ondjo-blue">
-                Apresentação
-              </span>
+        {/* =========================================================
+            CORPO PRINCIPAL: CONTEÚDO (ESQUERDA) + CAIXA DE CONTACTO (DIREITA)
+            ========================================================= */}
+        <div className="mt-8 sm:mt-10 grid gap-8 lg:grid-cols-[1fr_370px] lg:gap-12">
+          {/* ==================== COLUNA PRINCIPAL ==================== */}
+          <div className="space-y-8 sm:space-y-10 min-w-0">
+            {/* 1. Linha de Factos Essenciais (T2 · 2 WC · 80 m² · 1 vaga) */}
+            <section
+              aria-label="Resumo das características principais"
+              className="rounded-3xl border border-ondjo-border/80 bg-white p-4 sm:p-5 shadow-2xs"
+            >
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+                <div className="flex items-center gap-3 p-2 sm:px-3">
+                  <div className="grid size-11 place-items-center rounded-2xl bg-ondjo-blue-50 text-ondjo-blue shrink-0">
+                    <BedDouble size={20} />
+                  </div>
+                  <div>
+                    <strong className="block text-base font-black text-ondjo-navy">
+                      T{property.bedrooms}
+                    </strong>
+                    <span className="text-xs font-semibold text-ondjo-muted">
+                      {property.bedrooms === 1 ? "Quarto" : "Quartos"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-2 sm:px-3 pt-3 sm:pt-2">
+                  <div className="grid size-11 place-items-center rounded-2xl bg-ondjo-blue-50 text-ondjo-blue shrink-0">
+                    <ShowerHead size={20} />
+                  </div>
+                  <div>
+                    <strong className="block text-base font-black text-ondjo-navy">
+                      {property.bathrooms}
+                    </strong>
+                    <span className="text-xs font-semibold text-ondjo-muted">
+                      {property.bathrooms === 1 ? "Banho" : "Casas de banho"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-2 sm:px-3 pt-3 sm:pt-2">
+                  <div className="grid size-11 place-items-center rounded-2xl bg-ondjo-blue-50 text-ondjo-blue shrink-0">
+                    <Ruler size={20} />
+                  </div>
+                  <div>
+                    <strong className="block text-base font-black text-ondjo-navy">
+                      {property.area} m²
+                    </strong>
+                    <span className="text-xs font-semibold text-ondjo-muted">
+                      Área útil
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-2 sm:px-3 pt-3 sm:pt-2">
+                  <div className="grid size-11 place-items-center rounded-2xl bg-ondjo-blue-50 text-ondjo-blue shrink-0">
+                    <CarFront size={20} />
+                  </div>
+                  <div>
+                    <strong className="block text-base font-black text-ondjo-navy">
+                      {property.parking}
+                    </strong>
+                    <span className="text-xs font-semibold text-ondjo-muted">
+                      {property.parking === 1 ? "Vaga privativa" : "Vagas"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* 2. Descrição Completa do Imóvel */}
+            <section
+              aria-labelledby="section-desc-title"
+              className="rounded-3xl border border-ondjo-border/80 bg-white p-6 sm:p-7 shadow-2xs"
+            >
               <h2
-                id="desc-heading"
-                className="mt-1 text-xl font-black text-ondjo-ink"
+                id="section-desc-title"
+                className="text-lg sm:text-xl font-black text-ondjo-navy"
               >
                 Sobre este imóvel
               </h2>
-            </div>
 
-            <p className="mt-4 text-base leading-relaxed text-ondjo-ink/80">
-              {property.description}
-            </p>
-
-
-          </section>
-
-          {/* Comodidades & Equipamentos */}
-          <section
-            aria-labelledby="features-heading"
-            className="rounded-[22px] border border-ondjo-border bg-white p-6 shadow-xs sm:p-7"
-          >
-            <div className="border-b border-slate-100 pb-3">
-              <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-ondjo-blue">
-                Infraestrutura & Conforto
-              </span>
-              <h2
-                id="features-heading"
-                className="mt-1 text-xl font-black text-ondjo-ink"
-              >
-                O que encontra neste imóvel
-              </h2>
-            </div>
-
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              {property.features.map((feature) => (
-                <div
-                  key={feature}
-                  className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/70 p-3.5 text-sm font-semibold text-ondjo-ink transition hover:border-slate-200"
-                >
-                  <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-white shadow-2xs">
-                    {getFeatureIcon(feature)}
-                  </span>
-                  <span>{feature}</span>
-                </div>
-              ))}
-
-              <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/70 p-3.5 text-sm font-semibold text-ondjo-ink">
-                <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-white shadow-2xs">
-                  <CarFront
-                    className="size-4 text-blue-600"
-                    aria-hidden="true"
-                  />
-                </span>
-                <span>
-                  {property.parking}{" "}
-                  {property.parking === 1
-                    ? "vaga reservada"
-                    : "vagas reservadas"}{" "}
-                  de estacionamento
-                </span>
+              <div className="mt-3 text-sm sm:text-base leading-relaxed text-slate-700">
+                <p className={showFullDescription ? "" : "line-clamp-3"}>
+                  {property.description}
+                </p>
+                {property.description.length > 180 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowFullDescription(!showFullDescription)}
+                    className="focus-ring mt-2 inline-flex items-center gap-1 text-xs font-bold text-ondjo-blue hover:underline cursor-pointer"
+                  >
+                    <span>{showFullDescription ? "Mostrar menos" : "Ler descrição completa"}</span>
+                  </button>
+                )}
               </div>
-            </div>
-          </section>
+            </section>
 
-          {/* Localização & Proximidades */}
-          <section
-            aria-labelledby="location-heading"
-            className="rounded-[22px] border border-ondjo-border bg-white p-6 shadow-xs sm:p-7"
-          >
-            <div className="border-b border-slate-100 pb-3">
-              <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-ondjo-blue">
-                Enquadramento
-              </span>
+            {/* 3. O que este imóvel oferece (Comodidades em 2 colunas com ícones locais) */}
+            <section
+              aria-labelledby="section-amenities-title"
+              className="rounded-3xl border border-ondjo-border/80 bg-white p-6 sm:p-7 shadow-2xs"
+            >
               <h2
-                id="location-heading"
-                className="mt-1 text-xl font-black text-ondjo-ink"
+                id="section-amenities-title"
+                className="text-lg sm:text-xl font-black text-ondjo-navy"
+              >
+                O que este imóvel oferece
+              </h2>
+              <p className="mt-1 text-xs text-ondjo-muted">
+                Comodidades essenciais e infraestrutura confirmada para Luanda.
+              </p>
+
+              <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                {property.features.map((feature) => (
+                  <div
+                    key={feature}
+                    className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/60 p-3.5 text-sm font-semibold text-ondjo-ink"
+                  >
+                    <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white shadow-2xs border border-slate-100">
+                      {getFeatureIcon(feature)}
+                    </span>
+                    <span>{feature}</span>
+                  </div>
+                ))}
+
+                {property.parking > 0 && (
+                  <div className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/60 p-3.5 text-sm font-semibold text-ondjo-ink">
+                    <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white shadow-2xs border border-slate-100">
+                      <CarFront className="size-4.5 text-blue-600" aria-hidden="true" />
+                    </span>
+                    <span>
+                      {property.parking}{" "}
+                      {property.parking === 1 ? "vaga reservada" : "vagas reservadas"} de estacionamento
+                    </span>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* 4. Localização & Enquadramento na Zona */}
+            <section
+              aria-labelledby="section-location-title"
+              className="rounded-3xl border border-ondjo-border/80 bg-white p-6 sm:p-7 shadow-2xs"
+            >
+              <h2
+                id="section-location-title"
+                className="text-lg sm:text-xl font-black text-ondjo-navy"
               >
                 Localização em {property.neighborhood}
               </h2>
-            </div>
 
-            <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-xl bg-blue-50/60 p-4 border border-blue-100/60">
-              <div className="flex items-center gap-3">
-                <div className="grid size-11 place-items-center rounded-xl bg-ondjo-blue text-white shadow-xs">
-                  <MapPin size={22} />
+              <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-2xl bg-ondjo-blue-50/50 p-4 sm:p-5 border border-ondjo-blue-soft/80">
+                <div className="flex items-center gap-3.5">
+                  <div className="grid size-12 place-items-center rounded-2xl bg-ondjo-blue text-white shadow-xs shrink-0">
+                    <MapPin size={22} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-ondjo-navy">
+                      {property.neighborhood}, Município de {property.city}
+                    </h3>
+                    <p className="mt-0.5 text-xs text-ondjo-muted">
+                      Zona valorizada com fácil acesso aos eixos viários e serviços locais.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-extrabold text-ondjo-ink">
-                    {property.neighborhood}, Município de {property.city}
-                  </h3>
-                  <p className="text-xs text-ondjo-muted">
-                    Zona com acessos facilitados a vias principais e comércio
-                    local.
+
+                <a
+                  href={`#/pesquisar?location=${encodeURIComponent(property.neighborhood)}`}
+                  className="focus-ring inline-flex items-center justify-center gap-1.5 rounded-full border border-ondjo-blue bg-white px-4 py-2 text-xs font-bold text-ondjo-blue shadow-2xs hover:bg-ondjo-blue-50 active:scale-95 transition shrink-0"
+                >
+                  <span>Explorar {property.neighborhood}</span>
+                  <ExternalLink size={13} />
+                </a>
+              </div>
+            </section>
+
+            {/* 5. "Antes de Avançar" — Checklist de Segurança e Transparência ONDJO */}
+            <section
+              aria-labelledby="safety-checklist-title"
+              className="rounded-3xl border border-slate-200 bg-slate-50/80 p-6 sm:p-7 shadow-2xs"
+            >
+              <div className="flex items-center gap-2 text-ondjo-navy">
+                <ShieldAlert size={20} className="text-ondjo-blue shrink-0" />
+                <h2
+                  id="safety-checklist-title"
+                  className="text-base sm:text-lg font-black text-ondjo-navy"
+                >
+                  Antes de avançar: recomendações essenciais ONDJO
+                </h2>
+              </div>
+              <p className="mt-1 text-xs text-ondjo-muted">
+                Garantias para a sua tranquilidade e segurança financeira em Angola:
+              </p>
+
+              <ul className="mt-4 space-y-2.5 text-xs sm:text-sm text-slate-700">
+                <li className="flex items-start gap-2.5">
+                  <span className="grid size-5 place-items-center rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-black shrink-0 mt-0.5">
+                    1
+                  </span>
+                  <span>
+                    <strong>Visita presencial obrigatória:</strong> visite sempre o imóvel em horário diurno e acompanhado pelo consultor antes de qualquer compromisso.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="grid size-5 place-items-center rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-black shrink-0 mt-0.5">
+                    2
+                  </span>
+                  <span>
+                    <strong>Verificação documental:</strong> solicite a Certidão do Registo Predial e o comprovativo de liquidação do IPU (Imposto Predial).
+                  </span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="grid size-5 place-items-center rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-black shrink-0 mt-0.5">
+                    3
+                  </span>
+                  <span>
+                    <strong>Contrato formal:</strong> exija sempre contrato formal escrito assinado pelas partes titulares antes de pagamentos.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="grid size-5 place-items-center rounded-full bg-red-100 text-red-800 text-[11px] font-black shrink-0 mt-0.5">
+                    !
+                  </span>
+                  <span className="text-red-950 font-medium">
+                    <strong>Alerta de segurança:</strong> nunca faça pagamentos prévios de "reserva", adiantamentos ou sinais sem vistoria presencial do imóvel e conferência do proprietário.
+                  </span>
+                </li>
+              </ul>
+            </section>
+          </div>
+
+          {/* ==================== COLUNA LATERAL (STICKY 370PX) ==================== */}
+          <aside className="lg:block">
+            <div className="sticky top-24 rounded-3xl border border-ondjo-border/80 bg-white p-6 shadow-ondjo-card">
+              {/* Preço Oficial em Kwanzas (Kz) */}
+              <div className="border-b border-slate-100 pb-5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+                    Preço anunciado
+                  </span>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-600">
+                    100% Kwanzas (Kz)
+                  </span>
+                </div>
+
+                <div className="mt-2 flex items-baseline gap-1.5 flex-wrap">
+                  <span className="text-2xl sm:text-3xl font-black tracking-tight text-ondjo-navy">
+                    {formatKz(property.price, { perMonth: isArrendamento })}
+                  </span>
+                </div>
+
+                <p className="mt-1 text-xs text-ondjo-muted">
+                  {isArrendamento ? "Valor de renda mensal sem taxas ocultas." : "Valor total oficial para negociação direta."}
+                </p>
+              </div>
+
+              {/* Informação do Consultor / Anunciante Credenciado */}
+              <div className="mt-5 flex items-center gap-3.5">
+                <div className="relative grid size-12 place-items-center rounded-full bg-ondjo-navy font-bold text-white shadow-xs shrink-0">
+                  <span>{property.advertiser?.name ? property.advertiser.name.slice(0, 2).toUpperCase() : "ON"}</span>
+                  <span
+                    className="absolute bottom-0 right-0 size-3 rounded-full border-2 border-white bg-emerald-500"
+                    title="Disponível agora"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <strong className="truncate text-sm font-black text-ondjo-navy">
+                      {property.advertiser?.name || "Consultor ONDJO"}
+                    </strong>
+                    <ShieldCheck size={14} className="text-ondjo-blue shrink-0" aria-hidden="true" />
+                  </div>
+                  <p className="flex items-center gap-1 text-[11px] text-ondjo-muted mt-0.5">
+                    <Clock size={12} />
+                    <span>Responde em média em 15 min</span>
                   </p>
                 </div>
               </div>
 
-              <button
-                onClick={() => navigate("pesquisar")}
-                className="focus-ring inline-flex items-center justify-center gap-1.5 rounded-lg bg-white px-3 py-2 text-xs font-bold text-ondjo-blue shadow-2xs border border-blue-200 hover:bg-blue-50"
-              >
-                Ver outros imóveis nesta zona{" "}
-                <ArrowLeft size={13} className="rotate-180" />
-              </button>
+              {/* Ações de Contacto Principais: WhatsApp, Chat e Agendamento */}
+              <div className="mt-6 space-y-2.5">
+                {/* 1. Botão Direto de WhatsApp */}
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="focus-ring flex min-h-12 w-full items-center justify-center gap-2.5 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] px-4 text-sm font-extrabold text-white shadow-xs active:scale-98 transition cursor-pointer"
+                >
+                  <Phone size={17} className="fill-white" />
+                  <span>Conversar no WhatsApp</span>
+                </a>
+
+                {/* 2. Botão de Chat ONDJO */}
+                <button
+                  type="button"
+                  onClick={handleContactChat}
+                  className="focus-ring flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-ondjo-blue px-4 text-sm font-extrabold text-white shadow-xs hover:bg-ondjo-blue-dark active:scale-98 transition cursor-pointer"
+                >
+                  <MessageCircle size={17} />
+                  <span>Mensagem na ONDJO</span>
+                </button>
+
+                {/* 3. Botão de Agendamento */}
+                <button
+                  type="button"
+                  onClick={() => setScheduleVisitOpen(true)}
+                  className="focus-ring flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border-2 border-ondjo-blue bg-white px-4 text-sm font-extrabold text-ondjo-blue hover:bg-blue-50/70 active:scale-98 transition cursor-pointer"
+                >
+                  <CalendarDays size={17} />
+                  <span>Agendar visita guiada</span>
+                </button>
+              </div>
+
+              {/* Dica de Confiança */}
+              <div className="mt-5 rounded-2xl bg-slate-50 p-3.5 border border-slate-100 flex items-start gap-2.5 text-xs text-slate-600 leading-relaxed">
+                <Info size={16} className="text-ondjo-blue shrink-0 mt-0.5" />
+                <span>
+                  Consultores verificados com identificação validada e suporte da plataforma ONDJO.
+                </span>
+              </div>
             </div>
-          </section>
+          </aside>
         </div>
 
-        {/* Coluna Lateral / Aside Sticky */}
-        <aside className="space-y-5">
-          {/* Card do Corretor / Gestor */}
-          <div className="sticky top-24 rounded-[22px] border border-ondjo-border bg-white p-5 shadow-[0_8px_30px_rgba(16,24,40,0.05)] sm:p-6">
-            <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-              <div className="relative grid size-12 place-items-center rounded-full bg-ondjo-navy font-bold text-white shadow-xs">
-                <span>ON</span>
-                <span
-                  className="absolute bottom-0 right-0 size-3.5 rounded-full border-2 border-white bg-emerald-500"
-                  title="Corretor online"
-                />
-              </div>
+        {/* =========================================================
+            IMÓVEIS SEMELHANTES (3 CARDS RESPONSIVOS)
+            ========================================================= */}
+        {similarProperties.length > 0 && (
+          <section
+            aria-labelledby="similar-properties-title"
+            className="mt-14 sm:mt-18 border-t border-slate-200/80 pt-10 sm:pt-12"
+          >
+            <div className="flex items-end justify-between">
               <div>
-                <div className="flex items-center gap-1.5">
-                  <strong className="text-sm font-black text-ondjo-ink">
-                    Consultor ONDJO
-                  </strong>
-                  <span title="Identidade verificada">
-                    <ShieldCheck
-                      size={14}
-                      className="text-ondjo-green"
-                      aria-hidden="true"
-                    />
-                  </span>
-                </div>
-                <p className="text-xs text-ondjo-muted flex items-center gap-1 mt-0.5">
-                  <Clock size={15} /> Responde em média em 15 min
+                <p className="text-xs font-extrabold uppercase tracking-wider text-ondjo-blue">
+                  Sugestões no mesmo perfil
                 </p>
+                <h2
+                  id="similar-properties-title"
+                  className="mt-1 text-2xl font-black tracking-tight text-ondjo-navy"
+                >
+                  Imóveis semelhantes em {property.city}
+                </h2>
               </div>
+              <a
+                href="#/pesquisar"
+                className="focus-ring hidden text-sm font-bold text-ondjo-blue hover:underline sm:inline-flex items-center gap-1"
+              >
+                Ver todos os imóveis →
+              </a>
             </div>
 
-            <div className="mt-4 space-y-2.5">
-              <button
-                onClick={handleContactAgent}
-                className="focus-ring flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-ondjo-blue px-4 text-xs font-extrabold text-white shadow-sm transition hover:bg-ondjo-blue-dark"
-              >
-                <MessageCircle size={15} /> Conversar no Chat ONDJO
-              </button>
-              <button
-                type="button"
-                onClick={() => setScheduleVisitOpen(true)}
-                className="focus-ring flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-ondjo-blue bg-white px-4 text-xs font-extrabold text-ondjo-blue transition hover:bg-blue-50"
-              >
-                <CalendarDays size={15} /> Marcar visita guiada
-              </button>
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+              {similarProperties.map((item, idx) => (
+                <PropertyCard key={item.id} property={item} index={idx} />
+              ))}
             </div>
-
-            {/* Dicas de Proteção ONDJO */}
-            <div className="mt-5 rounded-xl bg-slate-50 p-3.5 border border-slate-100">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-ondjo-ink">
-                <Info size={18} className="text-ondjo-blue" />
-                <span>Dicas essenciais</span>
-              </div>
-              <ul className="mt-2 space-y-1.5 text-[13px] leading-relaxed text-slate-500">
-                <li className="flex items-start gap-1.5">
-                  <span className="text-ondjo-green font-bold">•</span>
-                  Exija sempre a verificação presencial do título de
-                  propriedade.
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <span className="text-ondjo-green font-bold">•</span>
-                  Agende as visitas em horários diurnos com o corretor
-                  responsável.
-                </li>
-              </ul>
-            </div>
-          </div>
-        </aside>
+          </section>
+        )}
       </div>
 
-      {/* Imóveis Semelhantes */}
-      {similar.length > 0 && (
-        <section
-          aria-labelledby="similar-heading"
-          className="mt-14 border-t border-slate-200/80 pt-10"
-        >
-          <div className="flex items-end justify-between">
-            <div>
-              <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-ondjo-blue">
-                Sugestões no mesmo perfil
-              </p>
-              <h2
-                id="similar-heading"
-                className="mt-1 text-2xl font-black text-ondjo-ink"
-              >
-                Imóveis semelhantes em {property.city}
-              </h2>
-            </div>
-            <button
-              onClick={() => navigate("pesquisar")}
-              className="focus-ring hidden text-sm font-bold text-ondjo-blue hover:underline sm:inline-flex items-center gap-1"
-            >
-              Ver todos os imóveis →
-            </button>
-          </div>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {similar.map((item, index) => (
-              <PropertyCard key={item.id} property={item} index={index} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Barra Fixa Flutuante em Mobile: Preço + Ações rápidas acessíveis */}
+      {/* =========================================================
+          BARRA FIXA INFERIOR EM MOBILE (STICKY BOTTOM ACTION BAR)
+          ========================================================= */}
       <div
         role="region"
-        aria-label="Ações rápidas do imóvel"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 p-3 pb-safe shadow-[0_-8px_25px_rgba(16,24,40,0.08)] backdrop-blur-md lg:hidden"
+        aria-label="Ações rápidas móveis"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-ondjo-border/90 bg-white/95 p-3 pb-safe shadow-[0_-8px_30px_rgba(16,24,40,0.12)] backdrop-blur-md lg:hidden"
       >
         <div className="mx-auto flex max-w-lg items-center justify-between gap-3">
           <div className="min-w-0">
-            <span className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
-              Preço anunciado
+            <span className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+              Preço oficial
             </span>
-            <strong className="block truncate text-base font-black text-ondjo-ink sm:text-lg">
-              {formatKz(property.price, { perMonth: property.purpose === "arrendamento" })}
+            <strong className="block truncate text-base font-black text-ondjo-navy sm:text-lg">
+              {formatKz(property.price, { perMonth: isArrendamento })}
             </strong>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => toggleFavorite(property.id)}
-              aria-pressed={favorite}
-              aria-label={
-                favorite ? "Remover dos favoritos" : "Guardar nos favoritos"
-              }
-              className={`focus-ring grid size-11 place-items-center rounded-xl border transition ${
-                favorite
-                  ? "border-red-200 bg-red-50 text-red-600"
-                  : "border-ondjo-border bg-white text-slate-600"
-              }`}
+            {/* WhatsApp Móvel Rápido */}
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Contactar por WhatsApp"
+              className="focus-ring grid size-11 place-items-center rounded-2xl bg-[#25D366] text-white shadow-xs active:scale-95 transition"
             >
-              <Heart size={18} fill={favorite ? "currentColor" : "none"} />
-            </button>
+              <Phone size={18} className="fill-white" />
+            </a>
+
+            {/* Agendar ou Mensagem Móvel */}
             <button
+              type="button"
               onClick={() => setScheduleVisitOpen(true)}
-              className="focus-ring inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-ondjo-blue bg-white px-3 text-xs font-extrabold text-ondjo-blue"
+              className="focus-ring inline-flex min-h-11 items-center justify-center gap-1.5 rounded-2xl border-2 border-ondjo-blue bg-white px-3.5 text-xs font-extrabold text-ondjo-blue active:scale-95"
             >
-              <CalendarDays size={15} /> Visita
+              <CalendarDays size={15} />
+              <span>Visita</span>
             </button>
+
+            {/* Contactar Chat */}
             <button
-              onClick={handleContactAgent}
-              className="focus-ring inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-ondjo-blue px-3.5 text-xs font-extrabold text-white transition hover:bg-ondjo-blue-dark"
+              type="button"
+              onClick={handleContactChat}
+              className="focus-ring inline-flex min-h-11 items-center justify-center gap-1.5 rounded-2xl bg-ondjo-blue px-3.5 text-xs font-extrabold text-white active:scale-95 shadow-xs"
             >
-              <MessageCircle size={15} /> Contactar
+              <MessageCircle size={15} />
+              <span>Contactar</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Modal Lightbox de Fotos (mantido intacto) */}
-      <AnimatePresence>
-        {gallery && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-80 bg-slate-950/95 p-3 sm:p-8"
-          >
-            <button
-              onClick={() => setGallery(false)}
-              className="focus-ring absolute right-3 top-3 z-10 grid size-11 place-items-center rounded-full bg-white/10 text-white hover:bg-white/20"
-              aria-label="Fechar galeria"
-            >
-              <X />
-            </button>
-            <div className="mx-auto flex h-full max-w-6xl items-center justify-center">
-              <button
-                onClick={prev}
-                className="focus-ring absolute left-3 grid size-11 place-items-center rounded-full bg-white/10 text-white sm:left-8"
-                aria-label="Foto anterior"
+      {/* =========================================================
+          LIGHTBOX MODAL EM ECRÃ INTEIRO (ACESSIBILIDADE COMPLETA)
+          ========================================================= */}
+      {typeof document !== "undefined" &&
+        createPortal(
+          <AnimatePresence>
+            {lightboxOpen && (
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-label={`Galeria de fotos: ${property.title}`}
+                className="fixed inset-0 z-100 flex items-center justify-center p-3 sm:p-6"
               >
-                <ChevronLeft />
-              </button>
-              <motion.img
-                key={active}
-                initial={{ opacity: 0, scale: 0.985 }}
-                animate={{ opacity: 1, scale: 1 }}
-                src={property.images[active]}
-                alt={property.title}
-                className="max-h-[86dvh] max-w-full rounded-2xl object-contain"
-              />
-              <button
-                onClick={next}
-                className="focus-ring absolute right-3 grid size-11 place-items-center rounded-full bg-white/10 text-white sm:right-8"
-                aria-label="Próxima foto"
-              >
-                <ChevronRight />
-              </button>
-            </div>
-            <p className="absolute bottom-5 left-1/2 -translate-x-1/2 text-xs font-bold text-white/75">
-              {active + 1} / {property.images.length}
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setLightboxOpen(false)}
+                  className="absolute inset-0 bg-black/92 backdrop-blur-md"
+                />
 
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  transition={{ duration: 0.18, ease: "easeOut" }}
+                  className="relative z-10 flex flex-col items-center max-w-5xl w-full max-h-[92dvh]"
+                >
+                  {/* Cabeçalho da Lightbox */}
+                  <div className="w-full flex items-center justify-between gap-3 px-2 sm:px-3 py-2 text-white">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <h2 className="font-bold text-sm sm:text-base truncate text-white">
+                        {property.title}
+                      </h2>
+                      <span className="shrink-0 whitespace-nowrap rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-semibold text-white/90">
+                        {activePhoto + 1} de {totalPhotos}
+                      </span>
+                    </div>
+
+                    <button
+                      ref={closeButtonRef}
+                      type="button"
+                      onClick={() => setLightboxOpen(false)}
+                      className="focus-ring shrink-0 grid size-11 place-items-center rounded-full bg-white/10 text-white hover:bg-white/20 active:scale-95 transition-colors cursor-pointer"
+                      aria-label="Fechar galeria (Esc)"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+
+                  {/* Foto Central Ampliada */}
+                  <div className="relative w-full flex-1 flex items-center justify-center overflow-hidden my-2 sm:my-3 rounded-2xl bg-black/40">
+                    <img
+                      src={getOptimizedImageUrl(property.images[activePhoto], 1400, 85)}
+                      alt={`${property.title} - Foto ${activePhoto + 1} de ${totalPhotos}`}
+                      decoding="async"
+                      className="max-h-[66dvh] sm:max-h-[72dvh] w-auto max-w-full object-contain rounded-lg select-none"
+                    />
+
+                    {totalPhotos > 1 && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={prevPhoto}
+                          aria-label="Ver foto anterior"
+                          className="focus-ring absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 grid size-11 sm:size-12 place-items-center rounded-full bg-black/65 text-white hover:bg-black/90 active:scale-95 backdrop-blur-md shadow-lg transition cursor-pointer"
+                        >
+                          <ChevronLeft size={24} className="-translate-x-0.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={nextPhoto}
+                          aria-label="Ver próxima foto"
+                          className="focus-ring absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 grid size-11 sm:size-12 place-items-center rounded-full bg-black/65 text-white hover:bg-black/90 active:scale-95 backdrop-blur-md shadow-lg transition cursor-pointer"
+                        >
+                          <ChevronRight size={24} className="translate-x-0.5" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Faixa de Miniaturas na Lightbox */}
+                  {totalPhotos > 1 && (
+                    <div
+                      className="flex items-center justify-center gap-2 sm:gap-2.5 overflow-x-auto max-w-full py-2 px-3 no-scrollbar"
+                      role="tablist"
+                      aria-label="Miniaturas da galeria"
+                    >
+                      {property.images.map((img, idx) => {
+                        const isActive = activePhoto === idx;
+                        return (
+                          <button
+                            key={img}
+                            type="button"
+                            role="tab"
+                            aria-selected={isActive}
+                            aria-label={`Ver foto ${idx + 1}`}
+                            onClick={() => setActivePhoto(idx)}
+                            className={`focus-ring relative size-13 sm:size-14 shrink-0 overflow-hidden rounded-lg transition-all cursor-pointer ${
+                              isActive
+                                ? "ring-2 ring-white ring-offset-2 ring-offset-black/90 opacity-100 shadow-md scale-105"
+                                : "opacity-55 hover:opacity-90 ring-1 ring-white/20"
+                            }`}
+                          >
+                            <img
+                              src={getOptimizedImageUrl(img, 120, 60)}
+                              alt=""
+                              aria-hidden="true"
+                              className="h-full w-full object-cover select-none"
+                            />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>,
+          document.body,
+        )}
+
+      {/* Painel de Agendamento de Visita */}
       <ScheduleVisitPanel
         open={scheduleVisitOpen}
         onClose={() => setScheduleVisitOpen(false)}

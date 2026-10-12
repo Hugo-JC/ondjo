@@ -76,7 +76,7 @@ export function Home() {
           - Pílula de pesquisa suave e central
           - Preços 100% em Kwanzas e garantias de confiança
           ========================================================= */}
-      <section className="relative isolate w-full max-w-full overflow-hidden bg-ondjo-navy">
+      <section className="relative z-30 w-full max-w-full bg-ondjo-navy">
         {/* Fotografia Real de Fundo com Tratamento Sóbrio (Visível & Elegante) */}
         <div
           aria-hidden="true"
@@ -136,7 +136,7 @@ export function Home() {
               duration: 0.38,
               delay: reduceMotion ? 0 : 0.05,
             }}
-            className="mx-auto mt-6 max-w-5xl scroll-mt-4 sm:mt-8 w-full"
+            className="relative z-20 mx-auto mt-6 max-w-5xl scroll-mt-4 sm:mt-8 w-full"
             tabIndex={-1}
           >
             {/* Barra de Pesquisa em Pílula */}
@@ -189,7 +189,7 @@ export function Home() {
       {/* =========================================================
           CORPO PRINCIPAL: DESTAQUES, ZONAS E EXPERIÊNCIA
           ========================================================= */}
-      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-14 lg:px-8 lg:py-18 flex-1 min-w-0">
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-14 lg:px-8 lg:py-18 flex-1 min-w-0">
         {/* =========================================================
             IMÓVEIS EM DESTAQUE (SELEÇÃO ONDJO)
             ========================================================= */}
