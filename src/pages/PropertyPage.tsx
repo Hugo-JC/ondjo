@@ -13,6 +13,7 @@ import {
   Flame,
   Heart,
   Home,
+  ImageOff,
   Info,
   MapPin,
   Maximize2,
@@ -37,7 +38,8 @@ import { navigate } from "../hooks/useHashRoute";
 import { useFavorites } from "../hooks/useFavorites";
 import { PropertyCard } from "../components/PropertyCard";
 import { ScheduleVisitPanel } from "../components/ScheduleVisitPanel";
-import { getOptimizedImageUrl, getImageSrcSet } from "../utils/images";
+import { PropertyMap } from "../components/PropertyMap";
+import { getOptimizedImageUrl } from "../utils/images";
 
 // Mapeamento semântico de ícones de comodidades locais em Angola
 function getFeatureIcon(featureName: string) {
@@ -89,6 +91,69 @@ function getFeatureIcon(featureName: string) {
     return <Flame className="size-4.5 text-orange-500" aria-hidden="true" />;
   }
   return <Check className="size-4.5 text-ondjo-green" aria-hidden="true" />;
+}
+
+
+function SafeGalleryImage({
+  src,
+  alt,
+  className = "",
+  imgClassName = "",
+  priority = false,
+  onClick,
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+  imgClassName?: string;
+  priority?: boolean;
+  onClick?: () => void;
+}) {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+
+  return (
+    <div
+      onClick={onClick}
+      className={`relative overflow-hidden bg-slate-100 ${className}`}
+    >
+      {!loaded && !error && (
+        <div
+          className="absolute inset-0 z-10 animate-pulse bg-slate-200/90"
+          aria-hidden="true"
+        />
+      )}
+
+      {error ? (
+        <div
+          className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-100 p-3 text-center text-slate-400 select-none"
+          role="img"
+          aria-label="Imagem indisponível"
+        >
+          <ImageOff size={22} className="text-slate-300 mb-1" aria-hidden="true" />
+          <span className="text-[11px] font-semibold text-slate-500">
+            Foto indisponível
+          </span>
+        </div>
+      ) : (
+        <img
+          src={src}
+          alt={alt}
+          fetchPriority={priority ? "high" : "auto"}
+          loading={priority ? "eager" : "lazy"}
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+          onError={() => {
+            setLoaded(true);
+            setError(true);
+          }}
+          className={`h-full w-full object-cover transition-all duration-300 ${
+            loaded ? "opacity-100" : "opacity-0"
+          } ${imgClassName}`}
+        />
+      )}
+    </div>
+  );
 }
 
 export function PropertyPage({ id }: { id: string }) {
@@ -388,30 +453,27 @@ export function PropertyPage({ id }: { id: string }) {
         </div>
 
         {/* =========================================================
-            GALERIA DE FOTOS AIRBNB (1+4 NO DESKTOP, CARROSSEL NO MOBILE)
+            GALERIA COMPACTA COM ESTADOS DE CARREGAMENTO & FALLBACK
             ========================================================= */}
-        <section aria-label="Galeria de fotografias do imóvel" className="mt-5 sm:mt-6">
-          {/* 1. Grelha 1+4 Desktop (>= 768px / md) */}
-          <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-2 h-105 lg:h-125 rounded-3xl overflow-hidden relative group">
+        <section aria-label="Galeria de fotografias do imóvel" className="mt-4 sm:mt-5">
+          {/* 1. Grelha 1+4 Desktop Compacta & Elegante (>= 768px / md) */}
+          <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-2 h-72 sm:h-80 md:h-84 lg:h-92 max-h-[380px] rounded-3xl overflow-hidden relative group">
             {/* Foto Principal (50% de largura, 2 colunas x 2 linhas) */}
             <div
               onClick={() => {
                 setActivePhoto(0);
                 setLightboxOpen(true);
               }}
-              className="col-span-2 row-span-2 relative h-full w-full overflow-hidden bg-slate-100 cursor-pointer"
+              className="col-span-2 row-span-2 relative h-full w-full cursor-pointer overflow-hidden"
             >
-              <img
+              <SafeGalleryImage
                 src={getOptimizedImageUrl(property.images[0], 1200, 85)}
-                srcSet={getImageSrcSet(property.images[0], [640, 960, 1200])}
-                sizes="(max-width: 1024px) 50vw, 600px)"
                 alt={`${property.title} — Foto principal`}
-                fetchPriority="high"
-                loading="eager"
-                decoding="async"
-                className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.015] select-none"
+                priority={true}
+                className="h-full w-full"
+                imgClassName="group-hover:scale-[1.015] select-none"
               />
-              <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors" />
+              <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors pointer-events-none" />
             </div>
 
             {/* 4 Fotos Secundárias em Grelha 2x2 */}
@@ -424,48 +486,47 @@ export function PropertyPage({ id }: { id: string }) {
                     setActivePhoto(photoIdx);
                     setLightboxOpen(true);
                   }}
-                  className="relative h-full w-full overflow-hidden bg-slate-100 cursor-pointer"
+                  className="relative h-full w-full cursor-pointer overflow-hidden"
                 >
-                  <img
+                  <SafeGalleryImage
                     src={getOptimizedImageUrl(imgUrl, 640, 80)}
                     alt={`${property.title} — Foto ${photoIdx + 1}`}
-                    loading="lazy"
-                    decoding="async"
-                    className="h-full w-full object-cover transition-transform duration-500 ease-out hover:scale-105 select-none"
+                    priority={false}
+                    className="h-full w-full"
+                    imgClassName="hover:scale-105 select-none"
                   />
-                  <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors" />
+                  <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors pointer-events-none" />
                 </div>
               );
             })}
 
-            {/* Botão "Ver todas as fotos" flutuante no canto inferior direito */}
+            {/* Botão "Ver todas as fotos" flutuante */}
             <button
               type="button"
               onClick={() => {
                 setActivePhoto(0);
                 setLightboxOpen(true);
               }}
-              className="focus-ring absolute right-4 bottom-4 z-10 inline-flex items-center gap-2 rounded-xl border border-white/70 bg-white/95 px-3.5 py-2 text-xs font-bold text-ondjo-navy shadow-md backdrop-blur-md hover:bg-white active:scale-95 transition cursor-pointer"
+              className="focus-ring absolute right-3.5 bottom-3.5 z-10 inline-flex items-center gap-1.5 rounded-xl border border-white/70 bg-white/95 px-3 py-1.5 text-xs font-bold text-ondjo-navy shadow-md backdrop-blur-md hover:bg-white active:scale-95 transition cursor-pointer"
             >
-              <Maximize2 size={14} className="text-ondjo-blue" aria-hidden="true" />
-              <span>Ver todas as fotos ({totalPhotos})</span>
+              <Maximize2 size={13} className="text-ondjo-blue" aria-hidden="true" />
+              <span>Ver fotos ({totalPhotos})</span>
             </button>
           </div>
 
-          {/* 2. Carrossel Mobile com Swipe (< md) */}
+          {/* 2. Carrossel Mobile Compacto com Swipe (< md) */}
           <div
-            className="md:hidden relative overflow-hidden rounded-2xl bg-slate-100 aspect-4/3 w-full"
+            className="md:hidden relative overflow-hidden rounded-2xl bg-slate-100 aspect-[16/10] max-h-[290px] w-full"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
-            <img
+            <SafeGalleryImage
               src={getOptimizedImageUrl(property.images[activePhoto], 800, 80)}
               alt={`${property.title} — Foto ${activePhoto + 1} de ${totalPhotos}`}
-              loading="eager"
-              decoding="async"
+              priority={true}
               onClick={() => setLightboxOpen(true)}
-              className="h-full w-full object-cover cursor-pointer select-none"
+              className="h-full w-full cursor-pointer"
             />
 
             {/* Setas de navegação direta */}
@@ -684,6 +745,13 @@ export function PropertyPage({ id }: { id: string }) {
                 </a>
               </div>
             </section>
+
+            {/* Integração Oficial com o OpenStreetMap */}
+            <PropertyMap
+              neighborhood={property.neighborhood}
+              city={property.city}
+              propertyTitle={property.title}
+            />
 
             {/* 5. "Antes de Avançar" — Checklist de Segurança e Transparência ONDJO */}
             <section
@@ -975,11 +1043,12 @@ export function PropertyPage({ id }: { id: string }) {
 
                   {/* Foto Central Ampliada */}
                   <div className="relative w-full flex-1 flex items-center justify-center overflow-hidden my-2 sm:my-3 rounded-2xl bg-black/40">
-                    <img
+                    <SafeGalleryImage
                       src={getOptimizedImageUrl(property.images[activePhoto], 1400, 85)}
                       alt={`${property.title} - Foto ${activePhoto + 1} de ${totalPhotos}`}
-                      decoding="async"
-                      className="max-h-[66dvh] sm:max-h-[72dvh] w-auto max-w-full object-contain rounded-lg select-none"
+                      priority={true}
+                      className="max-h-[66dvh] sm:max-h-[72dvh] w-auto max-w-full object-contain rounded-lg"
+                      imgClassName="max-h-[66dvh] sm:max-h-[72dvh] w-auto max-w-full object-contain rounded-lg select-none"
                     />
 
                     {totalPhotos > 1 && (

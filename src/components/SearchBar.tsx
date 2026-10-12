@@ -5,6 +5,8 @@ import {
   SlidersHorizontal,
   X,
   Check,
+  Minus,
+  Plus,
 } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -32,6 +34,7 @@ export interface SearchFilters {
   origin?: string;
   bathrooms?: string;
   parking?: string;
+  amenities?: string[];
 }
 
 interface SearchBarProps {
@@ -68,6 +71,15 @@ export const ORIGIN_OPTIONS: {
   { id: "verificados", label: "Verificados ONDJO", icon: ShieldCheck },
 ];
 
+export const AMENITY_OPTIONS = [
+  "Máquina de lavar",
+  "Cozinha equipada",
+  "Ar-condicionado",
+  "Gerador elétrico",
+  "Tanque de água",
+  "Segurança 24h",
+];
+
 export const PROPERTY_TYPES = [
   { value: "", label: "Todos os tipos" },
   { value: "Apartamento", label: "Apartamento" },
@@ -98,7 +110,7 @@ export function defaultSearchFilters(): SearchFilters {
   return { ...emptyFilters };
 }
 
-type ActiveSegment = "location" | "type" | "bedrooms" | "price" | null;
+type ActiveSegment = "location" | "type" | "amenities" | "price" | null;
 
 export function SearchBar({
   value,
@@ -108,6 +120,15 @@ export function SearchBar({
 }: SearchBarProps) {
   const [activeSegment, setActiveSegment] = useState<ActiveSegment>(null);
   const [mobileModalOpen, setMobileModalOpen] = useState(false);
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>(value.amenities || []);
+
+  const toggleAmenity = (amenity: string) => {
+    const next = selectedAmenities.includes(amenity)
+      ? selectedAmenities.filter((a) => a !== amenity)
+      : [...selectedAmenities, amenity];
+    setSelectedAmenities(next);
+    onChange({ ...value, amenities: next });
+  };
   const reduceMotion = useReducedMotion();
   const barRef = useRef<HTMLDivElement>(null);
   const locationInputRef = useRef<HTMLInputElement>(null);
@@ -420,32 +441,32 @@ export function SearchBar({
 
           <div
             className={`h-8 w-px bg-slate-200/80 shrink-0 transition-opacity ${
-              activeSegment === "type" || activeSegment === "bedrooms" ? "opacity-0" : "opacity-100"
+              activeSegment === "type" || activeSegment === "amenities" ? "opacity-0" : "opacity-100"
             }`}
           />
 
-          {/* SEGMENTO 3: QUARTOS */}
+          {/* SEGMENTO 3: COMODIDADES (INSPIRADO NA REFERÊNCIA) */}
           <button
             type="button"
-            onClick={() => setActiveSegment(activeSegment === "bedrooms" ? null : "bedrooms")}
+            onClick={() => setActiveSegment(activeSegment === "amenities" ? null : "amenities")}
             className={[
               "group relative flex-1 rounded-full px-6 py-3.5 text-left transition-all cursor-pointer",
-              activeSegment === "bedrooms"
+              activeSegment === "amenities"
                 ? "bg-white shadow-[0_8px_24px_rgba(16,42,67,0.12)] z-20 ring-1 ring-slate-200"
                 : "hover:bg-slate-100/70",
             ].join(" ")}
           >
             <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Quartos
+              Comodidades
             </span>
             <span className="mt-0.5 block truncate text-sm font-semibold text-ondjo-ink">
-              {value.bedrooms ? `T${value.bedrooms}` : "Qualquer"}
+              {value.bedrooms ? `T${value.bedrooms}` : ""}{value.bedrooms && value.bathrooms ? " · " : ""}{value.bathrooms ? `${value.bathrooms} WC` : ""}{!value.bedrooms && !value.bathrooms && (selectedAmenities.length > 0 ? `${selectedAmenities.length} comodidades` : "Quartos e preferências")}
             </span>
           </button>
 
           <div
             className={`h-8 w-px bg-slate-200/80 shrink-0 transition-opacity ${
-              activeSegment === "bedrooms" || activeSegment === "price" ? "opacity-0" : "opacity-100"
+              activeSegment === "amenities" || activeSegment === "price" ? "opacity-0" : "opacity-100"
             }`}
           />
 
@@ -567,7 +588,7 @@ export function SearchBar({
                       type="button"
                       onClick={() => {
                         set("type", t.value);
-                        setActiveSegment("bedrooms");
+                        setActiveSegment("amenities");
                       }}
                       className={[
                         "flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all cursor-pointer",
@@ -585,39 +606,142 @@ export function SearchBar({
             </motion.div>
           )}
 
-          {activeSegment === "bedrooms" && (
+          {activeSegment === "amenities" && (
             <motion.div
               initial={{ opacity: 0, y: 10, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 8, scale: 0.98 }}
               transition={{ duration: reduceMotion ? 0 : 0.16 }}
-              className="absolute left-1/2 top-full mt-3 w-80 -translate-x-1/4 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-[0_20px_50px_rgba(16,42,67,0.22)] z-50"
+              className="absolute left-1/2 top-full mt-3 w-88 sm:w-96 -translate-x-1/2 rounded-3xl border border-slate-200/90 bg-white p-5 shadow-[0_20px_50px_rgba(16,42,67,0.22)] z-50"
             >
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-3">
-                Número de quartos
-              </span>
-              <div className="grid grid-cols-4 gap-2">
-                {BEDROOM_OPTIONS.map((b) => {
-                  const isSelected = value.bedrooms === b.value;
-                  return (
+              <div className="space-y-3.5">
+                {/* Linha 1: Quartos */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-ondjo-navy">Quartos</span>
+                  <div className="flex items-center gap-3">
                     <button
-                      key={b.value}
                       type="button"
                       onClick={() => {
-                        set("bedrooms", b.value);
-                        setActiveSegment("price");
+                        const cur = parseInt(value.bedrooms || "0", 10);
+                        const next = Math.max(0, cur - 1);
+                        set("bedrooms", next === 0 ? "" : String(next));
                       }}
-                      className={[
-                        "flex h-11 items-center justify-center rounded-2xl text-xs font-bold transition-all cursor-pointer border",
-                        isSelected
-                          ? "bg-ondjo-navy border-ondjo-navy text-white shadow-xs"
-                          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50",
-                      ].join(" ")}
+                      className="grid size-8 place-items-center rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition active:scale-90 cursor-pointer shadow-xs"
+                      aria-label="Diminuir quartos"
                     >
-                      {b.label}
+                      <Minus size={15} />
                     </button>
-                  );
-                })}
+                    <span className="w-5 text-center text-sm font-bold text-ondjo-navy">
+                      {value.bedrooms || "0"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const cur = parseInt(value.bedrooms || "0", 10);
+                        set("bedrooms", String(cur + 1));
+                      }}
+                      className="grid size-8 place-items-center rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition active:scale-90 cursor-pointer shadow-xs"
+                      aria-label="Aumentar quartos"
+                    >
+                      <Plus size={15} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Linha 2: Banheiros */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-ondjo-navy">Banheiros</span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const cur = parseInt(value.bathrooms || "0", 10);
+                        const next = Math.max(0, cur - 1);
+                        set("bathrooms", next === 0 ? "" : String(next));
+                      }}
+                      className="grid size-8 place-items-center rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition active:scale-90 cursor-pointer shadow-xs"
+                      aria-label="Diminuir banheiros"
+                    >
+                      <Minus size={15} />
+                    </button>
+                    <span className="w-5 text-center text-sm font-bold text-ondjo-navy">
+                      {value.bathrooms || "0"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const cur = parseInt(value.bathrooms || "0", 10);
+                        set("bathrooms", String(cur + 1));
+                      }}
+                      className="grid size-8 place-items-center rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition active:scale-90 cursor-pointer shadow-xs"
+                      aria-label="Aumentar banheiros"
+                    >
+                      <Plus size={15} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Linha 3: Vagas de Garagem */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-ondjo-navy">Vagas de Garagem</span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const cur = parseInt(value.parking || "0", 10);
+                        const next = Math.max(0, cur - 1);
+                        set("parking", next === 0 ? "" : String(next));
+                      }}
+                      className="grid size-8 place-items-center rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition active:scale-90 cursor-pointer shadow-xs"
+                      aria-label="Diminuir vagas"
+                    >
+                      <Minus size={15} />
+                    </button>
+                    <span className="w-5 text-center text-sm font-bold text-ondjo-navy">
+                      {value.parking || "0"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const cur = parseInt(value.parking || "0", 10);
+                        set("parking", String(cur + 1));
+                      }}
+                      className="grid size-8 place-items-center rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition active:scale-90 cursor-pointer shadow-xs"
+                      aria-label="Aumentar vagas"
+                    >
+                      <Plus size={15} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Linha separadora */}
+                <div className="my-3.5 h-px bg-slate-200" />
+
+                {/* Grelha de Boxes em Laranja / Terracota com opções checks */}
+                <div>
+                  <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2.5">
+                    Preferências e Comodidades
+                  </span>
+                  <div className="grid grid-cols-3 gap-2">
+                    {AMENITY_OPTIONS.map((amenity) => {
+                      const isSelected = selectedAmenities.includes(amenity);
+                      return (
+                        <button
+                          key={amenity}
+                          type="button"
+                          onClick={() => toggleAmenity(amenity)}
+                          className={`focus-ring rounded-xl px-2.5 py-2.5 text-[11px] font-bold text-center border transition-all cursor-pointer select-none leading-snug ${
+                            isSelected
+                              ? "bg-[#8A3C14] border-[#A84A1A] text-white shadow-xs scale-[1.02]"
+                              : "bg-slate-100/90 text-slate-700 border-slate-200 hover:bg-slate-200/70"
+                          }`}
+                        >
+                          {amenity}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </motion.div>
           )}
@@ -872,30 +996,126 @@ export function SearchBar({
                       </div>
                     </div>
 
-                    {/* Quartos / Tipologia */}
-                    <div>
-                      <label className="text-xs font-bold text-slate-700 block mb-1.5 uppercase tracking-wider">
-                        Tipologia (Quartos)
+                    {/* Comodidades e Preferências (Mobile Sheet) */}
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                      <label className="text-xs font-bold text-slate-700 block mb-3 uppercase tracking-wider">
+                        Comodidades & Espaços
                       </label>
-                      <div className="grid grid-cols-4 gap-2">
-                        {BEDROOM_OPTIONS.map((b) => {
-                          const isSelected = value.bedrooms === b.value;
-                          return (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold text-ondjo-navy">Quartos</span>
+                          <div className="flex items-center gap-2.5">
                             <button
-                              key={b.value}
                               type="button"
-                              onClick={() => set("bedrooms", b.value)}
-                              className={[
-                                "flex min-h-11 items-center justify-center rounded-xl text-xs font-bold border transition cursor-pointer",
-                                isSelected
-                                  ? "border-ondjo-navy bg-ondjo-navy text-white shadow-xs"
-                                  : "border-slate-200 text-slate-700 hover:bg-slate-50",
-                              ].join(" ")}
+                              onClick={() => {
+                                const cur = parseInt(value.bedrooms || "0", 10);
+                                const next = Math.max(0, cur - 1);
+                                set("bedrooms", next === 0 ? "" : String(next));
+                              }}
+                              className="grid size-8 place-items-center rounded-full bg-emerald-600 text-white font-bold active:scale-90"
                             >
-                              {b.label}
+                              <Minus size={15} />
                             </button>
-                          );
-                        })}
+                            <span className="w-5 text-center text-sm font-bold text-ondjo-navy">
+                              {value.bedrooms || "0"}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const cur = parseInt(value.bedrooms || "0", 10);
+                                set("bedrooms", String(cur + 1));
+                              }}
+                              className="grid size-8 place-items-center rounded-full bg-emerald-600 text-white font-bold active:scale-90"
+                            >
+                              <Plus size={15} />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold text-ondjo-navy">Banheiros</span>
+                          <div className="flex items-center gap-2.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const cur = parseInt(value.bathrooms || "0", 10);
+                                const next = Math.max(0, cur - 1);
+                                set("bathrooms", next === 0 ? "" : String(next));
+                              }}
+                              className="grid size-8 place-items-center rounded-full bg-emerald-600 text-white font-bold active:scale-90"
+                            >
+                              <Minus size={15} />
+                            </button>
+                            <span className="w-5 text-center text-sm font-bold text-ondjo-navy">
+                              {value.bathrooms || "0"}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const cur = parseInt(value.bathrooms || "0", 10);
+                                set("bathrooms", String(cur + 1));
+                              }}
+                              className="grid size-8 place-items-center rounded-full bg-emerald-600 text-white font-bold active:scale-90"
+                            >
+                              <Plus size={15} />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold text-ondjo-navy">Vagas de Garagem</span>
+                          <div className="flex items-center gap-2.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const cur = parseInt(value.parking || "0", 10);
+                                const next = Math.max(0, cur - 1);
+                                set("parking", next === 0 ? "" : String(next));
+                              }}
+                              className="grid size-8 place-items-center rounded-full bg-emerald-600 text-white font-bold active:scale-90"
+                            >
+                              <Minus size={15} />
+                            </button>
+                            <span className="w-5 text-center text-sm font-bold text-ondjo-navy">
+                              {value.parking || "0"}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const cur = parseInt(value.parking || "0", 10);
+                                set("parking", String(cur + 1));
+                              }}
+                              className="grid size-8 place-items-center rounded-full bg-emerald-600 text-white font-bold active:scale-90"
+                            >
+                              <Plus size={15} />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-slate-200">
+                          <span className="text-[11px] font-bold text-slate-500 uppercase block mb-2">
+                            Preferências
+                          </span>
+                          <div className="grid grid-cols-2 gap-2">
+                            {AMENITY_OPTIONS.map((amenity) => {
+                              const isSelected = selectedAmenities.includes(amenity);
+                              return (
+                                <button
+                                  key={amenity}
+                                  type="button"
+                                  onClick={() => toggleAmenity(amenity)}
+                                  className={`rounded-xl px-2.5 py-2 text-xs font-bold border text-center transition cursor-pointer select-none ${
+                                    isSelected
+                                      ? "bg-[#8A3C14] border-[#A84A1A] text-white shadow-xs"
+                                      : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                                  }`}
+                                >
+                                  {amenity}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
                     </div>
 
