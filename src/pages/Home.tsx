@@ -3,7 +3,6 @@ import {
   Building2,
   CalendarCheck,
   CheckCircle2,
-  MapPin,
   MessageSquare,
   Search,
   ShieldCheck,
@@ -12,9 +11,8 @@ import {
 import { motion, useReducedMotion } from "framer-motion";
 import { useMemo, useRef, useState } from "react";
 
-import { properties, locations } from "../data/properties";
+import { properties } from "../data/properties";
 import { navigate } from "../hooks/useHashRoute";
-import { ZoneSection } from "../components/ZoneSection";
 import { PropertyCard } from "../components/PropertyCard";
 import {
   SearchBar,
@@ -31,7 +29,6 @@ const HERO_IMAGE_URL =
 export function Home() {
   const [filters, setFilters] = useState<SearchFilters>(defaultSearchFilters());
 
-  const searchRef = useRef<HTMLDivElement>(null);
   const featuredScrollerRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
 
@@ -43,18 +40,6 @@ export function Home() {
     });
 
     navigate(`pesquisar?${params.toString()}`);
-  };
-
-  const selectLocation = (location: string) => {
-    setFilters((previous) => ({
-      ...previous,
-      location,
-      query: "",
-    }));
-
-    searchRef.current?.querySelector("input")?.focus({
-      preventScroll: true,
-    });
   };
 
   // Seleciona até 8 imóveis com destaque primeiro, garantindo variedade e scroll rico
@@ -129,7 +114,6 @@ export function Home() {
 
           {/* Barra de Pesquisa em Pílula (Central) */}
           <motion.div
-            ref={searchRef}
             initial={reduceMotion ? undefined : { opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{
@@ -148,40 +132,6 @@ export function Home() {
               />
             </div>
 
-            {/* Atalhos Rápidos por Zona (Chips Táteis) */}
-            <div className="mt-4 flex flex-col items-center gap-2 sm:mt-5 sm:flex-row sm:justify-center sm:gap-3 w-full">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-ondjo-blue-soft/90 shrink-0">
-                <MapPin
-                  size={16}
-                  className="text-ondjo-blue-soft"
-                  aria-hidden="true"
-                />
-                <span>Zonas populares:</span>
-              </div>
-
-              <div className="flex max-w-full w-full sm:w-auto overflow-x-auto no-scrollbar scroll-smooth gap-1.5 py-1 px-1 sm:px-0 sm:flex-wrap sm:justify-center">
-                {locations.slice(0, 6).map((location) => {
-                  const selected = filters.location === location;
-
-                  return (
-                    <button
-                      key={location}
-                      type="button"
-                      onClick={() => selectLocation(location)}
-                      aria-pressed={selected}
-                      className={[
-                        "min-h-9 shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white cursor-pointer",
-                        selected
-                          ? "border-white bg-white text-ondjo-navy shadow-xs font-bold"
-                          : "border-white/20 bg-white/10 text-white hover:border-white/40 hover:bg-white/15",
-                      ].join(" ")}
-                    >
-                      {location}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
           </motion.div>
         </div>
       </section>
@@ -255,17 +205,12 @@ export function Home() {
           <button
             type="button"
             onClick={() => navigate("pesquisar")}
-            className="mt-4 flex min-h-12 w-full max-w-full items-center justify-center gap-2 rounded-xl border border-ondjo-border bg-white px-4 py-3 text-sm font-bold text-ondjo-blue shadow-2xs transition-colors hover:bg-ondjo-bg active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ondjo-blue sm:hidden cursor-pointer"
+            className="mt-4 flex min-h-12 w-full max-w-full items-center justify-center gap-2 rounded-2xl border border-ondjo-border bg-white px-4 py-3 text-sm font-bold text-ondjo-blue shadow-2xs transition-colors hover:bg-ondjo-bg active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ondjo-blue sm:hidden cursor-pointer"
           >
             <span>Ver todos os {properties.length} imóveis</span>
             <ArrowRight size={16} aria-hidden="true" />
           </button>
         </section>
-
-        {/* =========================================================
-            EXPLORAR POR ZONA (ZONAS POPULARES DE LUANDA)
-            ========================================================= */}
-        <ZoneSection />
 
         {/* =========================================================
             COMO FUNCIONA A ONDJO (3 PASSOS PRÁTICOS EM ANGOLA)

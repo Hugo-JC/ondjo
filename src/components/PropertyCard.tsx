@@ -1,7 +1,6 @@
 import { useRef } from "react";
 import {
   BedDouble,
-  ChevronRight,
   Heart,
   Ruler,
   ShieldCheck,
@@ -198,17 +197,13 @@ export function PropertyCard({
           </div>
         </div>
 
-        {/* Linha 4: Preço em Kz em grande destaque + Link para detalhes */}
+        {/* Linha 4: Preço em Kz em grande destaque */}
         <div className="mt-3.5 flex flex-wrap items-baseline justify-between gap-1.5 border-t border-slate-100 pt-3">
           <div className="flex items-baseline gap-1">
             <span className="text-[17px] font-black tracking-tight text-ondjo-navy sm:text-[18px]">
               {formatKz(property.price, { perMonth: isArrendamento })}
             </span>
           </div>
-          <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-ondjo-blue transition-transform group-hover:translate-x-0.5">
-            Ver detalhes
-            <ChevronRight size={13} aria-hidden="true" />
-          </span>
         </div>
       </div>
     </motion.article>

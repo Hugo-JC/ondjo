@@ -272,34 +272,6 @@ export function SearchBar({
             <span>Verificados</span>
           </button>
 
-          {/* Chip Rápido: Tipo de Imóvel */}
-          <button
-            type="button"
-            onClick={() => setMobileModalOpen(true)}
-            className={[
-              "inline-flex min-h-9 shrink-0 items-center gap-1 rounded-full border px-3 text-xs font-semibold transition-all cursor-pointer active:scale-95",
-              value.type
-                ? "border-ondjo-blue bg-ondjo-blue-soft text-ondjo-blue font-bold"
-                : "border-slate-200/90 bg-white text-slate-700",
-            ].join(" ")}
-          >
-            <span>{value.type || "Tipo"}</span>
-          </button>
-
-          {/* Chip Rápido: Tipologia Quartos */}
-          <button
-            type="button"
-            onClick={() => setMobileModalOpen(true)}
-            className={[
-              "inline-flex min-h-9 shrink-0 items-center gap-1 rounded-full border px-3 text-xs font-semibold transition-all cursor-pointer active:scale-95",
-              value.bedrooms
-                ? "border-ondjo-navy bg-ondjo-navy text-white font-bold"
-                : "border-slate-200/90 bg-white text-slate-700",
-            ].join(" ")}
-          >
-            <span>{value.bedrooms ? `T${value.bedrooms}` : "Quartos"}</span>
-          </button>
-
           {/* Botão Todos os Filtros com Badge */}
           <button
             type="button"

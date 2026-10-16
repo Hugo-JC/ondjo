@@ -124,9 +124,7 @@ export default function Header() {
               aria-label="ONDJO — Página Inicial"
               className="focus-ring inline-flex items-center rounded-xl p-1 transition-transform hover:opacity-95 active:scale-98"
             >
-              {/* Altura de 28px no mobile para não ocupar espaço excessivo, 34px em desktop */}
-              <Logo height={28} className="sm:hidden" decorative />
-              <Logo height={34} className="hidden sm:block" decorative />
+              <Logo height={34} decorative />
             </a>
           </div>
 
@@ -374,9 +372,8 @@ export default function Header() {
                   className="fixed inset-y-0 right-0 z-101 flex h-dvh w-[86vw] max-w-xs flex-col justify-between bg-white p-5 shadow-2xl border-l border-ondjo-border/80 overflow-y-auto"
                 >
                   <div>
-                    {/* Topo da Gaveta: Logótipo + Botão Fechar (44x44px) */}
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                      <Logo height={28} decorative />
+                    {/* Topo da Gaveta: Botão Fechar (44x44px) */}
+                    <div className="flex items-center justify-end border-b border-slate-100 pb-4">
                       <button
                         type="button"
                         onClick={() => setMobileDrawerOpen(false)}
