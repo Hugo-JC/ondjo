@@ -26,6 +26,7 @@ import {
   type SearchFilters,
   PROPERTY_TYPES,
   BEDROOM_OPTIONS,
+  AMENITY_OPTIONS,
 } from "../components/SearchBar";
 import { navigate } from "../hooks/useHashRoute";
 import { useFavorites } from "../hooks/useFavorites";
@@ -64,6 +65,9 @@ function readFiltersFromUrl(): SearchFilters {
     origin: params.get("origin") ?? "todos",
     bathrooms: params.get("bathrooms") ?? "",
     parking: params.get("parking") ?? "",
+    amenities: params.get("amenities")
+      ? params.get("amenities")!.split(",").filter(Boolean)
+      : [],
   };
 }
 
@@ -112,7 +116,9 @@ export function SearchPage() {
   const updateUrlFilters = (next: SearchFilters) => {
     const params = new URLSearchParams();
     Object.entries(next).forEach(([key, val]) => {
-      if (val && val !== "todos") {
+      if (key === "amenities" && Array.isArray(val) && val.length > 0) {
+        params.set("amenities", val.join(","));
+      } else if (val && val !== "todos" && !Array.isArray(val)) {
         params.set(key, String(val));
       }
     });
@@ -168,6 +174,7 @@ export function SearchPage() {
     if (filters.bathrooms) count++;
     if (filters.parking) count++;
     if (filters.origin && filters.origin !== "todos") count++;
+    if (filters.amenities && filters.amenities.length > 0) count += filters.amenities.length;
     return count;
   }, [filters]);
 
@@ -227,6 +234,22 @@ export function SearchPage() {
         id: "origin",
         label: "Só Verificados",
         onRemove: () => setFilterField("origin", "todos"),
+      });
+    }
+
+    if (filters.amenities && filters.amenities.length > 0) {
+      filters.amenities.forEach((amenity) => {
+        list.push({
+          id: `amenity-${amenity}`,
+          label: amenity,
+          onRemove: () => {
+            const next = {
+              ...filters,
+              amenities: filters.amenities?.filter((a) => a !== amenity) || [],
+            };
+            handleFilterChange(next);
+          },
+        });
       });
     }
 
@@ -1041,6 +1064,75 @@ export function SearchPage() {
                           <ShieldCheck size={14} className="text-emerald-600" />
                           <span>Só Verificados</span>
                         </button>
+                      </div>
+                    </div>
+
+                    {/* 8. Comodidades & Preferências */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="block text-xs font-bold text-ondjo-ink uppercase tracking-wider">
+                          Comodidades & Preferências {filters.amenities && filters.amenities.length > 0 ? `(${filters.amenities.length})` : ""}
+                        </span>
+                        {filters.amenities && filters.amenities.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setFilterField("amenities", [])}
+                            className="text-xs font-semibold text-ondjo-blue hover:underline cursor-pointer"
+                          >
+                            Limpar
+                          </button>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        {AMENITY_OPTIONS.map((item) => {
+                          const isSelected = filters.amenities?.includes(item.id) || filters.amenities?.includes(item.label);
+                          const Icon = item.icon;
+                          return (
+                            <button
+                              key={item.id}
+                              type="button"
+                              onClick={() => {
+                                const cur = filters.amenities || [];
+                                const next = isSelected
+                                  ? cur.filter((a) => a !== item.id && a !== item.label)
+                                  : [...cur, item.id];
+                                setFilterField("amenities", next);
+                              }}
+                              className={[
+                                "focus-ring group relative flex flex-col items-center justify-center rounded-xl p-2 transition-all cursor-pointer select-none border min-h-[58px]",
+                                isSelected
+                                  ? "bg-[#8A3C14] border-[#A84A1A] text-white shadow-xs scale-[1.02]"
+                                  : "bg-slate-50/90 hover:bg-slate-100 border-slate-200/90 text-slate-700 hover:border-slate-300",
+                              ].join(" ")}
+                            >
+                              {isSelected && (
+                                <span className="absolute top-1 right-1 grid size-3.5 place-items-center rounded-full bg-white text-[#8A3C14] text-[9px] shadow-2xs">
+                                  <Check size={9} strokeWidth={3} />
+                                </span>
+                              )}
+
+                              <span
+                                className={[
+                                  "grid size-6 place-items-center rounded-lg transition-transform mb-1 shrink-0",
+                                  isSelected
+                                    ? "bg-white/20 text-white"
+                                    : `${item.bgSoftClass} ${item.colorClass} group-hover:scale-105`,
+                                ].join(" ")}
+                              >
+                                <Icon size={13} strokeWidth={2.2} />
+                              </span>
+
+                              <span
+                                className={[
+                                  "text-[10px] font-semibold text-center leading-tight tracking-tight line-clamp-2 px-0.5",
+                                  isSelected ? "text-white" : "text-slate-700",
+                                ].join(" ")}
+                              >
+                                {item.shortLabel || item.label}
+                              </span>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>

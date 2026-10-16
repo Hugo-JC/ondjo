@@ -1,5 +1,7 @@
 import {
+  Armchair,
   ArrowLeft,
+  ArrowUpDown,
   BedDouble,
   Building2,
   CalendarDays,
@@ -9,6 +11,7 @@ import {
   ChevronRight,
   Clock,
   Droplets,
+  Dumbbell,
   ExternalLink,
   Flame,
   Heart,
@@ -23,8 +26,13 @@ import {
   Share2,
   ShieldAlert,
   ShieldCheck,
+  Shirt,
   ShowerHead,
   Sparkles,
+  Trees,
+  UtensilsCrossed,
+  Waves,
+  Wifi,
   Wind,
   X,
   Zap,
@@ -52,30 +60,45 @@ function getFeatureIcon(featureName: string) {
   ) {
     return <Zap className="size-4.5 text-amber-500" aria-hidden="true" />;
   }
+  if (lower.includes("piscina")) {
+    return <Waves className="size-4.5 text-cyan-600" aria-hidden="true" />;
+  }
   if (
     lower.includes("água") ||
     lower.includes("tanque") ||
     lower.includes("bomba") ||
     lower.includes("electrobomba") ||
-    lower.includes("cisterna") ||
-    lower.includes("piscina")
+    lower.includes("cisterna")
   ) {
     return <Droplets className="size-4.5 text-sky-500" aria-hidden="true" />;
   }
   if (
     lower.includes("ar condicionado") ||
+    lower.includes("ar-condicionado") ||
     lower.includes("ac") ||
     lower.includes("climatiz") ||
     lower.includes("split")
   ) {
-    return <Wind className="size-4.5 text-teal-500" aria-hidden="true" />;
+    return <Wind className="size-4.5 text-teal-600" aria-hidden="true" />;
+  }
+  if (lower.includes("cozinha")) {
+    return <UtensilsCrossed className="size-4.5 text-orange-500" aria-hidden="true" />;
+  }
+  if (
+    lower.includes("lavar") ||
+    lower.includes("máquina") ||
+    lower.includes("lavandaria")
+  ) {
+    return <Shirt className="size-4.5 text-blue-500" aria-hidden="true" />;
   }
   if (
     lower.includes("segurança") ||
     lower.includes("portaria") ||
+    lower.includes("guarita") ||
     lower.includes("guarda") ||
     lower.includes("cerca") ||
-    lower.includes("cctv")
+    lower.includes("cctv") ||
+    lower.includes("vigilância")
   ) {
     return <ShieldCheck className="size-4.5 text-emerald-600" aria-hidden="true" />;
   }
@@ -86,6 +109,37 @@ function getFeatureIcon(featureName: string) {
     lower.includes("parqueamento")
   ) {
     return <CarFront className="size-4.5 text-blue-600" aria-hidden="true" />;
+  }
+  if (
+    lower.includes("wi-fi") ||
+    lower.includes("wifi") ||
+    lower.includes("internet") ||
+    lower.includes("fibra")
+  ) {
+    return <Wifi className="size-4.5 text-indigo-600" aria-hidden="true" />;
+  }
+  if (lower.includes("varanda") || lower.includes("terraço")) {
+    return <Maximize2 className="size-4.5 text-rose-500" aria-hidden="true" />;
+  }
+  if (
+    lower.includes("mobil") ||
+    lower.includes("mobiliado") ||
+    lower.includes("mobilado")
+  ) {
+    return <Armchair className="size-4.5 text-amber-700" aria-hidden="true" />;
+  }
+  if (lower.includes("elevador")) {
+    return <ArrowUpDown className="size-4.5 text-slate-600" aria-hidden="true" />;
+  }
+  if (
+    lower.includes("ginásio") ||
+    lower.includes("ginasio") ||
+    lower.includes("fitness")
+  ) {
+    return <Dumbbell className="size-4.5 text-red-500" aria-hidden="true" />;
+  }
+  if (lower.includes("quintal") || lower.includes("jardim")) {
+    return <Trees className="size-4.5 text-emerald-600" aria-hidden="true" />;
   }
   if (lower.includes("gás") || lower.includes("fogão") || lower.includes("aquec")) {
     return <Flame className="size-4.5 text-orange-500" aria-hidden="true" />;

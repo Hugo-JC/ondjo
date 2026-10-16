@@ -11,6 +11,7 @@ export interface FilterPropertiesCriteria {
   origin?: SearchOrigin | string;
   bathrooms?: string | number;
   parking?: string | number;
+  amenities?: string[];
 }
 
 /**
@@ -102,6 +103,62 @@ export function filterProperties(
       } else if (filters.origin === "agentes") {
         if (item.advertiser && item.advertiser.type === "particular") return false;
       }
+    }
+
+    // Comodidades / Preferências
+    if (filters.amenities && filters.amenities.length > 0) {
+      const featuresText = (item.features || []).map((f) => f.toLowerCase()).join(" ");
+      const descText = (item.description || "").toLowerCase();
+      const combined = `${featuresText} ${descText}`;
+
+      const allMatch = filters.amenities.every((amenity) => {
+        const a = amenity.toLowerCase();
+        if (a.includes("ar-condicionado") || a.includes("ar condicionado")) {
+          return combined.includes("ar-condicionado") || combined.includes("ar condicionado") || combined.includes("climatiz");
+        }
+        if (a.includes("gerador")) {
+          return combined.includes("gerador") || combined.includes("energia alternativa") || combined.includes("pt");
+        }
+        if (a.includes("tanque") || a.includes("água")) {
+          return combined.includes("tanque") || combined.includes("água") || combined.includes("cisterna") || combined.includes("electrobomba");
+        }
+        if (a.includes("cozinha")) {
+          return combined.includes("cozinha");
+        }
+        if (a.includes("lavar") || a.includes("máquina")) {
+          return combined.includes("lavar") || combined.includes("máquina") || combined.includes("lavandaria");
+        }
+        if (a.includes("segurança")) {
+          return combined.includes("segurança") || combined.includes("portaria") || combined.includes("guarita") || combined.includes("cctv") || combined.includes("vigilância");
+        }
+        if (a.includes("piscina")) {
+          return combined.includes("piscina");
+        }
+        if (a.includes("wi-fi") || a.includes("internet")) {
+          return combined.includes("wi-fi") || combined.includes("wifi") || combined.includes("internet") || combined.includes("fibra");
+        }
+        if (a.includes("varanda") || a.includes("terraço")) {
+          return combined.includes("varanda") || combined.includes("terraço");
+        }
+        if (a.includes("mobil") || a.includes("mobiliado")) {
+          return combined.includes("mobil") || combined.includes("mobilado");
+        }
+        if (a.includes("elevador")) {
+          return combined.includes("elevador");
+        }
+        if (a.includes("ginásio") || a.includes("fitness")) {
+          return combined.includes("ginásio") || combined.includes("ginasio") || combined.includes("fitness");
+        }
+        if (a.includes("quintal") || a.includes("jardim")) {
+          return combined.includes("quintal") || combined.includes("jardim");
+        }
+        if (a.includes("garagem") || a.includes("vaga") || a.includes("estacionamento")) {
+          return item.parking > 0 || combined.includes("garagem") || combined.includes("estacionamento");
+        }
+        return combined.includes(a);
+      });
+
+      if (!allMatch) return false;
     }
 
     return true;
