@@ -78,7 +78,6 @@ export const ORIGIN_OPTIONS: {
 export type AmenityOption = AmenityDefinition;
 export { AMENITY_OPTIONS };
 
-<<<<<<< HEAD
 export const PROPERTY_TYPES = [
   { value: "", label: "Todos os tipos" },
   { value: "Apartamento", label: "Apartamento" },
@@ -105,10 +104,6 @@ export const BATHROOM_OPTIONS = [
   { value: "4", label: "4+ WC" },
 ];
 
-
-
-=======
->>>>>>> 4137378 (.)
 function getAmenitiesSummary(
   bedrooms?: string,
   bathrooms?: string,
