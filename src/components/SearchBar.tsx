@@ -1199,47 +1199,56 @@ export function SearchBar({
                               </button>
                             )}
                           </div>
-                          <div className="grid grid-cols-3 gap-1.5">
-                            {AMENITY_OPTIONS.map((item) => {
-                              const isSelected = selectedAmenities.includes(item.id) || selectedAmenities.includes(item.label);
-                              const Icon = item.icon;
-                              return (
-                                <button
-                                  key={item.id}
-                                  type="button"
-                                  onClick={() => toggleAmenity(item.id)}
-                                  className={`group relative flex flex-col items-center justify-center rounded-xl p-1.5 text-center border transition-all cursor-pointer select-none min-h-[58px] ${
-                                    isSelected
-                                      ? "bg-[#8A3C14] border-[#A84A1A] text-white shadow-xs"
-                                      : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
-                                  }`}
-                                >
-                                  {isSelected && (
-                                    <span className="absolute top-1 right-1 grid size-3 place-items-center rounded-full bg-white text-[#8A3C14] text-[8px] shadow-2xs">
-                                      <Check size={8} strokeWidth={3} />
-                                    </span>
-                                  )}
-
-                                  <span
-                                    className={`grid size-6 place-items-center rounded-lg mb-1 shrink-0 ${
+                          <div
+                            aria-label="Opções de comodidades"
+                            className="h-[198px] overflow-y-auto overscroll-contain pr-1"
+                            role="region"
+                            tabIndex={0}
+                          >
+                            <div className="grid grid-cols-3 gap-1.5">
+                              {AMENITY_OPTIONS.map((item) => {
+                                const isSelected = selectedAmenities.includes(item.id) || selectedAmenities.includes(item.label);
+                                const Icon = item.icon;
+                                return (
+                                  <button
+                                    key={item.id}
+                                    type="button"
+                                    onClick={() => toggleAmenity(item.id)}
+                                    aria-label={item.label}
+                                    aria-pressed={isSelected}
+                                    className={`group relative flex flex-col items-center justify-center rounded-xl p-1.5 text-center border transition-all cursor-pointer select-none min-h-[58px] ${
                                       isSelected
-                                        ? "bg-white/20 text-white"
-                                        : `${item.bgSoftClass} ${item.colorClass}`
+                                        ? "bg-[#8A3C14] border-[#A84A1A] text-white shadow-xs"
+                                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
                                     }`}
                                   >
-                                    <Icon size={12} strokeWidth={2.2} />
-                                  </span>
+                                    {isSelected && (
+                                      <span className="absolute top-1 right-1 grid size-3 place-items-center rounded-full bg-white text-[#8A3C14] text-[8px] shadow-2xs">
+                                        <Check size={8} strokeWidth={3} />
+                                      </span>
+                                    )}
 
-                                  <span
-                                    className={`text-[9.5px] font-semibold text-center leading-tight tracking-tight line-clamp-2 px-0.5 ${
-                                      isSelected ? "text-white" : "text-slate-700"
-                                    }`}
-                                  >
-                                    {item.shortLabel || item.label}
-                                  </span>
-                                </button>
-                              );
-                            })}
+                                    <span
+                                      className={`grid size-6 place-items-center rounded-lg mb-1 shrink-0 ${
+                                        isSelected
+                                          ? "bg-white/20 text-white"
+                                          : `${item.bgSoftClass} ${item.colorClass}`
+                                      }`}
+                                    >
+                                      <Icon size={12} strokeWidth={2.2} />
+                                    </span>
+
+                                    <span
+                                      className={`text-[9.5px] font-semibold text-center leading-tight tracking-tight line-clamp-2 px-0.5 ${
+                                        isSelected ? "text-white" : "text-slate-700"
+                                      }`}
+                                    >
+                                      {item.shortLabel || item.label}
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
                           </div>
                         </div>
                       </div>
