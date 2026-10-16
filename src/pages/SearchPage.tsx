@@ -74,6 +74,8 @@ function readFiltersFromUrl(): SearchFilters {
 }
 
 export function SearchPage() {
+  const { saveSearch } = useSavedSearches();
+  const [savedSearchToast, setSavedSearchToast] = useState(false);
   const [filters, setFilters] = useState<SearchFilters>(readFiltersFromUrl);
   const [sort, setSort] = useState<"relevance" | "price-low" | "price-high" | "area">("relevance");
   const [view, setView] = useState<"grid" | "list">("grid");

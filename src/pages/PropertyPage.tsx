@@ -9,7 +9,6 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
-  Clock,
   Droplets,
   Dumbbell,
   ExternalLink,

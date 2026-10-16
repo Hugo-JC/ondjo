@@ -10,20 +10,8 @@ import {
   BedDouble,
   Bath,
   Car,
-  Wind,
-  Zap,
-  Droplets,
-  UtensilsCrossed,
-  Shirt,
-  Waves,
-  Wifi,
-  Maximize2,
-  Armchair,
-  ArrowUpDown,
-  Dumbbell,
-  Trees,
-  Building2,
 } from "lucide-react";
+import { AMENITY_OPTIONS, type AmenityDefinition } from "../data/amenities";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
@@ -87,10 +75,34 @@ export const ORIGIN_OPTIONS: {
   { id: "verificados", label: "Verificados ONDJO", icon: ShieldCheck },
 ];
 
-import { AMENITY_OPTIONS, type AmenityDefinition } from "../data/amenities";
-
 export type AmenityOption = AmenityDefinition;
 export { AMENITY_OPTIONS };
+
+export const PROPERTY_TYPES = [
+  { value: "", label: "Todos os tipos" },
+  { value: "Apartamento", label: "Apartamento" },
+  { value: "Casa", label: "Casa" },
+  { value: "Moradia", label: "Vivenda / Moradia" },
+  { value: "Terreno", label: "Terreno" },
+];
+
+export const BEDROOM_OPTIONS = [
+  { value: "", label: "Qualquer" },
+  { value: "0", label: "T0" },
+  { value: "1", label: "T1" },
+  { value: "2", label: "T2" },
+  { value: "3", label: "T3" },
+  { value: "4", label: "T4" },
+  { value: "5", label: "T5+" },
+];
+
+export const BATHROOM_OPTIONS = [
+  { value: "", label: "Qualquer" },
+  { value: "1", label: "1+ WC" },
+  { value: "2", label: "2+ WC" },
+  { value: "3", label: "3+ WC" },
+  { value: "4", label: "4+ WC" },
+];
 
 
 

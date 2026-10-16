@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import type { SearchFilters } from "../types";
+import type { SearchFilters } from "../components/SearchBar";
 
 const SAVED_SEARCHES_KEY = "ondjo-saved-searches";
 
