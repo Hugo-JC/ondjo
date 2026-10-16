@@ -78,6 +78,7 @@ export const ORIGIN_OPTIONS: {
 export type AmenityOption = AmenityDefinition;
 export { AMENITY_OPTIONS };
 
+<<<<<<< HEAD
 export const PROPERTY_TYPES = [
   { value: "", label: "Todos os tipos" },
   { value: "Apartamento", label: "Apartamento" },
@@ -106,16 +107,19 @@ export const BATHROOM_OPTIONS = [
 
 
 
+=======
+>>>>>>> 4137378 (.)
 function getAmenitiesSummary(
   bedrooms?: string,
   bathrooms?: string,
   parking?: string,
-  amenities: string[] = []
+  amenities: string[] = [],
 ): string {
   const parts: string[] = [];
   if (bedrooms && bedrooms !== "0") parts.push(`T${bedrooms}`);
   if (bathrooms && bathrooms !== "0") parts.push(`${bathrooms} WC`);
-  if (parking && parking !== "0") parts.push(`${parking} vaga${Number(parking) > 1 ? "s" : ""}`);
+  if (parking && parking !== "0")
+    parts.push(`${parking} vaga${Number(parking) > 1 ? "s" : ""}`);
   if (amenities.length > 0) {
     if (parts.length === 0) {
       return `${amenities.length} comodidade${amenities.length > 1 ? "s" : ""}`;
@@ -139,7 +143,9 @@ export function SearchBar({
 }: SearchBarProps) {
   const [activeSegment, setActiveSegment] = useState<ActiveSegment>(null);
   const [mobileModalOpen, setMobileModalOpen] = useState(false);
-  const [selectedAmenities, setSelectedAmenities] = useState<string[]>(value.amenities || []);
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>(
+    value.amenities || [],
+  );
 
   useEffect(() => {
     setSelectedAmenities(value.amenities || []);
@@ -168,7 +174,8 @@ export function SearchBar({
     };
 
     document.addEventListener("pointerdown", handleClickOutside);
-    return () => document.removeEventListener("pointerdown", handleClickOutside);
+    return () =>
+      document.removeEventListener("pointerdown", handleClickOutside);
   }, []);
 
   // Bloqueio de scroll do body quando o sheet mobile está aberto
@@ -217,7 +224,9 @@ export function SearchBar({
   const searchText = value.location || value.query;
 
   const filteredLocations = locations
-    .filter((loc) => loc.toLowerCase().includes(searchText.trim().toLowerCase()))
+    .filter((loc) =>
+      loc.toLowerCase().includes(searchText.trim().toLowerCase()),
+    )
     .slice(0, 6);
 
   const clearAllFilters = () => {
@@ -238,7 +247,10 @@ export function SearchBar({
   return (
     <div
       ref={barRef}
-      className={["relative w-full text-left", compact ? "max-w-3xl mx-auto" : ""].join(" ")}
+      className={[
+        "relative w-full text-left",
+        compact ? "max-w-3xl mx-auto" : "",
+      ].join(" ")}
     >
       {/* ========================================================
           CABEÇALHO DA BUSCA: MOBILE EM 2 NÍVEIS ESCALÁVEIS
@@ -279,7 +291,12 @@ export function SearchBar({
           {/* Chip Selo: Verificados ONDJO */}
           <button
             type="button"
-            onClick={() => set("origin", currentOrigin === "verificados" ? "todos" : "verificados")}
+            onClick={() =>
+              set(
+                "origin",
+                currentOrigin === "verificados" ? "todos" : "verificados",
+              )
+            }
             className={[
               "inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-bold transition-all cursor-pointer active:scale-95",
               currentOrigin === "verificados"
@@ -289,7 +306,11 @@ export function SearchBar({
           >
             <ShieldCheck
               size={14}
-              className={currentOrigin === "verificados" ? "text-emerald-600" : "text-slate-400"}
+              className={
+                currentOrigin === "verificados"
+                  ? "text-emerald-600"
+                  : "text-slate-400"
+              }
               aria-hidden="true"
             />
             <span>Verificados</span>
@@ -301,7 +322,11 @@ export function SearchBar({
             onClick={() => setMobileModalOpen(true)}
             className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border border-slate-200/90 bg-white px-3 text-xs font-bold text-ondjo-ink active:scale-95 cursor-pointer hover:bg-slate-50"
           >
-            <SlidersHorizontal size={13} className="text-ondjo-blue" aria-hidden="true" />
+            <SlidersHorizontal
+              size={13}
+              className="text-ondjo-blue"
+              aria-hidden="true"
+            />
             <span>Filtros</span>
             {activeFiltersCount > 0 && (
               <span className="grid size-4.5 place-items-center rounded-full bg-ondjo-navy text-[10px] font-black text-white">
@@ -366,7 +391,9 @@ export function SearchBar({
                   <Icon
                     size={14}
                     aria-hidden="true"
-                    className={isSelected ? "text-emerald-600" : "text-slate-400"}
+                    className={
+                      isSelected ? "text-emerald-600" : "text-slate-400"
+                    }
                   />
                 )}
                 <span>{orig.label}</span>
@@ -391,7 +418,9 @@ export function SearchBar({
           <button
             type="button"
             onClick={() => {
-              setActiveSegment(activeSegment === "location" ? null : "location");
+              setActiveSegment(
+                activeSegment === "location" ? null : "location",
+              );
               setTimeout(() => locationInputRef.current?.focus(), 50);
             }}
             className={[
@@ -411,14 +440,18 @@ export function SearchBar({
 
           <div
             className={`h-8 w-px bg-slate-200/80 shrink-0 transition-opacity ${
-              activeSegment === "location" || activeSegment === "type" ? "opacity-0" : "opacity-100"
+              activeSegment === "location" || activeSegment === "type"
+                ? "opacity-0"
+                : "opacity-100"
             }`}
           />
 
           {/* SEGMENTO 2: TIPO */}
           <button
             type="button"
-            onClick={() => setActiveSegment(activeSegment === "type" ? null : "type")}
+            onClick={() =>
+              setActiveSegment(activeSegment === "type" ? null : "type")
+            }
             className={[
               "group relative flex-1 rounded-full px-6 py-3.5 text-left transition-all cursor-pointer",
               activeSegment === "type"
@@ -436,14 +469,20 @@ export function SearchBar({
 
           <div
             className={`h-8 w-px bg-slate-200/80 shrink-0 transition-opacity ${
-              activeSegment === "type" || activeSegment === "amenities" ? "opacity-0" : "opacity-100"
+              activeSegment === "type" || activeSegment === "amenities"
+                ? "opacity-0"
+                : "opacity-100"
             }`}
           />
 
           {/* SEGMENTO 3: COMODIDADES (INSPIRADO NA REFERÊNCIA) */}
           <button
             type="button"
-            onClick={() => setActiveSegment(activeSegment === "amenities" ? null : "amenities")}
+            onClick={() =>
+              setActiveSegment(
+                activeSegment === "amenities" ? null : "amenities",
+              )
+            }
             className={[
               "group relative flex-1 rounded-full px-6 py-3.5 text-left transition-all cursor-pointer",
               activeSegment === "amenities"
@@ -455,20 +494,29 @@ export function SearchBar({
               Comodidades
             </span>
             <span className="mt-0.5 block truncate text-sm font-semibold text-ondjo-ink">
-              {getAmenitiesSummary(value.bedrooms, value.bathrooms, value.parking, selectedAmenities)}
+              {getAmenitiesSummary(
+                value.bedrooms,
+                value.bathrooms,
+                value.parking,
+                selectedAmenities,
+              )}
             </span>
           </button>
 
           <div
             className={`h-8 w-px bg-slate-200/80 shrink-0 transition-opacity ${
-              activeSegment === "amenities" || activeSegment === "price" ? "opacity-0" : "opacity-100"
+              activeSegment === "amenities" || activeSegment === "price"
+                ? "opacity-0"
+                : "opacity-100"
             }`}
           />
 
           {/* SEGMENTO 4: ORÇAMENTO */}
           <button
             type="button"
-            onClick={() => setActiveSegment(activeSegment === "price" ? null : "price")}
+            onClick={() =>
+              setActiveSegment(activeSegment === "price" ? null : "price")
+            }
             className={[
               "group relative flex-1 rounded-full px-6 py-3.5 text-left transition-all cursor-pointer",
               activeSegment === "price"
@@ -526,7 +574,9 @@ export function SearchBar({
                 {searchText && (
                   <button
                     type="button"
-                    onClick={() => onChange({ ...value, location: "", query: "" })}
+                    onClick={() =>
+                      onChange({ ...value, location: "", query: "" })
+                    }
                     className="p-1 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer"
                   >
                     <X size={16} />
@@ -536,10 +586,22 @@ export function SearchBar({
 
               <div className="mt-3.5">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                  {searchText ? "Zonas correspondentes" : "Zonas populares em Luanda"}
+                  {searchText
+                    ? "Zonas correspondentes"
+                    : "Zonas populares em Luanda"}
                 </span>
                 <div className="mt-2 grid grid-cols-2 gap-1.5">
-                  {(filteredLocations.length > 0 ? filteredLocations : ["Talatona", "Kilamba", "Maianga", "Benfica", "Camama", "Viana"]).map((loc) => (
+                  {(filteredLocations.length > 0
+                    ? filteredLocations
+                    : [
+                        "Talatona",
+                        "Kilamba",
+                        "Maianga",
+                        "Benfica",
+                        "Camama",
+                        "Viana",
+                      ]
+                  ).map((loc) => (
                     <button
                       key={loc}
                       type="button"
@@ -607,7 +669,7 @@ export function SearchBar({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 8, scale: 0.98 }}
               transition={{ duration: reduceMotion ? 0 : 0.16 }}
-              className="absolute left-1/2 top-full mt-3 w-[420px] sm:w-[460px] max-w-[94vw] -translate-x-1/2 rounded-3xl border border-slate-200/90 bg-white p-5 shadow-[0_20px_50px_rgba(16,42,67,0.22)] z-50 max-h-[82vh] overflow-y-auto no-scrollbar"
+              className="absolute left-1/2 top-full mt-3 w-105 sm:w-115 max-w-[94vw] -translate-x-1/2 rounded-3xl border border-slate-200/90 bg-white p-5 shadow-[0_20px_50px_rgba(16,42,67,0.22)] z-50 max-h-[82vh] overflow-y-auto no-scrollbar"
             >
               <div className="space-y-4">
                 {/* Linha 1: Quartos */}
@@ -617,8 +679,12 @@ export function SearchBar({
                       <BedDouble size={16} strokeWidth={2.2} />
                     </span>
                     <div>
-                      <span className="block text-sm font-bold text-ondjo-navy leading-tight">Quartos</span>
-                      <span className="text-[11px] text-slate-400">Tipologia (T0 a T5+)</span>
+                      <span className="block text-sm font-bold text-ondjo-navy leading-tight">
+                        Quartos
+                      </span>
+                      <span className="text-[11px] text-slate-400">
+                        Tipologia (T0 a T5+)
+                      </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2.5">
@@ -658,8 +724,12 @@ export function SearchBar({
                       <Bath size={16} strokeWidth={2.2} />
                     </span>
                     <div>
-                      <span className="block text-sm font-bold text-ondjo-navy leading-tight">Banheiros</span>
-                      <span className="text-[11px] text-slate-400">Casas de banho / WC</span>
+                      <span className="block text-sm font-bold text-ondjo-navy leading-tight">
+                        Banheiros
+                      </span>
+                      <span className="text-[11px] text-slate-400">
+                        Casas de banho / WC
+                      </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2.5">
@@ -699,8 +769,12 @@ export function SearchBar({
                       <Car size={16} strokeWidth={2.2} />
                     </span>
                     <div>
-                      <span className="block text-sm font-bold text-ondjo-navy leading-tight">Vagas de Garagem</span>
-                      <span className="text-[11px] text-slate-400">Estacionamento privativo</span>
+                      <span className="block text-sm font-bold text-ondjo-navy leading-tight">
+                        Vagas de Garagem
+                      </span>
+                      <span className="text-[11px] text-slate-400">
+                        Estacionamento privativo
+                      </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2.5">
@@ -740,7 +814,9 @@ export function SearchBar({
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                      Comodidades & Preferências {selectedAmenities.length > 0 && `(${selectedAmenities.length})`}
+                      Comodidades & Preferências{" "}
+                      {selectedAmenities.length > 0 &&
+                        `(${selectedAmenities.length})`}
                     </span>
                     {selectedAmenities.length > 0 && (
                       <button
@@ -757,7 +833,9 @@ export function SearchBar({
                   </div>
                   <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                     {AMENITY_OPTIONS.map((item) => {
-                      const isSelected = selectedAmenities.includes(item.id) || selectedAmenities.includes(item.label);
+                      const isSelected =
+                        selectedAmenities.includes(item.id) ||
+                        selectedAmenities.includes(item.label);
                       const Icon = item.icon;
                       return (
                         <button
@@ -765,7 +843,7 @@ export function SearchBar({
                           type="button"
                           onClick={() => toggleAmenity(item.id)}
                           className={[
-                            "focus-ring group relative flex flex-col items-center justify-center rounded-xl p-1.5 sm:p-2 transition-all cursor-pointer select-none border min-h-[58px] sm:min-h-[62px]",
+                            "focus-ring group relative flex flex-col items-center justify-center rounded-xl p-1.5 sm:p-2 transition-all cursor-pointer select-none border min-h-14.5 sm:min-h-15.5",
                             isSelected
                               ? "bg-[#8A3C14] border-[#A84A1A] text-white shadow-xs scale-[1.02]"
                               : "bg-slate-50/90 hover:bg-slate-100 border-slate-200/90 text-slate-700 hover:border-slate-300",
@@ -846,24 +924,32 @@ export function SearchBar({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Mínimo</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">
+                    Mínimo
+                  </label>
                   <input
                     type="text"
                     inputMode="numeric"
                     placeholder="Sem mín."
                     value={value.minPrice}
-                    onChange={(e) => set("minPrice", e.target.value.replace(/\D/g, ""))}
+                    onChange={(e) =>
+                      set("minPrice", e.target.value.replace(/\D/g, ""))
+                    }
                     className="mt-1 h-10 w-full rounded-xl border border-slate-200 px-3 text-xs font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Máximo</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">
+                    Máximo
+                  </label>
                   <input
                     type="text"
                     inputMode="numeric"
                     placeholder="Sem máx."
                     value={value.maxPrice}
-                    onChange={(e) => set("maxPrice", e.target.value.replace(/\D/g, ""))}
+                    onChange={(e) =>
+                      set("maxPrice", e.target.value.replace(/\D/g, ""))
+                    }
                     className="mt-1 h-10 w-full rounded-xl border border-slate-200 px-3 text-xs font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue"
                   />
                 </div>
@@ -874,7 +960,8 @@ export function SearchBar({
                 onClick={() => handleSubmit()}
                 className="mt-4 flex h-10 w-full items-center justify-center rounded-xl bg-ondjo-blue font-bold text-xs text-white hover:bg-ondjo-blue-dark transition cursor-pointer"
               >
-                Ver {matchingCount > 0 ? `${matchingCount} imóveis` : "Resultados"}
+                Ver{" "}
+                {matchingCount > 0 ? `${matchingCount} imóveis` : "Resultados"}
               </button>
             </motion.div>
           )}
@@ -900,7 +987,8 @@ export function SearchBar({
               {searchText || "Onde quer procurar?"}
             </h4>
             <p className="text-[11px] font-medium text-slate-500 truncate mt-0.5">
-              {value.type || "Qualquer tipo"} · {value.bedrooms ? `T${value.bedrooms}` : "Qualquer tipologia"}
+              {value.type || "Qualquer tipo"} ·{" "}
+              {value.bedrooms ? `T${value.bedrooms}` : "Qualquer tipologia"}
             </p>
           </div>
 
@@ -963,7 +1051,10 @@ export function SearchBar({
                         Filtrar Pesquisa
                       </h3>
                       <p className="text-[11px] text-slate-500 font-medium">
-                        {matchingCount} {matchingCount === 1 ? "imóvel disponível" : "imóveis disponíveis"}
+                        {matchingCount}{" "}
+                        {matchingCount === 1
+                          ? "imóvel disponível"
+                          : "imóveis disponíveis"}
                       </p>
                     </div>
                     <button
@@ -1012,18 +1103,29 @@ export function SearchBar({
                         Localização em Luanda
                       </label>
                       <div className="flex items-center gap-2.5 rounded-xl border border-slate-200 px-3 py-2.5 bg-slate-50/70 focus-within:border-ondjo-blue focus-within:bg-white transition-colors">
-                        <MapPin size={18} className="text-ondjo-blue shrink-0" />
+                        <MapPin
+                          size={18}
+                          className="text-ondjo-blue shrink-0"
+                        />
                         <input
                           type="text"
                           value={searchText}
-                          onChange={(e) => onChange({ ...value, location: "", query: e.target.value })}
+                          onChange={(e) =>
+                            onChange({
+                              ...value,
+                              location: "",
+                              query: e.target.value,
+                            })
+                          }
                           placeholder="Ex: Talatona, Maianga, Kilamba..."
                           className="w-full bg-transparent text-base font-semibold outline-none text-ondjo-ink placeholder:text-slate-400"
                         />
                         {searchText && (
                           <button
                             type="button"
-                            onClick={() => onChange({ ...value, location: "", query: "" })}
+                            onClick={() =>
+                              onChange({ ...value, location: "", query: "" })
+                            }
                             className="p-1 rounded-full text-slate-400 hover:text-slate-600 cursor-pointer"
                           >
                             <X size={16} />
@@ -1033,13 +1135,26 @@ export function SearchBar({
 
                       {/* Chips de Zonas Populares */}
                       <div className="mt-2.5 flex flex-wrap gap-1.5">
-                        {["Talatona", "Kilamba", "Maianga", "Benfica", "Camama", "Viana"].map((loc) => {
+                        {[
+                          "Talatona",
+                          "Kilamba",
+                          "Maianga",
+                          "Benfica",
+                          "Camama",
+                          "Viana",
+                        ].map((loc) => {
                           const isSel = value.location === loc;
                           return (
                             <button
                               key={loc}
                               type="button"
-                              onClick={() => onChange({ ...value, location: isSel ? "" : loc, query: "" })}
+                              onClick={() =>
+                                onChange({
+                                  ...value,
+                                  location: isSel ? "" : loc,
+                                  query: "",
+                                })
+                              }
                               className={[
                                 "min-h-8 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-all cursor-pointer",
                                 isSel
@@ -1093,7 +1208,9 @@ export function SearchBar({
                             <span className="grid size-7 place-items-center rounded-lg bg-blue-50 text-blue-600">
                               <BedDouble size={14} strokeWidth={2.2} />
                             </span>
-                            <span className="text-xs sm:text-sm font-semibold text-ondjo-navy">Quartos (T0+)</span>
+                            <span className="text-xs sm:text-sm font-semibold text-ondjo-navy">
+                              Quartos (T0+)
+                            </span>
                           </div>
                           <div className="flex items-center gap-2.5">
                             <button
@@ -1128,15 +1245,23 @@ export function SearchBar({
                             <span className="grid size-7 place-items-center rounded-lg bg-sky-50 text-sky-600">
                               <Bath size={14} strokeWidth={2.2} />
                             </span>
-                            <span className="text-xs sm:text-sm font-semibold text-ondjo-navy">Banheiros</span>
+                            <span className="text-xs sm:text-sm font-semibold text-ondjo-navy">
+                              Banheiros
+                            </span>
                           </div>
                           <div className="flex items-center gap-2.5">
                             <button
                               type="button"
                               onClick={() => {
-                                const cur = parseInt(value.bathrooms || "0", 10);
+                                const cur = parseInt(
+                                  value.bathrooms || "0",
+                                  10,
+                                );
                                 const next = Math.max(0, cur - 1);
-                                set("bathrooms", next === 0 ? "" : String(next));
+                                set(
+                                  "bathrooms",
+                                  next === 0 ? "" : String(next),
+                                );
                               }}
                               className="grid size-7 sm:size-8 place-items-center rounded-full border border-slate-200 bg-slate-50 text-slate-700 active:scale-90"
                             >
@@ -1148,7 +1273,10 @@ export function SearchBar({
                             <button
                               type="button"
                               onClick={() => {
-                                const cur = parseInt(value.bathrooms || "0", 10);
+                                const cur = parseInt(
+                                  value.bathrooms || "0",
+                                  10,
+                                );
                                 set("bathrooms", String(cur + 1));
                               }}
                               className="grid size-7 sm:size-8 place-items-center rounded-full bg-ondjo-blue text-white font-bold active:scale-90 shadow-2xs"
@@ -1163,7 +1291,9 @@ export function SearchBar({
                             <span className="grid size-7 place-items-center rounded-lg bg-amber-50 text-amber-600">
                               <Car size={14} strokeWidth={2.2} />
                             </span>
-                            <span className="text-xs sm:text-sm font-semibold text-ondjo-navy">Vagas de Garagem</span>
+                            <span className="text-xs sm:text-sm font-semibold text-ondjo-navy">
+                              Vagas de Garagem
+                            </span>
                           </div>
                           <div className="flex items-center gap-2.5">
                             <button
@@ -1196,7 +1326,9 @@ export function SearchBar({
                         <div className="pt-2.5 border-t border-slate-200">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                              Comodidades {selectedAmenities.length > 0 && `(${selectedAmenities.length})`}
+                              Comodidades{" "}
+                              {selectedAmenities.length > 0 &&
+                                `(${selectedAmenities.length})`}
                             </span>
                             {selectedAmenities.length > 0 && (
                               <button
@@ -1213,13 +1345,15 @@ export function SearchBar({
                           </div>
                           <div
                             aria-label="Opções de comodidades"
-                            className="h-[198px] overflow-y-auto overscroll-contain pr-1"
+                            className="h-49.5 overflow-y-auto overscroll-contain pr-1"
                             role="region"
                             tabIndex={0}
                           >
                             <div className="grid grid-cols-3 gap-1.5">
                               {AMENITY_OPTIONS.map((item) => {
-                                const isSelected = selectedAmenities.includes(item.id) || selectedAmenities.includes(item.label);
+                                const isSelected =
+                                  selectedAmenities.includes(item.id) ||
+                                  selectedAmenities.includes(item.label);
                                 const Icon = item.icon;
                                 return (
                                   <button
@@ -1228,7 +1362,7 @@ export function SearchBar({
                                     onClick={() => toggleAmenity(item.id)}
                                     aria-label={item.label}
                                     aria-pressed={isSelected}
-                                    className={`group relative flex flex-col items-center justify-center rounded-xl p-1.5 text-center border transition-all cursor-pointer select-none min-h-[58px] ${
+                                    className={`group relative flex flex-col items-center justify-center rounded-xl p-1.5 text-center border transition-all cursor-pointer select-none min-h-14.5 ${
                                       isSelected
                                         ? "bg-[#8A3C14] border-[#A84A1A] text-white shadow-xs"
                                         : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
@@ -1252,7 +1386,9 @@ export function SearchBar({
 
                                     <span
                                       className={`text-[9.5px] font-semibold text-center leading-tight tracking-tight line-clamp-2 px-0.5 ${
-                                        isSelected ? "text-white" : "text-slate-700"
+                                        isSelected
+                                          ? "text-white"
+                                          : "text-slate-700"
                                       }`}
                                     >
                                       {item.shortLabel || item.label}
@@ -1273,24 +1409,32 @@ export function SearchBar({
                       </label>
                       <div className="grid grid-cols-2 gap-2.5">
                         <div>
-                          <span className="text-[10px] font-bold text-slate-500 uppercase">Mínimo</span>
+                          <span className="text-[10px] font-bold text-slate-500 uppercase">
+                            Mínimo
+                          </span>
                           <input
                             type="text"
                             inputMode="numeric"
                             placeholder="Sem mínimo"
                             value={value.minPrice}
-                            onChange={(e) => set("minPrice", e.target.value.replace(/\D/g, ""))}
+                            onChange={(e) =>
+                              set("minPrice", e.target.value.replace(/\D/g, ""))
+                            }
                             className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-base font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue bg-slate-50/70"
                           />
                         </div>
                         <div>
-                          <span className="text-[10px] font-bold text-slate-500 uppercase">Máximo</span>
+                          <span className="text-[10px] font-bold text-slate-500 uppercase">
+                            Máximo
+                          </span>
                           <input
                             type="text"
                             inputMode="numeric"
                             placeholder="Sem máximo"
                             value={value.maxPrice}
-                            onChange={(e) => set("maxPrice", e.target.value.replace(/\D/g, ""))}
+                            onChange={(e) =>
+                              set("maxPrice", e.target.value.replace(/\D/g, ""))
+                            }
                             className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-base font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue bg-slate-50/70"
                           />
                         </div>
@@ -1317,16 +1461,27 @@ export function SearchBar({
                         type="button"
                         role="switch"
                         aria-checked={currentOrigin === "verificados"}
-                        onClick={() => set("origin", currentOrigin === "verificados" ? "todos" : "verificados")}
+                        onClick={() =>
+                          set(
+                            "origin",
+                            currentOrigin === "verificados"
+                              ? "todos"
+                              : "verificados",
+                          )
+                        }
                         className={[
                           "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
-                          currentOrigin === "verificados" ? "bg-emerald-600" : "bg-slate-300",
+                          currentOrigin === "verificados"
+                            ? "bg-emerald-600"
+                            : "bg-slate-300",
                         ].join(" ")}
                       >
                         <span
                           className={[
                             "pointer-events-none inline-block size-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
-                            currentOrigin === "verificados" ? "translate-x-5" : "translate-x-0",
+                            currentOrigin === "verificados"
+                              ? "translate-x-5"
+                              : "translate-x-0",
                           ].join(" ")}
                         />
                       </button>
@@ -1347,7 +1502,9 @@ export function SearchBar({
                       onClick={() => handleSubmit()}
                       className="flex-1 min-h-12 rounded-xl bg-ondjo-blue px-4 py-3 text-center text-sm font-bold text-white shadow-md active:scale-98 cursor-pointer hover:bg-ondjo-blue-dark transition"
                     >
-                      {matchingCount > 0 ? `Ver ${matchingCount} imóveis` : "Pesquisar imóveis"}
+                      {matchingCount > 0
+                        ? `Ver ${matchingCount} imóveis`
+                        : "Pesquisar imóveis"}
                     </button>
                   </div>
                 </motion.div>
