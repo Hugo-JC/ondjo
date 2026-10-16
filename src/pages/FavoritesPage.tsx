@@ -467,7 +467,7 @@ export function FavoritesPage() {
                       <p className="text-xs font-bold uppercase tracking-wider text-blue-200 truncate">
                         Comparar ({selectedForCompare.length}/3)
                       </p>
-                      <p className="text-xs text-slate-300 truncate hidden sm:block sm:block">
+                      <p className="text-xs text-slate-300 truncate hidden sm:block">
                         {selectedForCompare.length < 2
                           ? "Escolha mais 1 imóvel"
                           : "Pronto para comparar"}
