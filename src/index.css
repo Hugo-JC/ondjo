@@ -10,6 +10,7 @@
   --color-ondjo-blue-400: #5b8fe0; /* links e ícones sobre navy */
 
   /* Raios de curvatura (escala única ONDJO / Airbnb / Houter) */
+  --radius-ondjo-card: 1.08rem; /*30px: cards*/ 
   --radius-ondjo-sm: 0.75rem; /* 12px: inputs, chips */
   --radius-ondjo-md: 1rem; /* 16px: cartões */
   --radius-ondjo-lg: 1.5rem; /* 24px: hero, painéis, modais */

@@ -77,7 +77,7 @@ export function PropertyCard({
       tabIndex={0}
       role="link"
       aria-label={`${property.title}, ${property.neighborhood}, ${property.city}. Preço: ${formatKz(property.price, { perMonth: isArrendamento })}`}
-      className="group relative flex min-w-0 w-full max-w-full cursor-pointer flex-col overflow-hidden rounded-3xl border border-ondjo-border/80 bg-white shadow-ondjo-card transition-all duration-300 hover:-translate-y-1 hover:shadow-ondjo-card-hover focus-ring"
+      className="group relative flex min-w-0 w-full max-w-full cursor-pointer flex-col overflow-hidden rounded-ondjo-card border border-ondjo-border/80 bg-white shadow-ondjo-card transition-all duration-300 hover:-translate-y-1 hover:shadow-ondjo-card-hover focus-ring"
     >
       {/* Imagem do Imóvel com Carrossel e Badges Estilo Airbnb */}
       <div className="relative overflow-hidden bg-slate-100">

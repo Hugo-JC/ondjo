@@ -840,13 +840,13 @@ export function SearchBar({
                           className={[
                             "focus-ring group relative flex flex-col items-center justify-center rounded-xl p-1.5 sm:p-2 transition-all cursor-pointer select-none border min-h-14.5 sm:min-h-15.5",
                             isSelected
-                              ? "bg-[#8A3C14] border-[#A84A1A] text-white shadow-xs scale-[1.02]"
+                              ? "bg-ondjo-blue border-ondjo-blue-50 text-white shadow-xs scale-[1.02]"
                               : "bg-slate-50/90 hover:bg-slate-100 border-slate-200/90 text-slate-700 hover:border-slate-300",
                           ].join(" ")}
                         >
                           {isSelected && (
-                            <span className="absolute top-1 right-1 grid size-3.5 place-items-center rounded-full bg-white text-[#8A3C14] text-[9px] shadow-2xs">
-                              <Check size={9} strokeWidth={3} />
+                            <span className="absolute top-1 right-1 grid size-3.7 place-items-center rounded-full bg-white text-ondjo-blue-50 text-[10px] shadow-2xs">
+                              <Check size={10} strokeWidth={3} />
                             </span>
                           )}
 
@@ -1340,11 +1340,11 @@ export function SearchBar({
                           </div>
                           <div
                             aria-label="Opções de comodidades"
-                            className="h-49.5 overflow-y-auto overscroll-contain pr-1"
+                            className="h-46.5 overflow-x-hidden overflow-y-scroll overscroll-y-contain pr-1 scrollbar-subtle touch-pan-y"
                             role="region"
                             tabIndex={0}
                           >
-                            <div className="grid grid-cols-3 gap-1.5">
+                            <div className="grid grid-cols-3 auto-rows-14.5 gap-1.5">
                               {AMENITY_OPTIONS.map((item) => {
                                 const isSelected =
                                   selectedAmenities.includes(item.id) ||
@@ -1359,7 +1359,7 @@ export function SearchBar({
                                     aria-pressed={isSelected}
                                     className={`group relative flex flex-col items-center justify-center rounded-xl p-1.5 text-center border transition-all cursor-pointer select-none min-h-14.5 ${
                                       isSelected
-                                        ? "bg-[#8A3C14] border-[#A84A1A] text-white shadow-xs"
+                                        ? "bg-ondjo-blue border-[#A84A1A] text-white shadow-xs"
                                         : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
                                     }`}
                                   >

@@ -160,7 +160,7 @@ export function FavoritesPage() {
         <button
           type="button"
           onClick={() => navigate("")}
-          className="focus-ring inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-ondjo-muted transition hover:text-ondjo-blue"
+          className="focus-ring inline-flex min-h-11 items-center gap-1.5 rounded-ondjo-card px-2 text-ondjo-muted transition hover:text-ondjo-blue"
         >
           <Home size={14} aria-hidden="true" />
           <span>Início</span>

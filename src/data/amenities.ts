@@ -1,9 +1,7 @@
 import {
   Wind,
-  Zap,
   Droplets,
   UtensilsCrossed,
-  Shirt,
   ShieldCheck,
   Car,
   Waves,
@@ -13,16 +11,13 @@ import {
   ArrowUpDown,
   Dumbbell,
   Trees,
-  Building2,
   type LucideIcon,
 } from "lucide-react";
 
 export type AmenityId =
   | "ar_condicionado"
-  | "gerador"
   | "tanque_agua"
   | "cozinha_equipada"
-  | "maquina_lavar"
   | "seguranca_24h"
   | "garagem"
   | "piscina"
@@ -31,8 +26,7 @@ export type AmenityId =
   | "mobilado"
   | "elevador"
   | "ginasio"
-  | "quintal"
-  | "portaria";
+  | "quintal";
 
 export interface AmenityDefinition {
   id: string;
@@ -55,22 +49,19 @@ export const AMENITY_OPTIONS: AmenityDefinition[] = [
     keywords: ["ar condicionado", "ac", "climatizado", "ar-condicionado"],
   },
   {
-    id: "Gerador elétrico",
-    label: "Gerador elétrico",
-    shortLabel: "Gerador",
-    icon: Zap,
-    colorClass: "text-amber-500",
-    bgSoftClass: "bg-amber-50",
-    keywords: ["gerador", "grupo gerador", "energia de socorro"],
-  },
-  {
     id: "Tanque de água",
     label: "Tanque de água",
     shortLabel: "Tanque d'água",
     icon: Droplets,
     colorClass: "text-sky-500",
     bgSoftClass: "bg-sky-50",
-    keywords: ["tanque de água", "tanque", "reservatório", "depósito", "eletrobomba"],
+    keywords: [
+      "tanque de água",
+      "tanque",
+      "reservatório",
+      "depósito",
+      "eletrobomba",
+    ],
   },
   {
     id: "Cozinha equipada",
@@ -80,15 +71,6 @@ export const AMENITY_OPTIONS: AmenityDefinition[] = [
     colorClass: "text-orange-500",
     bgSoftClass: "bg-orange-50",
     keywords: ["cozinha equipada", "cozinha", "fogão", "forno", "frigorífico"],
-  },
-  {
-    id: "Máquina de lavar",
-    label: "Máquina de lavar",
-    shortLabel: "Máq. lavar",
-    icon: Shirt,
-    colorClass: "text-blue-500",
-    bgSoftClass: "bg-blue-50",
-    keywords: ["máquina de lavar", "lavandaria", "máquina lavar"],
   },
   {
     id: "Segurança 24h",
@@ -170,14 +152,5 @@ export const AMENITY_OPTIONS: AmenityDefinition[] = [
     colorClass: "text-emerald-600",
     bgSoftClass: "bg-emerald-50",
     keywords: ["quintal", "jardim", "espaço exterior"],
-  },
-  {
-    id: "Portaria",
-    label: "Portaria / Guarita",
-    shortLabel: "Portaria",
-    icon: Building2,
-    colorClass: "text-slate-700",
-    bgSoftClass: "bg-slate-100",
-    keywords: ["portaria", "guarita", "receção"],
   },
 ];
