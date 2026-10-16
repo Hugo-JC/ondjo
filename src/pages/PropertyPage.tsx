@@ -42,6 +42,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { properties } from "../data/properties";
 import { formatKz } from "../utils/format";
+import { whatsappLink, formatAngolanPhone } from "../utils/whatsapp";
 import { navigate } from "../hooks/useHashRoute";
 import { useFavorites } from "../hooks/useFavorites";
 import { PropertyCard } from "../components/PropertyCard";
@@ -327,13 +328,13 @@ export function PropertyPage({ id }: { id: string }) {
     }
   };
 
-  // Mensagem e link direto do WhatsApp angolano
-  const whatsappNumber =
-    property.advertiser?.whatsapp?.replace(/\D/g, "") || "244923000000";
-  const whatsappMessage = encodeURIComponent(
-    `Olá! Vi o anúncio do imóvel "${property.title}" (Ref: ${propertyRef}) no ONDJO e gostaria de obter mais detalhes e agendar uma visita.`,
+  // Link direto e padronizado do WhatsApp angolano (+244)
+  const currentUrl = typeof window !== "undefined" ? window.location.href : `https://ondjo.ao/#/imovel/${property.id}`;
+  const whatsappUrl = whatsappLink(
+    property.advertiser?.whatsapp || property.advertiser?.phone || "244923000000",
+    `${property.title} (Ref: ${propertyRef})`,
+    currentUrl
   );
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
 
   const handleContactChat = () => {
     navigate(`mensagens?property=${property.id}`);
@@ -904,8 +905,12 @@ export function PropertyPage({ id }: { id: string }) {
                     <ShieldCheck size={14} className="text-ondjo-blue shrink-0" aria-hidden="true" />
                   </div>
                   <p className="flex items-center gap-1 text-[11px] text-ondjo-muted mt-0.5">
-                    <Clock size={12} />
-                    <span>Responde em média em 15 min</span>
+                    <span>Contacto direto pelo WhatsApp e chat</span>
+                    {property.advertiser?.phone && (
+                      <span className="font-semibold text-ondjo-ink">
+                        · {formatAngolanPhone(property.advertiser.phone)}
+                      </span>
+                    )}
                   </p>
                 </div>
               </div>

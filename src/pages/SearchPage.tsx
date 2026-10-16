@@ -30,6 +30,8 @@ import {
 } from "../components/SearchBar";
 import { navigate } from "../hooks/useHashRoute";
 import { useFavorites } from "../hooks/useFavorites";
+import { useSavedSearches } from "../hooks/useSavedSearches";
+import { Bookmark, BookmarkCheck } from "lucide-react";
 
 const POPULAR_NEIGHBORHOODS = [
   "Talatona",
@@ -586,17 +588,44 @@ export function SearchPage() {
               )}
             </div>
 
-            <h1 className="mt-1 text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-ondjo-navy">
-              {results.length > 0 ? (
-                <>
-                  {results.length}{" "}
-                  {results.length === 1 ? "imóvel encontrado" : "imóveis encontrados"}{" "}
-                  {filters.location ? `em ${filters.location}` : "em Luanda"}
-                </>
-              ) : (
-                "Nenhum imóvel disponível"
+            <div className="flex flex-wrap items-center justify-between gap-3 mt-1">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-ondjo-navy">
+                {results.length > 0 ? (
+                  <>
+                    {results.length}{" "}
+                    {results.length === 1 ? "imóvel encontrado" : "imóveis encontrados"}{" "}
+                    {filters.location ? `em ${filters.location}` : "em Luanda"}
+                  </>
+                ) : (
+                  "Nenhum imóvel disponível"
+                )}
+              </h1>
+
+              {results.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    saveSearch(filters);
+                    setSavedSearchToast(true);
+                    setTimeout(() => setSavedSearchToast(false), 2800);
+                  }}
+                  className="focus-ring inline-flex items-center gap-1.5 rounded-full border border-ondjo-border bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:border-ondjo-blue hover:text-ondjo-blue transition cursor-pointer select-none shadow-2xs"
+                  title="Guardar filtros desta pesquisa localmente"
+                >
+                  {savedSearchToast ? (
+                    <>
+                      <BookmarkCheck size={14} className="text-emerald-600" />
+                      <span className="text-emerald-700">Pesquisa guardada!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Bookmark size={14} />
+                      <span>Guardar pesquisa</span>
+                    </>
+                  )}
+                </button>
               )}
-            </h1>
+            </div>
           </div>
 
           {/* Controlos de Ordenação & Alternador de Visualização */}
