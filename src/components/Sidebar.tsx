@@ -25,7 +25,6 @@ interface SidebarProps {
 interface NavItemConfig {
   id: string;
   label: string;
-  hint: string;
   href: string;
   icon: LucideIcon;
   badgeType?: "favorites" | "messages";
@@ -36,21 +35,18 @@ const PRIMARY_NAV: NavItemConfig[] = [
   {
     id: "home",
     label: "Início",
-    hint: "Explorar imóveis em Angola",
     href: "#/",
     icon: Home,
   },
   {
     id: "search",
     label: "Pesquisar",
-    hint: "Filtros por zona, tipo e preço",
     href: "#/pesquisar",
     icon: Search,
   },
   {
     id: "favorites",
     label: "Favoritos",
-    hint: "Os seus imóveis guardados",
     href: "#/favoritos",
     icon: Heart,
     badgeType: "favorites",
@@ -58,7 +54,6 @@ const PRIMARY_NAV: NavItemConfig[] = [
   {
     id: "chat",
     label: "Mensagens",
-    hint: "Conversas e agendamento de visitas",
     href: "#/chat",
     icon: MessageSquare,
     badgeType: "messages",
@@ -69,7 +64,6 @@ const SECONDARY_NAV: NavItemConfig[] = [
   {
     id: "publish",
     label: "Publicar imóvel",
-    hint: "Anuncie para milhares de compradores",
     href: "#/login",
     icon: Plus,
     highlight: true,
@@ -77,7 +71,6 @@ const SECONDARY_NAV: NavItemConfig[] = [
   {
     id: "help",
     label: "Ajuda & Dúvidas",
-    hint: "Suporte e como funciona o ONDJO",
     href: "#/login",
     icon: CircleHelp,
   },
@@ -96,6 +89,8 @@ export default function Sidebar({
   });
 
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isTopIconHovered, setIsTopIconHovered] = useState(false);
+
   const isControlled = controlledExpanded !== undefined;
   const expanded = controlledExpanded ?? internalExpanded;
 
@@ -177,37 +172,74 @@ export default function Sidebar({
           mobileOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:translate-x-0",
         ].join(" ")}
       >
-        {/* Topo: Logótipo & Fechar Mobile */}
+        {/* Topo: Logótipo & Ícone de Expandir no Hover (Compacto) ou Fechar (Mobile) */}
         <div
           className={[
-            "flex h-16 sm:h-20 shrink-0 items-center border-b border-ondjo-border/60 px-3.5",
-            expanded ? "justify-between px-5" : "justify-center",
+            "flex h-16 sm:h-20 shrink-0 items-center border-b border-ondjo-border/60 px-3",
+            expanded ? "justify-between px-4" : "justify-center",
           ].join(" ")}
         >
-          <a
-            href="#/"
-            aria-label="ONDJO — Página Inicial"
-            onClick={() => setMobileOpen(false)}
-            className="focus-ring flex items-center gap-2.5 rounded-xl p-1 transition-transform hover:opacity-90 active:scale-95"
-          >
-            {expanded ? (
-              <div className="flex flex-col">
+          {expanded ? (
+            <div className="flex items-center justify-between w-full">
+              <a
+                href="#/"
+                aria-label="ONDJO — Página Inicial"
+                onClick={() => setMobileOpen(false)}
+                className="focus-ring flex items-center rounded-xl p-1 transition-transform hover:opacity-90 active:scale-95"
+              >
                 <Logo variant="full" height={32} decorative />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-ondjo-muted mt-0.5">
-                  Mercado Imobiliário
-                </span>
+              </a>
+
+              {/* Botão recolher no desktop */}
+              <button
+                type="button"
+                onClick={toggleExpanded}
+                aria-label="Recolher menu lateral"
+                title="Recolher menu lateral"
+                className="focus-ring hidden lg:grid size-8.5 place-items-center rounded-xl text-ondjo-muted hover:bg-slate-100 hover:text-ondjo-ink cursor-pointer transition-colors"
+              >
+                <PanelLeftClose size={18} aria-hidden="true" />
+              </button>
+            </div>
+          ) : (
+            /* Modo Compacto: Marca ONDJO com troca para ícone de expandir no hover */
+            <button
+              type="button"
+              onClick={toggleExpanded}
+              onMouseEnter={() => setIsTopIconHovered(true)}
+              onMouseLeave={() => setIsTopIconHovered(false)}
+              aria-label="Expandir menu lateral"
+              title="Expandir menu lateral"
+              className="focus-ring group relative flex size-12 items-center justify-center rounded-2xl bg-slate-50/80 hover:bg-ondjo-blue-soft/80 border border-slate-200/60 hover:border-ondjo-blue/30 transition-all cursor-pointer shadow-2xs"
+            >
+              {/* Marca ONDJO (Padrão) */}
+              <div
+                className={[
+                  "absolute inset-0 flex items-center justify-center transition-all duration-200",
+                  isTopIconHovered ? "opacity-0 scale-75" : "opacity-100 scale-100",
+                ].join(" ")}
+              >
+                <Logo variant="mark" height={30} decorative />
               </div>
-            ) : (
-              <Logo variant="mark" height={34} decorative />
-            )}
-          </a>
+
+              {/* Ícone de Expandir no Hover */}
+              <div
+                className={[
+                  "absolute inset-0 flex items-center justify-center text-ondjo-blue transition-all duration-200",
+                  isTopIconHovered ? "opacity-100 scale-100" : "opacity-0 scale-75",
+                ].join(" ")}
+              >
+                <PanelLeftOpen size={22} strokeWidth={2.4} aria-hidden="true" />
+              </div>
+            </button>
+          )}
 
           {/* Botão fechar (Mobile apenas) */}
           <button
             type="button"
             onClick={() => setMobileOpen(false)}
             aria-label="Fechar menu"
-            className="focus-ring grid size-9 place-items-center rounded-xl text-ondjo-muted hover:bg-slate-100 hover:text-ondjo-ink lg:hidden cursor-pointer"
+            className="focus-ring grid size-9 place-items-center rounded-xl text-ondjo-muted hover:bg-slate-100 hover:text-ondjo-ink lg:hidden cursor-pointer ml-auto"
           >
             <X size={20} aria-hidden="true" />
           </button>
@@ -216,7 +248,7 @@ export default function Sidebar({
         {/* Corpo com Itens Verticais */}
         <nav
           aria-label="Menu principal"
-          className="flex-1 overflow-y-auto px-2.5 py-4 scrollbar-none flex flex-col gap-1.5"
+          className="flex-1 overflow-y-auto px-2 py-4 scrollbar-none flex flex-col gap-1.5"
         >
           {/* Itens Primários (Início, Pesquisar, Favoritos, Mensagens) */}
           <div className="flex flex-col gap-1.5">
@@ -239,7 +271,7 @@ export default function Sidebar({
 
           {/* Separador elegante */}
           <div className={expanded ? "my-3 px-2" : "my-2.5 flex justify-center"}>
-            <div className={expanded ? "h-px w-full bg-ondjo-border/70" : "h-px w-8 bg-ondjo-border/80"} />
+            <div className={expanded ? "h-px w-full bg-ondjo-border/70" : "h-px w-10 bg-ondjo-border/80"} />
           </div>
 
           {/* Itens Secundários (Publicar Imóvel, Ajuda) */}
@@ -277,13 +309,12 @@ export default function Sidebar({
         </nav>
 
         {/* Rodapé da Sidebar: Perfil de Utilizador & Botão de Expandir/Recolher */}
-        <div className="shrink-0 border-t border-ondjo-border/60 p-2.5 bg-slate-50/50 flex flex-col gap-1.5">
+        <div className="shrink-0 border-t border-ondjo-border/60 p-2 bg-slate-50/50 flex flex-col gap-1.5">
           {/* Link para Conta / Login */}
           <SidebarButton
             item={{
               id: "account",
               label: "Minha conta",
-              hint: "Entrar ou registar perfil",
               href: "#/login",
               icon: UserRound,
             }}
@@ -299,8 +330,8 @@ export default function Sidebar({
             aria-label={expanded ? "Recolher menu lateral" : "Expandir menu lateral"}
             title={expanded ? "Recolher menu lateral" : "Expandir menu lateral"}
             className={[
-              "focus-ring hidden lg:flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold text-ondjo-muted hover:bg-white hover:text-ondjo-ink hover:shadow-2xs transition-all cursor-pointer",
-              expanded ? "justify-start w-full" : "justify-center size-11 mx-auto",
+              "focus-ring hidden lg:flex items-center gap-3 rounded-2xl p-2.5 text-xs font-semibold text-ondjo-muted hover:bg-white hover:text-ondjo-ink hover:shadow-2xs transition-all cursor-pointer",
+              expanded ? "justify-start w-full px-3" : "justify-center w-full max-w-[56px] h-12 mx-auto",
             ].join(" ")}
           >
             {expanded ? (
@@ -353,7 +384,7 @@ function SidebarButton({
       const rect = anchorRef.current?.getBoundingClientRect();
       if (!rect) return;
       setCoords({
-        left: rect.right + 12,
+        left: rect.right + 10,
         top: rect.top + rect.height / 2,
       });
     };
@@ -378,32 +409,24 @@ function SidebarButton({
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         aria-current={active ? "page" : undefined}
-        aria-label={!expanded ? `${item.label} — ${item.hint}` : undefined}
+        aria-label={!expanded ? item.label : undefined}
         aria-describedby={showTooltip ? tooltipId : undefined}
         className={[
           "group relative flex items-center rounded-2xl select-none focus-ring transition-all cursor-pointer",
           expanded
             ? "min-h-12 w-full gap-3.5 px-3.5 text-sm font-semibold"
-            : "size-12 justify-center mx-auto",
+            : "w-full max-w-[56px] h-12.5 justify-center mx-auto",
           active
             ? "bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
             : item.highlight
               ? "text-ondjo-ink hover:bg-ondjo-blue-50/70 hover:text-ondjo-blue"
-              : "text-ondjo-muted hover:text-ondjo-ink hover:bg-slate-100/80",
+              : "text-ondjo-muted hover:text-ondjo-ink hover:bg-slate-100/90",
         ].join(" ")}
       >
-        {/* Barra lateral de estado ativo (Modo Compacto) */}
-        {!expanded && active && (
-          <span
-            aria-hidden="true"
-            className="absolute left-0 top-2.5 bottom-2.5 w-1 rounded-r-full bg-ondjo-blue"
-          />
-        )}
-
         {/* Ícone com Badge de Contagem */}
         <span className="relative grid place-items-center shrink-0">
           <Icon
-            size={20}
+            size={21}
             strokeWidth={active ? 2.5 : 2}
             className={[
               "transition-colors",
@@ -440,7 +463,7 @@ function SidebarButton({
         )}
       </a>
 
-      {/* Tooltip / Pista no Hover Flutuante (Via Portal no Body) */}
+      {/* Tooltip Limpo: Exibe APENAS o nome da opção e sem bordas pesadas */}
       {showTooltip &&
         coords &&
         typeof document !== "undefined" &&
@@ -451,25 +474,8 @@ function SidebarButton({
             style={{ left: coords.left, top: coords.top }}
             className="pointer-events-none fixed z-70 -translate-y-1/2 flex items-center animate-in fade-in-50 zoom-in-95 duration-150"
           >
-            {/* Setinha apontando para a esquerda */}
-            <span
-              className="border-y-4 border-y-transparent border-r-6 border-r-ondjo-navy -mr-0.5"
-              aria-hidden="true"
-            />
-
-            {/* Caixa do Tooltip */}
-            <div className="rounded-xl border border-white/10 bg-ondjo-navy px-3 py-2 text-white shadow-xl shadow-ondjo-navy/30 whitespace-nowrap">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold leading-tight">{item.label}</span>
-                {badgeCount > 0 && (
-                  <span className="rounded-full bg-ondjo-blue px-1.5 py-0.2 text-[10px] font-black text-white leading-none">
-                    {badgeCount}
-                  </span>
-                )}
-              </div>
-              <p className="mt-0.5 text-[11px] font-normal leading-tight text-ondjo-blue-soft/90">
-                {item.hint}
-              </p>
+            <div className="rounded-lg bg-ondjo-navy px-2.5 py-1 text-xs font-semibold text-white shadow-lg shadow-ondjo-navy/20 whitespace-nowrap select-none">
+              {item.label}
             </div>
           </div>,
           document.body,

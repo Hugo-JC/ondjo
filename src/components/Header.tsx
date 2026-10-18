@@ -56,29 +56,15 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-30 w-full border-b border-ondjo-border/80 bg-white/95 backdrop-blur-md transition-all">
       <div className="mx-auto flex h-14 sm:h-16 lg:h-18 w-full max-w-7xl items-center justify-between gap-3 px-3.5 sm:px-6 lg:px-8">
-        {/* Lado Esquerdo: Logótipo no Mobile e Tagline no Desktop */}
+        {/* Lado Esquerdo: Logótipo Oficial ONDJO (logo.svg) com link direto para a Home */}
         <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 min-w-0">
-          {/* Logo no mobile/tablet (no desktop a sidebar vertical já tem o logo) */}
-          <div className="lg:hidden">
-            <a
-              href="#/"
-              aria-label="ONDJO — Página Inicial"
-              className="focus-ring inline-flex items-center rounded-xl p-1 transition-transform hover:opacity-95 active:scale-98"
-            >
-              <Logo height={32} decorative />
-            </a>
-          </div>
-
-          {/* No Desktop: Título e Identidade limpa */}
-          <div className="hidden lg:flex items-center gap-2.5">
-            <span className="text-xs font-bold uppercase tracking-wider text-ondjo-muted">
-              Marketplace Imobiliário de Angola
-            </span>
-            <span className="h-3 w-px bg-ondjo-border" aria-hidden="true" />
-            <span className="text-xs font-semibold text-ondjo-ink">
-              Luanda · Benguela · Huíla
-            </span>
-          </div>
+          <a
+            href="#/"
+            aria-label="ONDJO — Ir para a Página Inicial"
+            className="focus-ring inline-flex items-center rounded-xl p-1 transition-transform hover:opacity-90 active:scale-95 cursor-pointer"
+          >
+            <Logo variant="full" height={34} decorative />
+          </a>
         </div>
 
         {/* Lado Direito: Ações & Perfil */}

@@ -900,7 +900,7 @@ export function SearchBar({
                       </button>
                     )}
                   </div>
-                  <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     {AMENITY_OPTIONS.map((item) => {
                       const isSelected =
                         selectedAmenities.includes(item.id) ||
@@ -911,36 +911,29 @@ export function SearchBar({
                           key={item.id}
                           type="button"
                           onClick={() => toggleAmenity(item.id)}
+                          aria-pressed={isSelected}
                           className={[
-                            "focus-ring group relative flex flex-col items-center justify-center rounded-xl p-1.5 sm:p-2 transition-all cursor-pointer select-none border min-h-14.5 sm:min-h-15.5",
+                            "focus-ring group relative flex flex-col items-center justify-center rounded-2xl p-2.5 transition-all duration-150 cursor-pointer select-none border min-h-[72px]",
                             isSelected
-                              ? "bg-ondjo-blue border-ondjo-blue text-white shadow-xs scale-[1.02]"
-                              : "bg-slate-50/90 hover:bg-slate-100 border-slate-200/90 text-slate-700 hover:border-slate-300",
+                              ? "bg-ondjo-blue/8 border-2 border-ondjo-blue shadow-xs"
+                              : "bg-white hover:bg-ondjo-blue-50/20 border-slate-200/90 hover:border-ondjo-blue/40 shadow-2xs",
                           ].join(" ")}
                         >
                           {isSelected && (
-                            <span className="absolute top-1 right-1 grid size-3.7 place-items-center rounded-full bg-white text-ondjo-blue text-[10px] shadow-2xs">
+                            <span className="absolute top-1.5 right-1.5 grid size-4 place-items-center rounded-full bg-ondjo-blue text-white shadow-2xs">
                               <Check size={10} strokeWidth={3} />
                             </span>
                           )}
-
-                          <span
-                            className={[
-                              "grid size-6 place-items-center rounded-lg transition-transform mb-1 shrink-0",
-                              isSelected
-                                ? "bg-white/20 text-white"
-                                : `${item.bgSoftClass} ${item.colorClass} group-hover:scale-105`,
-                            ].join(" ")}
-                          >
-                            <Icon size={13} strokeWidth={2.2} />
+                          <span className={[
+                            "grid size-8 place-items-center rounded-xl mb-1.5 shrink-0 transition-transform group-hover:scale-105",
+                            isSelected ? "bg-ondjo-blue text-white shadow-xs" : `${item.bgSoftClass} ${item.colorClass}`,
+                          ].join(" ")}>
+                            <Icon size={15} strokeWidth={2.2} />
                           </span>
-
-                          <span
-                            className={[
-                              "text-[10px] sm:text-[10.5px] font-semibold text-center leading-tight tracking-tight line-clamp-2 px-0.5",
-                              isSelected ? "text-white" : "text-slate-700",
-                            ].join(" ")}
-                          >
+                          <span className={[
+                            "text-xs font-semibold text-center leading-tight tracking-tight line-clamp-1 px-0.5",
+                            isSelected ? "text-ondjo-navy font-bold" : "text-slate-700 group-hover:text-ondjo-navy",
+                          ].join(" ")}>
                             {item.shortLabel || item.label}
                           </span>
                         </button>
@@ -991,38 +984,68 @@ export function SearchBar({
                 Faixa de preço (Kz)
               </span>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">
-                    Mínimo
-                  </label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    placeholder="Sem mín."
-                    value={value.minPrice}
-                    onChange={(e) =>
-                      set("minPrice", e.target.value.replace(/\D/g, ""))
-                    }
-                    className="mt-1 h-10 w-full rounded-xl border border-slate-200 px-3 text-xs font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">
-                    Máximo
-                  </label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    placeholder="Sem máx."
-                    value={value.maxPrice}
-                    onChange={(e) =>
-                      set("maxPrice", e.target.value.replace(/\D/g, ""))
-                    }
-                    className="mt-1 h-10 w-full rounded-xl border border-slate-200 px-3 text-xs font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue"
-                  />
-                </div>
-              </div>
+              {(() => {
+                const rental = value.purpose === "arrendar";
+                const ceiling = rental ? 5000000 : 250000000;
+                const step = rental ? 50000 : 2500000;
+                const current = value.maxPrice ? Math.min(ceiling, Number(value.maxPrice)) : ceiling;
+                const presets = rental
+                  ? [["150 mil", "150000"], ["300 mil", "300000"], ["600 mil", "600000"], ["1,2 M", "1200000"], ["2,5 M", "2500000"]]
+                  : [["15 M", "15000000"], ["30 M", "30000000"], ["60 M", "60000000"], ["120 M", "120000000"], ["250 M", "250000000"]];
+                return (
+                  <>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-semibold text-slate-600">Preço máximo</span>
+                      <span className="text-xs font-bold text-ondjo-blue">
+                        {value.maxPrice ? `${Number(value.maxPrice).toLocaleString("pt-AO")} Kz` : "Sem limite"}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={ceiling}
+                      step={step}
+                      value={current}
+                      onChange={(e) => {
+                        const n = Number(e.target.value);
+                        set("maxPrice", n === 0 || n >= ceiling ? "" : String(n));
+                      }}
+                      aria-label="Preço máximo em Kwanzas"
+                      className="w-full h-2.5 accent-ondjo-blue cursor-pointer"
+                    />
+                    <div className="flex justify-between text-[10px] text-slate-400 font-medium mt-1">
+                      <span>0 Kz</span><span>{rental ? "2,5 M Kz" : "125 M Kz"}</span><span>{rental ? "5 M+ Kz" : "250 M+ Kz"}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 mt-3 mb-3">
+                      {presets.map(([label, amount]) => (
+                        <button
+                          key={amount}
+                          type="button"
+                          onClick={() => set("maxPrice", value.maxPrice === amount ? "" : amount)}
+                          className={[
+                            "rounded-full px-2.5 py-1 text-[10px] font-bold transition-colors",
+                            value.maxPrice === amount ? "bg-ondjo-blue text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200",
+                          ].join(" ")}
+                        >{label}</button>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase">Mínimo</label>
+                        <input type="text" inputMode="numeric" placeholder="Sem mín." value={value.minPrice}
+                          onChange={(e) => set("minPrice", e.target.value.replace(/\D/g, ""))}
+                          className="mt-1 h-10 w-full rounded-xl border border-slate-200 px-3 text-xs font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase">Máximo</label>
+                        <input type="text" inputMode="numeric" placeholder="Sem máx." value={value.maxPrice}
+                          onChange={(e) => set("maxPrice", e.target.value.replace(/\D/g, ""))}
+                          className="mt-1 h-10 w-full rounded-xl border border-slate-200 px-3 text-xs font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue" />
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
 
               <button
                 type="button"
@@ -1519,7 +1542,7 @@ export function SearchBar({
                         aria-label="Opções de comodidades"
                         className="max-h-56 overflow-y-auto pr-1 scrollbar-subtle overscroll-contain"
                       >
-                        <div className="grid grid-cols-3 gap-1.5">
+                        <div className="grid grid-cols-3 gap-2">
                           {AMENITY_OPTIONS.map((item) => {
                             const isSelected =
                               selectedAmenities.includes(item.id) ||
@@ -1533,37 +1556,27 @@ export function SearchBar({
                                 aria-label={item.label}
                                 aria-pressed={isSelected}
                                 className={[
-                                  "group relative flex flex-col items-center justify-center rounded-xl p-1.5 text-center border transition-all cursor-pointer select-none min-h-14.5",
+                                  "group relative flex flex-col items-center justify-center rounded-2xl p-2 text-center border transition-all duration-150 cursor-pointer select-none min-h-[72px] active:scale-97",
                                   isSelected
-                                    ? "bg-ondjo-blue border-ondjo-blue text-white shadow-xs"
-                                    : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50",
+                                    ? "bg-ondjo-blue/8 border-2 border-ondjo-blue shadow-xs"
+                                    : "bg-white border-slate-200/90 text-slate-700 hover:bg-slate-50 shadow-2xs",
                                 ].join(" ")}
                               >
                                 {isSelected && (
-                                  <span className="absolute top-1 right-1 grid size-3.5 place-items-center rounded-full bg-white text-ondjo-blue text-[9px] shadow-2xs">
-                                    <Check size={9} strokeWidth={3} />
+                                  <span className="absolute top-1.5 right-1.5 grid size-4 place-items-center rounded-full bg-ondjo-blue text-white shadow-2xs">
+                                    <Check size={10} strokeWidth={3} />
                                   </span>
                                 )}
-
-                                <span
-                                  className={[
-                                    "grid size-6 place-items-center rounded-lg mb-1 shrink-0",
-                                    isSelected
-                                      ? "bg-white/20 text-white"
-                                      : `${item.bgSoftClass} ${item.colorClass}`,
-                                  ].join(" ")}
-                                >
-                                  <Icon size={12} strokeWidth={2.2} />
+                                <span className={[
+                                  "grid size-7.5 place-items-center rounded-xl mb-1 shrink-0",
+                                  isSelected ? "bg-ondjo-blue text-white shadow-xs" : `${item.bgSoftClass} ${item.colorClass}`,
+                                ].join(" ")}>
+                                  <Icon size={14} strokeWidth={2.2} />
                                 </span>
-
-                                <span
-                                  className={[
-                                    "text-[9.5px] font-semibold text-center leading-tight tracking-tight line-clamp-2 px-0.5",
-                                    isSelected
-                                      ? "text-white"
-                                      : "text-slate-700",
-                                  ].join(" ")}
-                                >
+                                <span className={[
+                                  "text-[10px] font-semibold text-center leading-tight tracking-tight line-clamp-1 px-0.5",
+                                  isSelected ? "text-ondjo-navy font-bold" : "text-slate-700",
+                                ].join(" ")}>
                                   {item.shortLabel || item.label}
                                 </span>
                               </button>
@@ -1578,38 +1591,58 @@ export function SearchBar({
                       <label className="text-xs font-bold text-slate-700 block mb-1.5 uppercase tracking-wider">
                         Preço em Kwanzas (Kz)
                       </label>
-                      <div className="grid grid-cols-2 gap-2.5">
-                        <div>
-                          <span className="text-[10px] font-bold text-slate-500 uppercase">
-                            Mínimo
-                          </span>
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            placeholder="Sem mínimo"
-                            value={value.minPrice}
-                            onChange={(e) =>
-                              set("minPrice", e.target.value.replace(/\D/g, ""))
-                            }
-                            className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-base font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue bg-slate-50/70"
-                          />
-                        </div>
-                        <div>
-                          <span className="text-[10px] font-bold text-slate-500 uppercase">
-                            Máximo
-                          </span>
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            placeholder="Sem máximo"
-                            value={value.maxPrice}
-                            onChange={(e) =>
-                              set("maxPrice", e.target.value.replace(/\D/g, ""))
-                            }
-                            className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-base font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue bg-slate-50/70"
-                          />
-                        </div>
-                      </div>
+                      {(() => {
+                        const rental = value.purpose === "arrendar";
+                        const ceiling = rental ? 5000000 : 250000000;
+                        const step = rental ? 50000 : 2500000;
+                        const current = value.maxPrice ? Math.min(ceiling, Number(value.maxPrice)) : ceiling;
+                        const presets = rental
+                          ? [["150 mil", "150000"], ["300 mil", "300000"], ["600 mil", "600000"], ["1,2 M", "1200000"], ["2,5 M", "2500000"]]
+                          : [["15 M", "15000000"], ["30 M", "30000000"], ["60 M", "60000000"], ["120 M", "120000000"], ["250 M", "250000000"]];
+                        return (
+                          <>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-[11px] font-semibold text-slate-600">Preço máximo</span>
+                              <span className="text-xs font-bold text-ondjo-blue">
+                                {value.maxPrice ? `${Number(value.maxPrice).toLocaleString("pt-AO")} Kz` : "Sem limite"}
+                              </span>
+                            </div>
+                            <input type="range" min={0} max={ceiling} step={step} value={current}
+                              onChange={(e) => {
+                                const n = Number(e.target.value);
+                                set("maxPrice", n === 0 || n >= ceiling ? "" : String(n));
+                              }}
+                              aria-label="Ajustar preço máximo em Kwanzas"
+                              className="w-full h-3 accent-ondjo-blue cursor-pointer" />
+                            <div className="flex justify-between text-[10px] text-slate-400 font-medium mt-1">
+                              <span>0 Kz</span><span>{rental ? "2,5 M Kz" : "125 M Kz"}</span><span>{rental ? "5 M+ Kz" : "250 M+ Kz"}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5 mt-3 mb-3">
+                              {presets.map(([label, amount]) => (
+                                <button key={amount} type="button" onClick={() => set("maxPrice", value.maxPrice === amount ? "" : amount)}
+                                  className={[
+                                    "rounded-full px-2.5 py-1.5 text-[10px] font-bold transition-colors",
+                                    value.maxPrice === amount ? "bg-ondjo-blue text-white" : "bg-white text-slate-600 hover:bg-slate-100",
+                                  ].join(" ")}>{label}</button>
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-slate-200/80">
+                              <div>
+                                <span className="text-[10px] font-bold text-slate-500 uppercase">Mínimo</span>
+                                <input type="text" inputMode="numeric" placeholder="Sem mínimo" value={value.minPrice}
+                                  onChange={(e) => set("minPrice", e.target.value.replace(/\D/g, ""))}
+                                  className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-base font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue bg-white" />
+                              </div>
+                              <div>
+                                <span className="text-[10px] font-bold text-slate-500 uppercase">Máximo</span>
+                                <input type="text" inputMode="numeric" placeholder="Sem máximo" value={value.maxPrice}
+                                  onChange={(e) => set("maxPrice", e.target.value.replace(/\D/g, ""))}
+                                  className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-base font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue bg-white" />
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
 
