@@ -195,8 +195,7 @@ export default function Sidebar({
                 type="button"
                 onClick={toggleExpanded}
                 aria-label="Recolher menu lateral"
-                title="Recolher menu lateral"
-                className="focus-ring hidden lg:grid size-8.5 place-items-center rounded-xl text-ondjo-muted hover:bg-slate-100 hover:text-ondjo-ink cursor-pointer transition-colors"
+                                className="focus-ring hidden lg:grid size-8.5 place-items-center rounded-xl text-ondjo-muted hover:bg-slate-100 hover:text-ondjo-ink cursor-pointer transition-colors"
               >
                 <PanelLeftClose size={18} aria-hidden="true" />
               </button>
@@ -209,8 +208,7 @@ export default function Sidebar({
               onMouseEnter={() => setIsTopIconHovered(true)}
               onMouseLeave={() => setIsTopIconHovered(false)}
               aria-label="Expandir menu lateral"
-              title="Expandir menu lateral"
-              className="focus-ring group relative flex size-12 items-center justify-center rounded-2xl bg-slate-50/80 hover:bg-ondjo-blue-soft/80 border border-slate-200/60 hover:border-ondjo-blue/30 transition-all cursor-pointer shadow-2xs"
+                            className="focus-ring group relative flex size-12 items-center justify-center rounded-2xl bg-slate-50/80 hover:bg-ondjo-blue-soft/80 border border-slate-200/60 hover:border-ondjo-blue/30 transition-all cursor-pointer shadow-2xs"
             >
               {/* Marca ONDJO (Padrão) */}
               <div
@@ -328,8 +326,7 @@ export default function Sidebar({
             type="button"
             onClick={toggleExpanded}
             aria-label={expanded ? "Recolher menu lateral" : "Expandir menu lateral"}
-            title={expanded ? "Recolher menu lateral" : "Expandir menu lateral"}
-            className={[
+                        className={[
               "focus-ring hidden lg:flex items-center gap-3 rounded-2xl p-2.5 text-xs font-semibold text-ondjo-muted hover:bg-white hover:text-ondjo-ink hover:shadow-2xs transition-all cursor-pointer",
               expanded ? "justify-start w-full px-3" : "justify-center w-full max-w-[56px] h-12 mx-auto",
             ].join(" ")}
@@ -367,11 +364,29 @@ function SidebarButton({
   const Icon = item.icon;
   const [isHovered, setIsHovered] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
   const anchorRef = useRef<HTMLAnchorElement>(null);
   const tooltipId = useId();
   const [coords, setCoords] = useState<{ left: number; top: number } | null>(null);
 
-  const showTooltip = !expanded && (isHovered || isFocused);
+  const showTooltip = !expanded && !isDismissed && (isHovered || isFocused);
+
+  // Fecha o tooltip imediatamente ao navegar ou mudar a rota
+  useEffect(() => {
+    const handleDismiss = () => {
+      setIsDismissed(true);
+      setIsHovered(false);
+      setIsFocused(false);
+      anchorRef.current?.blur();
+    };
+
+    window.addEventListener("hashchange", handleDismiss);
+    window.addEventListener("click", handleDismiss);
+    return () => {
+      window.removeEventListener("hashchange", handleDismiss);
+      window.removeEventListener("click", handleDismiss);
+    };
+  }, []);
 
   // Calcula coordenadas do tooltip flutuante
   useEffect(() => {
@@ -398,16 +413,35 @@ function SidebarButton({
     };
   }, [showTooltip]);
 
+  const handleClick = () => {
+    setIsDismissed(true);
+    setIsHovered(false);
+    setIsFocused(false);
+    anchorRef.current?.blur();
+    onNavigate();
+  };
+
   return (
     <>
       <a
         ref={anchorRef}
         href={item.href}
-        onClick={onNavigate}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
+        onClick={handleClick}
+        onMouseEnter={() => {
+          setIsDismissed(false);
+          setIsHovered(true);
+        }}
+        onMouseLeave={() => {
+          setIsHovered(false);
+          setIsDismissed(false);
+        }}
+        onFocus={() => {
+          setIsDismissed(false);
+          setIsFocused(true);
+        }}
+        onBlur={() => {
+          setIsFocused(false);
+        }}
         aria-current={active ? "page" : undefined}
         aria-label={!expanded ? item.label : undefined}
         aria-describedby={showTooltip ? tooltipId : undefined}
@@ -474,7 +508,7 @@ function SidebarButton({
             style={{ left: coords.left, top: coords.top }}
             className="pointer-events-none fixed z-70 -translate-y-1/2 flex items-center animate-in fade-in-50 zoom-in-95 duration-150"
           >
-            <div className="rounded-[10px] bg-ondjo-navy px-2.5 py-1 text-xs font-semibold text-white shadow-lg shadow-ondjo-navy/20 whitespace-nowrap select-none">
+            <div className="rounded-lg bg-ondjo-navy px-2.5 py-1 text-xs font-semibold text-white shadow-lg shadow-ondjo-navy/20 whitespace-nowrap select-none">
               {item.label}
             </div>
           </div>,
