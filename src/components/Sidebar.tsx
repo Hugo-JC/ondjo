@@ -474,7 +474,7 @@ function SidebarButton({
             style={{ left: coords.left, top: coords.top }}
             className="pointer-events-none fixed z-70 -translate-y-1/2 flex items-center animate-in fade-in-50 zoom-in-95 duration-150"
           >
-            <div className="rounded-lg bg-ondjo-navy px-2.5 py-1 text-xs font-semibold text-white shadow-lg shadow-ondjo-navy/20 whitespace-nowrap select-none">
+            <div className="rounded-[10px] bg-ondjo-navy px-2.5 py-1 text-xs font-semibold text-white shadow-lg shadow-ondjo-navy/20 whitespace-nowrap select-none">
               {item.label}
             </div>
           </div>,

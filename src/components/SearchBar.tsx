@@ -246,7 +246,8 @@ export function SearchBar({
     if (value.parking) count++;
     if (value.minPrice || value.maxPrice) count++;
     if (value.origin && value.origin !== "todos") count++;
-    if (value.amenities && value.amenities.length > 0) count += value.amenities.length;
+    if (value.amenities && value.amenities.length > 0)
+      count += value.amenities.length;
     return count;
   }, [value]);
 
@@ -282,7 +283,8 @@ export function SearchBar({
   };
 
   // Obter label curta da origem selecionada
-  const activeOriginOption = ORIGIN_OPTIONS.find((o) => o.id === currentOrigin) || ORIGIN_OPTIONS[0];
+  const activeOriginOption =
+    ORIGIN_OPTIONS.find((o) => o.id === currentOrigin) || ORIGIN_OPTIONS[0];
 
   return (
     <div
@@ -913,7 +915,7 @@ export function SearchBar({
                           onClick={() => toggleAmenity(item.id)}
                           aria-pressed={isSelected}
                           className={[
-                            "focus-ring group relative flex flex-col items-center justify-center rounded-2xl p-2.5 transition-all duration-150 cursor-pointer select-none border min-h-[72px]",
+                            "focus-ring group relative flex flex-col items-center justify-center rounded-2xl p-2.5 transition-all duration-150 cursor-pointer select-none border min-h-18",
                             isSelected
                               ? "bg-ondjo-blue/8 border-2 border-ondjo-blue shadow-xs"
                               : "bg-white hover:bg-ondjo-blue-50/20 border-slate-200/90 hover:border-ondjo-blue/40 shadow-2xs",
@@ -924,16 +926,24 @@ export function SearchBar({
                               <Check size={10} strokeWidth={3} />
                             </span>
                           )}
-                          <span className={[
-                            "grid size-8 place-items-center rounded-xl mb-1.5 shrink-0 transition-transform group-hover:scale-105",
-                            isSelected ? "bg-ondjo-blue text-white shadow-xs" : `${item.bgSoftClass} ${item.colorClass}`,
-                          ].join(" ")}>
+                          <span
+                            className={[
+                              "grid size-8 place-items-center rounded-xl mb-1.5 shrink-0 transition-transform group-hover:scale-105",
+                              isSelected
+                                ? "bg-ondjo-blue text-white shadow-xs"
+                                : `${item.bgSoftClass} ${item.colorClass}`,
+                            ].join(" ")}
+                          >
                             <Icon size={15} strokeWidth={2.2} />
                           </span>
-                          <span className={[
-                            "text-xs font-semibold text-center leading-tight tracking-tight line-clamp-1 px-0.5",
-                            isSelected ? "text-ondjo-navy font-bold" : "text-slate-700 group-hover:text-ondjo-navy",
-                          ].join(" ")}>
+                          <span
+                            className={[
+                              "text-xs font-semibold text-center leading-tight tracking-tight line-clamp-1 px-0.5",
+                              isSelected
+                                ? "text-ondjo-navy font-bold"
+                                : "text-slate-700 group-hover:text-ondjo-navy",
+                            ].join(" ")}
+                          >
                             {item.shortLabel || item.label}
                           </span>
                         </button>
@@ -988,16 +998,34 @@ export function SearchBar({
                 const rental = value.purpose === "arrendar";
                 const ceiling = rental ? 5000000 : 250000000;
                 const step = rental ? 50000 : 2500000;
-                const current = value.maxPrice ? Math.min(ceiling, Number(value.maxPrice)) : ceiling;
+                const current = value.maxPrice
+                  ? Math.min(ceiling, Number(value.maxPrice))
+                  : ceiling;
                 const presets = rental
-                  ? [["150 mil", "150000"], ["300 mil", "300000"], ["600 mil", "600000"], ["1,2 M", "1200000"], ["2,5 M", "2500000"]]
-                  : [["15 M", "15000000"], ["30 M", "30000000"], ["60 M", "60000000"], ["120 M", "120000000"], ["250 M", "250000000"]];
+                  ? [
+                      ["150 mil", "150000"],
+                      ["300 mil", "300000"],
+                      ["600 mil", "600000"],
+                      ["1,2 M", "1200000"],
+                      ["2,5 M", "2500000"],
+                    ]
+                  : [
+                      ["15 M", "15000000"],
+                      ["30 M", "30000000"],
+                      ["60 M", "60000000"],
+                      ["120 M", "120000000"],
+                      ["250 M", "250000000"],
+                    ];
                 return (
                   <>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-semibold text-slate-600">Preço máximo</span>
+                      <span className="text-xs font-semibold text-slate-600">
+                        Preço máximo
+                      </span>
                       <span className="text-xs font-bold text-ondjo-blue">
-                        {value.maxPrice ? `${Number(value.maxPrice).toLocaleString("pt-AO")} Kz` : "Sem limite"}
+                        {value.maxPrice
+                          ? `${Number(value.maxPrice).toLocaleString("pt-AO")} Kz`
+                          : "Sem limite"}
                       </span>
                     </div>
                     <input
@@ -1008,39 +1036,71 @@ export function SearchBar({
                       value={current}
                       onChange={(e) => {
                         const n = Number(e.target.value);
-                        set("maxPrice", n === 0 || n >= ceiling ? "" : String(n));
+                        set(
+                          "maxPrice",
+                          n === 0 || n >= ceiling ? "" : String(n),
+                        );
                       }}
                       aria-label="Preço máximo em Kwanzas"
                       className="w-full h-2.5 accent-ondjo-blue cursor-pointer"
                     />
                     <div className="flex justify-between text-[10px] text-slate-400 font-medium mt-1">
-                      <span>0 Kz</span><span>{rental ? "2,5 M Kz" : "125 M Kz"}</span><span>{rental ? "5 M+ Kz" : "250 M+ Kz"}</span>
+                      <span>0 Kz</span>
+                      <span>{rental ? "2,5 M Kz" : "125 M Kz"}</span>
+                      <span>{rental ? "5 M+ Kz" : "250 M+ Kz"}</span>
                     </div>
                     <div className="flex flex-wrap gap-1.5 mt-3 mb-3">
                       {presets.map(([label, amount]) => (
                         <button
                           key={amount}
                           type="button"
-                          onClick={() => set("maxPrice", value.maxPrice === amount ? "" : amount)}
+                          onClick={() =>
+                            set(
+                              "maxPrice",
+                              value.maxPrice === amount ? "" : amount,
+                            )
+                          }
                           className={[
                             "rounded-full px-2.5 py-1 text-[10px] font-bold transition-colors",
-                            value.maxPrice === amount ? "bg-ondjo-blue text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200",
+                            value.maxPrice === amount
+                              ? "bg-ondjo-blue text-white"
+                              : "bg-slate-100 text-slate-600 hover:bg-slate-200",
                           ].join(" ")}
-                        >{label}</button>
+                        >
+                          {label}
+                        </button>
                       ))}
                     </div>
                     <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
                       <div>
-                        <label className="text-[10px] font-bold text-slate-500 uppercase">Mínimo</label>
-                        <input type="text" inputMode="numeric" placeholder="Sem mín." value={value.minPrice}
-                          onChange={(e) => set("minPrice", e.target.value.replace(/\D/g, ""))}
-                          className="mt-1 h-10 w-full rounded-xl border border-slate-200 px-3 text-xs font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue" />
+                        <label className="text-[10px] font-bold text-slate-500 uppercase">
+                          Mínimo
+                        </label>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="Sem mín."
+                          value={value.minPrice}
+                          onChange={(e) =>
+                            set("minPrice", e.target.value.replace(/\D/g, ""))
+                          }
+                          className="mt-1 h-10 w-full rounded-xl border border-slate-200 px-3 text-xs font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue"
+                        />
                       </div>
                       <div>
-                        <label className="text-[10px] font-bold text-slate-500 uppercase">Máximo</label>
-                        <input type="text" inputMode="numeric" placeholder="Sem máx." value={value.maxPrice}
-                          onChange={(e) => set("maxPrice", e.target.value.replace(/\D/g, ""))}
-                          className="mt-1 h-10 w-full rounded-xl border border-slate-200 px-3 text-xs font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue" />
+                        <label className="text-[10px] font-bold text-slate-500 uppercase">
+                          Máximo
+                        </label>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="Sem máx."
+                          value={value.maxPrice}
+                          onChange={(e) =>
+                            set("maxPrice", e.target.value.replace(/\D/g, ""))
+                          }
+                          className="mt-1 h-10 w-full rounded-xl border border-slate-200 px-3 text-xs font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue"
+                        />
                       </div>
                     </div>
                   </>
@@ -1088,7 +1148,9 @@ export function SearchBar({
             <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500 truncate mt-0.5">
               <span>{value.type || "Todos os tipos"}</span>
               <span>·</span>
-              <span>{value.bedrooms ? `T${value.bedrooms}` : "Qualquer T"}</span>
+              <span>
+                {value.bedrooms ? `T${value.bedrooms}` : "Qualquer T"}
+              </span>
               {currentOrigin !== "todos" && (
                 <>
                   <span>·</span>
@@ -1556,7 +1618,7 @@ export function SearchBar({
                                 aria-label={item.label}
                                 aria-pressed={isSelected}
                                 className={[
-                                  "group relative flex flex-col items-center justify-center rounded-2xl p-2 text-center border transition-all duration-150 cursor-pointer select-none min-h-[72px] active:scale-97",
+                                  "group relative flex flex-col items-center justify-center rounded-2xl p-2 text-center border transition-all duration-150 cursor-pointer select-none min-h-18 active:scale-97",
                                   isSelected
                                     ? "bg-ondjo-blue/8 border-2 border-ondjo-blue shadow-xs"
                                     : "bg-white border-slate-200/90 text-slate-700 hover:bg-slate-50 shadow-2xs",
@@ -1567,16 +1629,24 @@ export function SearchBar({
                                     <Check size={10} strokeWidth={3} />
                                   </span>
                                 )}
-                                <span className={[
-                                  "grid size-7.5 place-items-center rounded-xl mb-1 shrink-0",
-                                  isSelected ? "bg-ondjo-blue text-white shadow-xs" : `${item.bgSoftClass} ${item.colorClass}`,
-                                ].join(" ")}>
+                                <span
+                                  className={[
+                                    "grid size-7.5 place-items-center rounded-xl mb-1 shrink-0",
+                                    isSelected
+                                      ? "bg-ondjo-blue text-white shadow-xs"
+                                      : `${item.bgSoftClass} ${item.colorClass}`,
+                                  ].join(" ")}
+                                >
                                   <Icon size={14} strokeWidth={2.2} />
                                 </span>
-                                <span className={[
-                                  "text-[10px] font-semibold text-center leading-tight tracking-tight line-clamp-1 px-0.5",
-                                  isSelected ? "text-ondjo-navy font-bold" : "text-slate-700",
-                                ].join(" ")}>
+                                <span
+                                  className={[
+                                    "text-[10px] font-semibold text-center leading-tight tracking-tight line-clamp-1 px-0.5",
+                                    isSelected
+                                      ? "text-ondjo-navy font-bold"
+                                      : "text-slate-700",
+                                  ].join(" ")}
+                                >
                                   {item.shortLabel || item.label}
                                 </span>
                               </button>
@@ -1595,49 +1665,115 @@ export function SearchBar({
                         const rental = value.purpose === "arrendar";
                         const ceiling = rental ? 5000000 : 250000000;
                         const step = rental ? 50000 : 2500000;
-                        const current = value.maxPrice ? Math.min(ceiling, Number(value.maxPrice)) : ceiling;
+                        const current = value.maxPrice
+                          ? Math.min(ceiling, Number(value.maxPrice))
+                          : ceiling;
                         const presets = rental
-                          ? [["150 mil", "150000"], ["300 mil", "300000"], ["600 mil", "600000"], ["1,2 M", "1200000"], ["2,5 M", "2500000"]]
-                          : [["15 M", "15000000"], ["30 M", "30000000"], ["60 M", "60000000"], ["120 M", "120000000"], ["250 M", "250000000"]];
+                          ? [
+                              ["150 mil", "150000"],
+                              ["300 mil", "300000"],
+                              ["600 mil", "600000"],
+                              ["1,2 M", "1200000"],
+                              ["2,5 M", "2500000"],
+                            ]
+                          : [
+                              ["15 M", "15000000"],
+                              ["30 M", "30000000"],
+                              ["60 M", "60000000"],
+                              ["120 M", "120000000"],
+                              ["250 M", "250000000"],
+                            ];
                         return (
                           <>
                             <div className="flex items-center justify-between mb-1">
-                              <span className="text-[11px] font-semibold text-slate-600">Preço máximo</span>
+                              <span className="text-[11px] font-semibold text-slate-600">
+                                Preço máximo
+                              </span>
                               <span className="text-xs font-bold text-ondjo-blue">
-                                {value.maxPrice ? `${Number(value.maxPrice).toLocaleString("pt-AO")} Kz` : "Sem limite"}
+                                {value.maxPrice
+                                  ? `${Number(value.maxPrice).toLocaleString("pt-AO")} Kz`
+                                  : "Sem limite"}
                               </span>
                             </div>
-                            <input type="range" min={0} max={ceiling} step={step} value={current}
+                            <input
+                              type="range"
+                              min={0}
+                              max={ceiling}
+                              step={step}
+                              value={current}
                               onChange={(e) => {
                                 const n = Number(e.target.value);
-                                set("maxPrice", n === 0 || n >= ceiling ? "" : String(n));
+                                set(
+                                  "maxPrice",
+                                  n === 0 || n >= ceiling ? "" : String(n),
+                                );
                               }}
                               aria-label="Ajustar preço máximo em Kwanzas"
-                              className="w-full h-3 accent-ondjo-blue cursor-pointer" />
+                              className="w-full h-3 accent-ondjo-blue cursor-pointer"
+                            />
                             <div className="flex justify-between text-[10px] text-slate-400 font-medium mt-1">
-                              <span>0 Kz</span><span>{rental ? "2,5 M Kz" : "125 M Kz"}</span><span>{rental ? "5 M+ Kz" : "250 M+ Kz"}</span>
+                              <span>0 Kz</span>
+                              <span>{rental ? "2,5 M Kz" : "125 M Kz"}</span>
+                              <span>{rental ? "5 M+ Kz" : "250 M+ Kz"}</span>
                             </div>
                             <div className="flex flex-wrap gap-1.5 mt-3 mb-3">
                               {presets.map(([label, amount]) => (
-                                <button key={amount} type="button" onClick={() => set("maxPrice", value.maxPrice === amount ? "" : amount)}
+                                <button
+                                  key={amount}
+                                  type="button"
+                                  onClick={() =>
+                                    set(
+                                      "maxPrice",
+                                      value.maxPrice === amount ? "" : amount,
+                                    )
+                                  }
                                   className={[
                                     "rounded-full px-2.5 py-1.5 text-[10px] font-bold transition-colors",
-                                    value.maxPrice === amount ? "bg-ondjo-blue text-white" : "bg-white text-slate-600 hover:bg-slate-100",
-                                  ].join(" ")}>{label}</button>
+                                    value.maxPrice === amount
+                                      ? "bg-ondjo-blue text-white"
+                                      : "bg-white text-slate-600 hover:bg-slate-100",
+                                  ].join(" ")}
+                                >
+                                  {label}
+                                </button>
                               ))}
                             </div>
                             <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-slate-200/80">
                               <div>
-                                <span className="text-[10px] font-bold text-slate-500 uppercase">Mínimo</span>
-                                <input type="text" inputMode="numeric" placeholder="Sem mínimo" value={value.minPrice}
-                                  onChange={(e) => set("minPrice", e.target.value.replace(/\D/g, ""))}
-                                  className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-base font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue bg-white" />
+                                <span className="text-[10px] font-bold text-slate-500 uppercase">
+                                  Mínimo
+                                </span>
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  placeholder="Sem mínimo"
+                                  value={value.minPrice}
+                                  onChange={(e) =>
+                                    set(
+                                      "minPrice",
+                                      e.target.value.replace(/\D/g, ""),
+                                    )
+                                  }
+                                  className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-base font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue bg-white"
+                                />
                               </div>
                               <div>
-                                <span className="text-[10px] font-bold text-slate-500 uppercase">Máximo</span>
-                                <input type="text" inputMode="numeric" placeholder="Sem máximo" value={value.maxPrice}
-                                  onChange={(e) => set("maxPrice", e.target.value.replace(/\D/g, ""))}
-                                  className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-base font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue bg-white" />
+                                <span className="text-[10px] font-bold text-slate-500 uppercase">
+                                  Máximo
+                                </span>
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  placeholder="Sem máximo"
+                                  value={value.maxPrice}
+                                  onChange={(e) =>
+                                    set(
+                                      "maxPrice",
+                                      e.target.value.replace(/\D/g, ""),
+                                    )
+                                  }
+                                  className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-base font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue bg-white"
+                                />
                               </div>
                             </div>
                           </>
