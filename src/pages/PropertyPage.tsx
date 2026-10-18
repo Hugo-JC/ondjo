@@ -9,6 +9,7 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  Copy,
   Droplets,
   Dumbbell,
   ExternalLink,
@@ -215,6 +216,7 @@ export function PropertyPage({ id }: { id: string }) {
   const [activePhoto, setActivePhoto] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [phoneCopyStatus, setPhoneCopyStatus] = useState<"copied" | "error" | null>(null);
   const [scheduleVisitOpen, setScheduleVisitOpen] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
 
@@ -337,6 +339,20 @@ export function PropertyPage({ id }: { id: string }) {
 
   const handleContactChat = () => {
     navigate(`mensagens?property=${property.id}`);
+  };
+
+  const handleCopyPhone = async () => {
+    const phone = property.advertiser?.phone;
+    if (!phone) return;
+
+    try {
+      await navigator.clipboard.writeText(phone);
+      setPhoneCopyStatus("copied");
+      window.setTimeout(() => setPhoneCopyStatus(null), 2200);
+    } catch {
+      setPhoneCopyStatus("error");
+      window.setTimeout(() => setPhoneCopyStatus(null), 3000);
+    }
   };
 
   const nextPhoto = (e?: React.MouseEvent) => {
@@ -900,14 +916,44 @@ export function PropertyPage({ id }: { id: string }) {
                     </strong>
                     <ShieldCheck size={14} className="text-ondjo-blue shrink-0" aria-hidden="true" />
                   </div>
-                  <p className="flex items-center flex-col gap-1 text-[11px] text-ondjo-muted mt-0.5">
+                  <div className="mt-0.5 flex flex-col items-center gap-1 text-[11px] text-ondjo-muted">
                     <span>Contacto direto pelo WhatsApp e chat</span>
                     {property.advertiser?.phone && (
-                      <span className="font-semibold text-sm text-ondjo-ink">
-                         {formatAngolanPhone(property.advertiser.phone)}
-                      </span>
+                      <div className="mt-1 flex w-full items-center justify-between gap-2 rounded-xl border border-ondjo-border/80 bg-ondjo-bg px-3 py-2">
+                        <span className="font-semibold text-sm text-ondjo-ink">
+                          {formatAngolanPhone(property.advertiser.phone)}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={handleCopyPhone}
+                          aria-label={
+                            phoneCopyStatus === "copied"
+                              ? "Número copiado"
+                              : "Copiar número de telemóvel"
+                          }
+                          className="focus-ring inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold text-ondjo-blue transition hover:bg-ondjo-blue-soft active:scale-95"
+                        >
+                          {phoneCopyStatus === "copied" ? (
+                            <Check size={14} aria-hidden="true" />
+                          ) : (
+                            <Copy size={14} aria-hidden="true" />
+                          )}
+                          <span>
+                            {phoneCopyStatus === "copied"
+                              ? "Copiado"
+                              : "Copiar"}
+                          </span>
+                        </button>
+                        <span className="sr-only" aria-live="polite">
+                          {phoneCopyStatus === "copied"
+                            ? "Número copiado para a área de transferência."
+                            : phoneCopyStatus === "error"
+                              ? "Não foi possível copiar o número."
+                              : ""}
+                        </span>
+                      </div>
                     )}
-                  </p>
+                  </div>
                 </div>
               </div>
 

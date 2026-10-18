@@ -328,7 +328,7 @@ export default function Sidebar({
             aria-label={expanded ? "Recolher menu lateral" : "Expandir menu lateral"}
                         className={[
               "focus-ring hidden lg:flex items-center gap-3 rounded-2xl p-2.5 text-xs font-semibold text-ondjo-muted hover:bg-white hover:text-ondjo-ink hover:shadow-2xs transition-all cursor-pointer",
-              expanded ? "justify-start w-full px-3" : "justify-center w-full max-w-[56px] h-12 mx-auto",
+              expanded ? "justify-start w-full px-3" : "justify-center w-full max-w-14 h-12 mx-auto",
             ].join(" ")}
           >
             {expanded ? (
@@ -449,7 +449,7 @@ function SidebarButton({
           "group relative flex items-center rounded-2xl select-none focus-ring transition-all cursor-pointer",
           expanded
             ? "min-h-12 w-full gap-3.5 px-3.5 text-sm font-semibold"
-            : "w-full max-w-[56px] h-12.5 justify-center mx-auto",
+            : "w-full max-w-14 h-12.5 justify-center mx-auto",
           active
             ? "bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
             : item.highlight
