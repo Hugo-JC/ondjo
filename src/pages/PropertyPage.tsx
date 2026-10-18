@@ -169,7 +169,7 @@ function SafeGalleryImage({
   return (
     <div
       onClick={onClick}
-      className={`relative overflow-hidden bg-slate-100 ${className}`}
+      className={`relative overflow-hidden bg-ondjo-bg ${className}`}
     >
       {!loaded && !error && (
         <div
@@ -201,7 +201,7 @@ function SafeGalleryImage({
             setLoaded(true);
             setError(true);
           }}
-          className={`h-full w-full object-cover transition-all duration-300 ${
+          className={`h-full w-full object-contain transition-opacity duration-300 ${
             loaded ? "opacity-100" : "opacity-0"
           } ${imgClassName}`}
         />
@@ -402,7 +402,7 @@ export function PropertyPage({ id }: { id: string }) {
               {property.neighborhood}
             </a>
             <span className="text-slate-300">/</span>
-            <span className="max-w-[200px] truncate sm:max-w-xs text-ondjo-ink font-bold">
+            <span className="max-w-50 truncate sm:max-w-xs text-ondjo-ink font-bold">
               {property.title}
             </span>
           </div>
@@ -464,20 +464,20 @@ export function PropertyPage({ id }: { id: string }) {
             ========================================================= */}
         <div className="mt-3.5 sm:mt-5">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-full bg-ondjo-navy px-3 py-1 text-xs font-bold text-white shadow-xs">
+            <span className="inline-flex items-center gap-1 rounded-full border border-ondjo-navy bg-ondjo-navy px-3 py-1 text-xs font-semibold text-white">
               {isArrendamento ? "Arrendamento" : "Venda"}
             </span>
 
             {property.verified && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800 shadow-2xs">
-                <ShieldCheck size={13} className="text-emerald-600" />
+              <span className="inline-flex items-center gap-1 rounded-full border border-ondjo-success-border bg-ondjo-green-soft px-2.5 py-1 text-xs font-semibold text-ondjo-green">
+                <ShieldCheck size={14} className="text-ondjo-green" />
                 <span>Verificado ONDJO</span>
               </span>
             )}
 
             {property.featured && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-800 shadow-2xs">
-                <Sparkles size={13} className="text-amber-600" />
+              <span className="inline-flex items-center gap-1 rounded-full border border-ondjo-blue bg-ondjo-blue px-2.5 py-1 text-xs font-semibold text-white shadow-ondjo-pill">
+                <Sparkles size={14} className="text-ondjo-blue-soft" />
                 <span>Destaque</span>
               </span>
             )}
@@ -511,7 +511,7 @@ export function PropertyPage({ id }: { id: string }) {
             ========================================================= */}
         <section aria-label="Galeria de fotografias do imóvel" className="mt-4 sm:mt-5">
           {/* 1. Grelha 1+4 Desktop Compacta & Elegante (>= 768px / md) */}
-          <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-2 h-72 sm:h-80 md:h-84 lg:h-92 max-h-[380px] rounded-3xl overflow-hidden relative group">
+          <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-2 h-72 sm:h-80 md:h-84 lg:h-92 max-h-95 rounded-3xl overflow-hidden relative group">
             {/* Foto Principal (50% de largura, 2 colunas x 2 linhas) */}
             <div
               onClick={() => {
@@ -525,7 +525,7 @@ export function PropertyPage({ id }: { id: string }) {
                 alt={`${property.title} — Foto principal`}
                 priority={true}
                 className="h-full w-full"
-                imgClassName="group-hover:scale-[1.015] select-none"
+                imgClassName="select-none"
               />
               <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors pointer-events-none" />
             </div>
@@ -547,7 +547,7 @@ export function PropertyPage({ id }: { id: string }) {
                     alt={`${property.title} — Foto ${photoIdx + 1}`}
                     priority={false}
                     className="h-full w-full"
-                    imgClassName="hover:scale-105 select-none"
+                    imgClassName="select-none"
                   />
                   <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors pointer-events-none" />
                 </div>
@@ -570,7 +570,7 @@ export function PropertyPage({ id }: { id: string }) {
 
           {/* 2. Carrossel Mobile Compacto com Swipe (< md) */}
           <div
-            className="md:hidden relative overflow-hidden rounded-2xl bg-slate-100 aspect-[16/10] max-h-[290px] w-full"
+            className="md:hidden relative overflow-hidden rounded-2xl bg-slate-100 aspect-16/10 max-h-72.5 w-full"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
@@ -871,9 +871,6 @@ export function PropertyPage({ id }: { id: string }) {
                   <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
                     Preço anunciado
                   </span>
-                  <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-600">
-                    100% Kwanzas (Kz)
-                  </span>
                 </div>
 
                 <div className="mt-2 flex items-baseline gap-1.5 flex-wrap">
@@ -903,11 +900,11 @@ export function PropertyPage({ id }: { id: string }) {
                     </strong>
                     <ShieldCheck size={14} className="text-ondjo-blue shrink-0" aria-hidden="true" />
                   </div>
-                  <p className="flex items-center gap-1 text-[11px] text-ondjo-muted mt-0.5">
+                  <p className="flex items-center flex-col gap-1 text-[11px] text-ondjo-muted mt-0.5">
                     <span>Contacto direto pelo WhatsApp e chat</span>
                     {property.advertiser?.phone && (
-                      <span className="font-semibold text-ondjo-ink">
-                        · {formatAngolanPhone(property.advertiser.phone)}
+                      <span className="font-semibold text-sm text-ondjo-ink">
+                         {formatAngolanPhone(property.advertiser.phone)}
                       </span>
                     )}
                   </p>

@@ -6,7 +6,6 @@ import {
   ShieldCheck,
   ShowerHead,
   Sparkles,
-  Star,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Property } from "../types";
@@ -155,13 +154,6 @@ export function PropertyCard({
             >
               {property.type} · {property.neighborhood}
             </h3>
-
-            {property.verified && (
-              <span className="inline-flex shrink-0 items-center gap-1 text-[11px] font-bold text-ondjo-navy">
-                <Star size={11} className="fill-amber-400 text-amber-500" />
-                <span>4.9</span>
-              </span>
-            )}
           </div>
 
           {/* Linha 2: Título do Anúncio / Descrição curta */}
@@ -176,7 +168,11 @@ export function PropertyCard({
           <div className="mt-2 flex items-center gap-1.5 text-xs font-medium text-slate-500">
             {property.bedrooms > 0 && (
               <span className="inline-flex items-center gap-1">
-                <BedDouble size={13} className="text-slate-400" aria-hidden="true" />
+                <BedDouble
+                  size={13}
+                  className="text-slate-400"
+                  aria-hidden="true"
+                />
                 <span>T{property.bedrooms}</span>
               </span>
             )}
@@ -185,7 +181,11 @@ export function PropertyCard({
             )}
             {property.bathrooms > 0 && (
               <span className="inline-flex items-center gap-1">
-                <ShowerHead size={13} className="text-slate-400" aria-hidden="true" />
+                <ShowerHead
+                  size={13}
+                  className="text-slate-400"
+                  aria-hidden="true"
+                />
                 <span>{property.bathrooms} WC</span>
               </span>
             )}

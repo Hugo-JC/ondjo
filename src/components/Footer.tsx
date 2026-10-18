@@ -1,4 +1,4 @@
-import { Globe, ShieldCheck } from "lucide-react";
+import { Globe } from "lucide-react";
 import { Logo } from "./Logo";
 
 export function Footer() {
@@ -18,16 +18,6 @@ export function Footer() {
               100% em Kwanzas, verificação rigorosa de anúncios e ligação direta
               entre consultores credenciados e clientes.
             </p>
-
-            <div className="mt-5 flex flex-wrap items-center gap-3 text-xs text-ondjo-muted">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/80 bg-emerald-50 px-2.5 py-1 font-bold text-ondjo-green">
-                <ShieldCheck size={14} aria-hidden="true" />
-                Anúncios auditados
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200/80 bg-blue-50 px-2.5 py-1 font-bold text-ondjo-blue">
-                Preços 100% em Kz
-              </span>
-            </div>
           </div>
 
           {/* Coluna: Zonas em Luanda */}
@@ -200,10 +190,10 @@ export function Footer() {
             </span>
           </div>
 
-          <div className="flex items-center gap-4 font-semibold text-ondjo-ink">
+          <div className="flex items-center text-sm gap-4 font-semibold text-ondjo-ink">
             <span className="inline-flex items-center gap-1.5">
-              <Globe size={14} className="text-ondjo-blue" aria-hidden="true" />
-              Angola 🇦🇴
+              <Globe size={16} className="text-ondjo-blue" aria-hidden="true" />
+              Angola <span className="text-[17px]">🇦🇴</span>
             </span>
             <span className="text-slate-300">•</span>
             <span>Kwanza (Kz / AOA)</span>

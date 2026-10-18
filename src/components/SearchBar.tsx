@@ -73,6 +73,8 @@ export const ORIGIN_OPTIONS: {
 }[] = [
   { id: "todos", label: "Todos os imóveis" },
   { id: "verificados", label: "Verificados ONDJO", icon: ShieldCheck },
+  { id: "proprietario", label: "Proprietário", icon: ShieldCheck },
+  { id: "agentes", label: "Agentes", icon: ShieldCheck },
 ];
 
 export type AmenityOption = AmenityDefinition;

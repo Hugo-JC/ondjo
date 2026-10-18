@@ -6,7 +6,7 @@ import {
   MessageSquare,
   Search,
   ShieldCheck,
-  Sparkles,
+  Award,
 } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useMemo, useRef, useState } from "react";
@@ -149,8 +149,8 @@ export function Home() {
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-4 sm:mb-6">
             <div>
-              <div className="mb-1.5 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ondjo-blue">
-                <Sparkles size={14} aria-hidden="true" />
+              <div className="mb-1.5 inline-flex items-center gap-0.5 text-sm font-bold uppercase tracking-wider text-ondjo-blue">
+                <Award size={18} strokeWidth={2.5} aria-hidden="true" />
                 <span>Seleção ONDJO</span>
               </div>
               <h2
