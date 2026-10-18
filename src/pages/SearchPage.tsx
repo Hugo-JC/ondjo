@@ -1,5 +1,7 @@
 import {
   ArrowDownUp,
+  Bookmark,
+  BookmarkCheck,
   Check,
   ChevronDown,
   Grid2X2,
@@ -20,7 +22,6 @@ import { filterProperties } from "../utils/filterProperties";
 import { formatKz } from "../utils/format";
 import { PropertyCard } from "../components/PropertyCard";
 import { PropertyImageCarousel } from "../components/PropertyImageCarousel";
-import { EmptyState } from "../components/ui";
 import {
   defaultSearchFilters,
   type SearchFilters,
@@ -28,11 +29,11 @@ import {
   BEDROOM_OPTIONS,
   AMENITY_OPTIONS,
   ORIGIN_OPTIONS,
+  PriceDualRangeSlider,
 } from "../components/SearchBar";
 import { navigate } from "../hooks/useHashRoute";
 import { useFavorites } from "../hooks/useFavorites";
 import { useSavedSearches } from "../hooks/useSavedSearches";
-import { Bookmark, BookmarkCheck } from "lucide-react";
 
 const POPULAR_NEIGHBORHOODS = [
   "Talatona",
@@ -43,13 +44,6 @@ const POPULAR_NEIGHBORHOODS = [
   "Viana",
   "Alvalade",
   "Belas",
-];
-
-const PRICE_PRESETS = [
-  { label: "Até 50M Kz", max: "50000000" },
-  { label: "50M – 150M Kz", min: "50000000", max: "150000000" },
-  { label: "150M – 300M Kz", min: "150000000", max: "300000000" },
-  { label: "Mais de 300M Kz", min: "300000000" },
 ];
 
 function readFiltersFromUrl(): SearchFilters {
@@ -101,34 +95,39 @@ export function SearchPage() {
         setActivePopover(null);
       }
     };
-    if (activePopover) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
+    document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [activePopover]);
+  }, []);
 
-  // Bloqueio do scroll do body quando modal móvel está aberto
+  // Bloquear scroll do body quando o modal estiver aberto
   useEffect(() => {
-    if (!mobileModalOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
+    if (mobileModalOpen) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
   }, [mobileModalOpen]);
 
-  // Atualiza a URL mantendo a rota limpa
   const updateUrlFilters = (next: SearchFilters) => {
     const params = new URLSearchParams();
-    Object.entries(next).forEach(([key, val]) => {
-      if (key === "amenities" && Array.isArray(val) && val.length > 0) {
-        params.set("amenities", val.join(","));
-      } else if (val && val !== "todos" && !Array.isArray(val)) {
-        params.set(key, String(val));
-      }
-    });
+    if (next.query) params.set("query", next.query);
+    if (next.location) params.set("location", next.location);
+    if (next.type) params.set("type", next.type);
+    if (next.minPrice) params.set("minPrice", next.minPrice);
+    if (next.maxPrice) params.set("maxPrice", next.maxPrice);
+    if (next.bedrooms) params.set("bedrooms", next.bedrooms);
+    if (next.purpose && next.purpose !== "comprar") params.set("purpose", next.purpose);
+    if (next.origin && next.origin !== "todos") params.set("origin", next.origin);
+    if (next.bathrooms) params.set("bathrooms", next.bathrooms);
+    if (next.parking) params.set("parking", next.parking);
+    if (next.amenities && next.amenities.length > 0) {
+      params.set("amenities", next.amenities.join(","));
+    }
+
     const queryString = params.toString();
-    navigate(`pesquisar${queryString ? `?${queryString}` : ""}`);
+    navigate(queryString ? `pesquisa?${queryString}` : "pesquisa");
   };
 
   const handleFilterChange = (next: SearchFilters) => {
@@ -143,47 +142,47 @@ export function SearchPage() {
 
   const clearAllFilters = () => {
     const reset = defaultSearchFilters();
-    handleFilterChange(reset);
+    setFilters(reset);
+    updateUrlFilters(reset);
     setActivePopover(null);
   };
 
-  // Imóveis filtrados e ordenados
   const results = useMemo(() => {
     const filtered = filterProperties(properties, {
       ...filters,
-      query: filters.query || filters.location,
+      purpose: filters.purpose as "comprar" | "arrendar",
     });
 
     return [...filtered].sort((a, b) => {
       if (sort === "price-low") return a.price - b.price;
       if (sort === "price-high") return b.price - a.price;
       if (sort === "area") return b.area - a.area;
-      // Relevância: destaques primeiro, seguidos por verificados
-      if (b.featured !== a.featured) return Number(Boolean(b.featured)) - Number(Boolean(a.featured));
-      return Number(Boolean(b.verified)) - Number(Boolean(a.verified));
+      return 0; // relevance / ordem padrao
     });
   }, [filters, sort]);
 
-  // Imóveis sugeridos caso a pesquisa volte vazia
+  // Imóveis recomendados caso não haja resultados
   const recommendedProperties = useMemo(() => {
-    return properties.filter((p) => p.featured || p.verified).slice(0, 3);
+    return properties.filter((p) => p.verified).slice(0, 3);
   }, []);
 
-  // Contagem de filtros ativos para badge
+  // Contagem de filtros ativos
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (filters.location) count++;
     if (filters.type) count++;
     if (filters.minPrice || filters.maxPrice) count++;
     if (filters.bedrooms) count++;
+    if (filters.origin && filters.origin !== "todos") count++;
     if (filters.bathrooms) count++;
     if (filters.parking) count++;
-    if (filters.origin && filters.origin !== "todos") count++;
-    if (filters.amenities && filters.amenities.length > 0) count += filters.amenities.length;
+    if (filters.amenities && filters.amenities.length > 0) {
+      count += filters.amenities.length;
+    }
     return count;
   }, [filters]);
 
-  // Lista de chips visíveis e removíveis
+  // Lista de Chips de Filtros Ativos
   const activeChips = useMemo(() => {
     const list: { id: string; label: string; onRemove: () => void }[] = [];
 
@@ -267,11 +266,11 @@ export function SearchPage() {
   return (
     <main className="min-h-screen w-full bg-ondjo-bg pb-20">
       {/* =========================================================
-          BARRA DE FILTROS RÁPIDOS ESTILO AIRBNB (STICKY)
+          BARRA DE FILTROS RÁPIDOS (STICKY) - DESIGN LIMPO & HARMONIOSO
           ========================================================= */}
       <section
         aria-label="Filtros rápidos de pesquisa"
-        className="sticky top-14 sm:top-18 lg:top-20 z-40 w-full border-b border-ondjo-border/80 bg-white/95 backdrop-blur-md shadow-2xs transition-all"
+        className="sticky top-14 sm:top-18 lg:top-20 z-40 w-full border-b border-slate-200/50 bg-white/90 backdrop-blur-md shadow-[0_2px_12px_rgba(16,42,67,0.03)] transition-all"
         ref={popoverRef}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-3.5 sm:px-6 lg:px-8 py-2.5 sm:py-3">
@@ -281,12 +280,12 @@ export function SearchPage() {
             <div
               role="group"
               aria-label="Finalidade da pesquisa"
-              className="flex shrink-0 items-center rounded-full border border-ondjo-border/80 bg-slate-100/90 p-0.5 shadow-2xs snap-start"
+              className="flex shrink-0 items-center rounded-full bg-slate-100/90 p-1 shadow-2xs snap-start"
             >
               <button
                 type="button"
                 onClick={() => setFilterField("purpose", "comprar")}
-                className={`focus-ring min-h-9 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                className={`focus-ring min-h-8.5 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all cursor-pointer ${
                   !isArrendamento
                     ? "bg-white text-ondjo-navy shadow-xs"
                     : "text-ondjo-muted hover:text-ondjo-ink"
@@ -297,7 +296,7 @@ export function SearchPage() {
               <button
                 type="button"
                 onClick={() => setFilterField("purpose", "arrendar")}
-                className={`focus-ring min-h-9 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                className={`focus-ring min-h-8.5 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all cursor-pointer ${
                   isArrendamento
                     ? "bg-white text-ondjo-navy shadow-xs"
                     : "text-ondjo-muted hover:text-ondjo-ink"
@@ -308,7 +307,7 @@ export function SearchPage() {
             </div>
 
             {/* Separador vertical subtil no desktop */}
-            <div className="hidden sm:block h-6 w-px bg-slate-200 shrink-0" aria-hidden="true" />
+            <div className="hidden sm:block h-5 w-px bg-slate-200/70 shrink-0" aria-hidden="true" />
 
             {/* 2. Chip: Tipo de Imóvel */}
             <div className="relative shrink-0 snap-start">
@@ -321,10 +320,10 @@ export function SearchPage() {
                     setActivePopover(activePopover === "type" ? null : "type");
                   }
                 }}
-                className={`focus-ring inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 text-xs font-bold transition-all cursor-pointer select-none ${
+                className={`focus-ring inline-flex min-h-9 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition-all cursor-pointer select-none shadow-2xs ${
                   filters.type
-                    ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue shadow-2xs"
-                    : "border-ondjo-border bg-white text-ondjo-ink hover:border-slate-300 hover:bg-slate-50"
+                    ? "bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-xs hover:bg-ondjo-blue-soft/90"
+                    : "bg-slate-100/80 text-ondjo-ink hover:bg-slate-200/70"
                 }`}
                 aria-expanded={activePopover === "type"}
                 aria-haspopup="true"
@@ -340,7 +339,7 @@ export function SearchPage() {
 
               {/* Popover Dropdown de Tipo */}
               {activePopover === "type" && (
-                <div className="absolute left-0 top-full mt-2 z-60 w-52 rounded-2xl shadow-xl border border-ondjo-border bg-white p-2 shadow-ondjo-popover">
+                <div className="absolute left-0 top-full mt-2 z-60 w-56 rounded-2xl shadow-2xl border border-slate-100 bg-white p-2">
                   <div className="flex flex-col gap-1">
                     {PROPERTY_TYPES.map((pt) => {
                       const isSelected = filters.type === pt.value;
@@ -354,8 +353,8 @@ export function SearchPage() {
                           }}
                           className={`flex items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-colors cursor-pointer text-left ${
                             isSelected
-                              ? "bg-ondjo-blue-50 text-ondjo-blue font-bold"
-                              : "text-ondjo-ink hover:bg-slate-50"
+                              ? "bg-ondjo-blue-soft/80 text-ondjo-blue font-bold"
+                              : "text-ondjo-ink hover:bg-slate-100/70"
                           }`}
                         >
                           <span>{pt.label}</span>
@@ -379,10 +378,10 @@ export function SearchPage() {
                     setActivePopover(activePopover === "bedrooms" ? null : "bedrooms");
                   }
                 }}
-                className={`focus-ring inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 text-xs font-bold transition-all cursor-pointer select-none ${
+                className={`focus-ring inline-flex min-h-9 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition-all cursor-pointer select-none shadow-2xs ${
                   filters.bedrooms
-                    ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue shadow-2xs"
-                    : "border-ondjo-border bg-white text-ondjo-ink hover:border-slate-300 hover:bg-slate-50"
+                    ? "bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-xs hover:bg-ondjo-blue-soft/90"
+                    : "bg-slate-100/80 text-ondjo-ink hover:bg-slate-200/70"
                 }`}
                 aria-expanded={activePopover === "bedrooms"}
                 aria-haspopup="true"
@@ -404,7 +403,7 @@ export function SearchPage() {
 
               {/* Popover Dropdown de Quartos */}
               {activePopover === "bedrooms" && (
-                <div className="absolute left-0 top-full mt-2 z-60 w-48 rounded-2xl shadow-xl border border-ondjo-border bg-white p-2 shadow-ondjo-popover">
+                <div className="absolute left-0 top-full mt-2 z-60 w-52 rounded-2xl shadow-2xl border border-slate-100 bg-white p-2">
                   <div className="flex flex-col gap-1">
                     {BEDROOM_OPTIONS.map((bed) => {
                       const isSelected = filters.bedrooms === bed.value;
@@ -418,8 +417,8 @@ export function SearchPage() {
                           }}
                           className={`flex items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-colors cursor-pointer text-left ${
                             isSelected
-                              ? "bg-ondjo-blue-50 text-ondjo-blue font-bold"
-                              : "text-ondjo-ink hover:bg-slate-50"
+                              ? "bg-ondjo-blue-soft/80 text-ondjo-blue font-bold"
+                              : "text-ondjo-ink hover:bg-slate-100/70"
                           }`}
                         >
                           <span>{bed.label}</span>
@@ -443,10 +442,10 @@ export function SearchPage() {
                     setActivePopover(activePopover === "price" ? null : "price");
                   }
                 }}
-                className={`focus-ring inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 text-xs font-bold transition-all cursor-pointer select-none ${
+                className={`focus-ring inline-flex min-h-9 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition-all cursor-pointer select-none shadow-2xs ${
                   filters.minPrice || filters.maxPrice
-                    ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue shadow-2xs"
-                    : "border-ondjo-border bg-white text-ondjo-ink hover:border-slate-300 hover:bg-slate-50"
+                    ? "bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-xs hover:bg-ondjo-blue-soft/90"
+                    : "bg-slate-100/80 text-ondjo-ink hover:bg-slate-200/70"
                 }`}
                 aria-expanded={activePopover === "price"}
                 aria-haspopup="true"
@@ -462,54 +461,34 @@ export function SearchPage() {
                 />
               </button>
 
-              {/* Popover de Preço */}
+              {/* Popover de Preço com Dual Range Slider & Presets */}
               {activePopover === "price" && (
-                <div className="absolute left-0 top-full mt-2 z-60 w-72 rounded-2xl shadow-xl border border-ondjo-border bg-white p-4 shadow-ondjo-popover">
-                  <p className="text-xs font-extrabold text-ondjo-ink uppercase tracking-wider mb-2">
-                    Faixa de Preço (Kz)
-                  </p>
-                  <div className="grid grid-cols-2 gap-2 mb-3">
-                    <input
-                      inputMode="numeric"
-                      value={filters.minPrice}
-                      onChange={(e) =>
-                        setFilterField("minPrice", e.target.value.replace(/\D/g, ""))
-                      }
-                      placeholder="Mínimo"
-                      className="h-9 w-full rounded-xl border border-ondjo-border bg-slate-50 px-2.5 text-xs font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue focus:bg-white"
-                    />
-                    <input
-                      inputMode="numeric"
-                      value={filters.maxPrice}
-                      onChange={(e) =>
-                        setFilterField("maxPrice", e.target.value.replace(/\D/g, ""))
-                      }
-                      placeholder="Máximo"
-                      className="h-9 w-full rounded-xl border border-ondjo-border bg-slate-50 px-2.5 text-xs font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue focus:bg-white"
-                    />
-                  </div>
-
-                  {/* Presets Rápidos */}
-                  <div className="flex flex-col gap-1 pt-2 border-t border-slate-100">
-                    {PRICE_PRESETS.map((preset) => (
+                <div className="absolute left-0 top-full mt-2 z-60 w-80 sm:w-96 rounded-2xl shadow-2xl border border-slate-100 bg-white p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-black uppercase tracking-wider text-ondjo-navy">
+                      Faixa de Preço (Kz)
+                    </span>
+                    {(filters.minPrice || filters.maxPrice) && (
                       <button
-                        key={preset.label}
                         type="button"
                         onClick={() => {
-                          const next = {
-                            ...filters,
-                            minPrice: preset.min || "",
-                            maxPrice: preset.max || "",
-                          };
+                          const next = { ...filters, minPrice: "", maxPrice: "" };
                           handleFilterChange(next);
-                          setActivePopover(null);
                         }}
-                        className="text-left px-2 py-1.5 rounded-lg text-xs font-medium text-ondjo-muted hover:text-ondjo-blue hover:bg-ondjo-blue-50 transition-colors"
+                        className="text-[11px] font-bold text-ondjo-blue hover:underline cursor-pointer"
                       >
-                        {preset.label}
+                        Redefinir
                       </button>
-                    ))}
+                    )}
                   </div>
+
+                  <PriceDualRangeSlider
+                    purpose={filters.purpose}
+                    minPrice={filters.minPrice}
+                    maxPrice={filters.maxPrice}
+                    onChangeMin={(val) => setFilterField("minPrice", val)}
+                    onChangeMax={(val) => setFilterField("maxPrice", val)}
+                  />
                 </div>
               )}
             </div>
@@ -522,10 +501,10 @@ export function SearchPage() {
                   filters.origin === "verificados" ? "todos" : "verificados";
                 setFilterField("origin", nextOrigin);
               }}
-              className={`focus-ring shrink-0 snap-start inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 text-xs font-bold transition-all cursor-pointer select-none ${
+              className={`focus-ring shrink-0 snap-start inline-flex min-h-9 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition-all cursor-pointer select-none shadow-2xs ${
                 filters.origin === "verificados"
-                  ? "border-emerald-300 bg-emerald-50 text-emerald-800 shadow-2xs"
-                  : "border-ondjo-border bg-white text-ondjo-ink hover:border-slate-300 hover:bg-slate-50"
+                  ? "bg-emerald-50 text-emerald-800 font-bold shadow-xs hover:bg-emerald-100/80"
+                  : "bg-slate-100/80 text-ondjo-ink hover:bg-slate-200/70"
               }`}
             >
               <ShieldCheck
@@ -543,13 +522,13 @@ export function SearchPage() {
             <button
               type="button"
               onClick={() => setMobileModalOpen(true)}
-              className="focus-ring relative inline-flex min-h-9.5 items-center gap-2 rounded-full border border-ondjo-border bg-white px-3.5 py-1.5 text-xs font-bold text-ondjo-ink shadow-2xs hover:border-slate-300 hover:bg-slate-50 active:scale-95 transition-all cursor-pointer"
+              className="focus-ring relative inline-flex min-h-9.5 items-center gap-2 rounded-full bg-white hover:bg-slate-50 text-ondjo-navy px-3.5 py-1.5 text-xs font-bold shadow-2xs hover:shadow-xs active:scale-95 transition-all cursor-pointer border border-slate-200/50"
               aria-label="Abrir todos os filtros de pesquisa"
             >
               <SlidersHorizontal size={14} className="text-ondjo-blue" />
               <span>Mais filtros</span>
               {activeFiltersCount > 0 && (
-                <span className="grid size-5 place-items-center rounded-full bg-ondjo-navy text-white text-[10px] font-black">
+                <span className="grid size-5 place-items-center rounded-full bg-ondjo-navy text-white text-[10px] font-black shadow-2xs">
                   {activeFiltersCount}
                 </span>
               )}
@@ -561,7 +540,7 @@ export function SearchPage() {
                 type="button"
                 onClick={clearAllFilters}
                 title="Limpar todos os filtros"
-                className="focus-ring hidden md:inline-flex items-center gap-1 text-xs font-bold text-ondjo-blue hover:underline cursor-pointer px-1 py-1"
+                className="focus-ring hidden md:inline-flex items-center gap-1 text-xs font-bold text-ondjo-blue hover:text-ondjo-blue-dark cursor-pointer px-1.5 py-1 transition-colors"
               >
                 <RotateCcw size={12} />
                 <span>Limpar</span>
@@ -592,18 +571,25 @@ export function SearchPage() {
               )}
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 mt-1">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-ondjo-navy">
-                {results.length > 0 ? (
-                  <>
-                    {results.length}{" "}
-                    {results.length === 1 ? "imóvel encontrado" : "imóveis encontrados"}{" "}
-                    {filters.location ? `em ${filters.location}` : "em Luanda"}
-                  </>
-                ) : (
-                  "Nenhum imóvel disponível"
+            <div className="flex flex-wrap items-center justify-between gap-3 mt-1.5">
+              <div className="flex items-center gap-2.5">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-ondjo-navy">
+                  {results.length > 0 ? (
+                    <>
+                      {results.length}{" "}
+                      {results.length === 1 ? "imóvel encontrado" : "imóveis encontrados"}{" "}
+                      {filters.location ? `em ${filters.location}` : "em Luanda"}
+                    </>
+                  ) : (
+                    "Nenhum imóvel disponível"
+                  )}
+                </h1>
+                {results.length > 0 && (
+                  <span className="hidden sm:inline-flex items-center rounded-full bg-ondjo-blue-soft/70 px-2.5 py-0.5 text-xs font-bold text-ondjo-blue">
+                    {isArrendamento ? "Para Arrendar" : "Para Comprar"}
+                  </span>
                 )}
-              </h1>
+              </div>
 
               {results.length > 0 && (
                 <button
@@ -613,17 +599,21 @@ export function SearchPage() {
                     setSavedSearchToast(true);
                     setTimeout(() => setSavedSearchToast(false), 2800);
                   }}
-                  className="focus-ring inline-flex items-center gap-1.5 rounded-full border border-ondjo-border bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:border-ondjo-blue hover:text-ondjo-blue transition cursor-pointer select-none shadow-2xs"
+                  className={`focus-ring inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer select-none shadow-2xs hover:shadow-xs active:scale-95 ${
+                    savedSearchToast
+                      ? "bg-emerald-50 text-emerald-800 border border-emerald-200/50"
+                      : "bg-white text-slate-700 hover:text-ondjo-blue hover:bg-slate-50 border border-slate-200/50"
+                  }`}
                   title="Guardar filtros desta pesquisa localmente"
                 >
                   {savedSearchToast ? (
                     <>
                       <BookmarkCheck size={14} className="text-emerald-600" />
-                      <span className="text-emerald-700">Pesquisa guardada!</span>
+                      <span>Pesquisa guardada!</span>
                     </>
                   ) : (
                     <>
-                      <Bookmark size={14} />
+                      <Bookmark size={14} className="text-ondjo-blue" />
                       <span>Guardar pesquisa</span>
                     </>
                   )}
@@ -635,8 +625,8 @@ export function SearchPage() {
           {/* Controlos de Ordenação & Alternador de Visualização */}
           <div className="mt-3 sm:mt-0 flex items-center justify-between sm:justify-end gap-2.5">
             {/* Seletor de Ordenação */}
-            <label className="focus-ring inline-flex min-h-10 items-center gap-1.5 rounded-full border border-ondjo-border bg-white px-3.5 py-1 text-xs font-semibold text-ondjo-ink shadow-2xs hover:border-slate-300 cursor-pointer">
-              <ArrowDownUp size={13} className="text-ondjo-muted shrink-0" />
+            <label className="focus-ring inline-flex min-h-9.5 items-center gap-1.5 rounded-full bg-white px-3.5 py-1 text-xs font-semibold text-ondjo-ink shadow-2xs hover:shadow-xs border border-slate-200/50 hover:bg-slate-50 cursor-pointer">
+              <ArrowDownUp size={13} className="text-ondjo-blue shrink-0" />
               <span className="hidden sm:inline text-ondjo-muted">Ordenar:</span>
               <select
                 value={sort}
@@ -656,14 +646,14 @@ export function SearchPage() {
             <div
               role="group"
               aria-label="Modo de visualização"
-              className="inline-flex rounded-full border border-ondjo-border bg-white p-1 shadow-2xs"
+              className="inline-flex rounded-full bg-slate-100/90 p-1 shadow-2xs"
             >
               <button
                 type="button"
                 onClick={() => setView("grid")}
-                className={`focus-ring grid size-8 place-items-center rounded-full transition-colors cursor-pointer ${
+                className={`focus-ring grid size-8 place-items-center rounded-full transition-all cursor-pointer ${
                   view === "grid"
-                    ? "bg-ondjo-blue-soft text-ondjo-blue shadow-xs"
+                    ? "bg-white text-ondjo-navy shadow-xs font-bold"
                     : "text-ondjo-muted hover:text-ondjo-ink"
                 }`}
                 aria-label="Visualização em grelha"
@@ -674,9 +664,9 @@ export function SearchPage() {
               <button
                 type="button"
                 onClick={() => setView("list")}
-                className={`focus-ring grid size-8 place-items-center rounded-full transition-colors cursor-pointer ${
+                className={`focus-ring grid size-8 place-items-center rounded-full transition-all cursor-pointer ${
                   view === "list"
-                    ? "bg-ondjo-blue-soft text-ondjo-blue shadow-xs"
+                    ? "bg-white text-ondjo-navy shadow-xs font-bold"
                     : "text-ondjo-muted hover:text-ondjo-ink"
                 }`}
                 aria-label="Visualização em lista"
@@ -690,12 +680,12 @@ export function SearchPage() {
 
         {/* Barra de Chips de Filtros Ativos com Remoção Individual */}
         {activeChips.length > 0 && (
-          <div className="mt-4 flex flex-wrap items-center gap-1.5 pt-3 border-t border-slate-200/60">
+          <div className="mt-4 flex flex-wrap items-center gap-1.5 pt-3 border-t border-slate-200/50">
             <span className="text-xs font-semibold text-ondjo-muted mr-1">Filtros:</span>
             {activeChips.map((chip) => (
               <span
                 key={chip.id}
-                className="inline-flex items-center gap-1.5 rounded-full border border-ondjo-border/80 bg-white pl-3 pr-1.5 py-1 text-xs font-bold text-ondjo-ink shadow-2xs"
+                className="inline-flex items-center gap-1.5 rounded-full bg-white pl-3 pr-1.5 py-1 text-xs font-bold text-ondjo-ink shadow-2xs hover:shadow-xs border border-slate-200/40"
               >
                 <span>{chip.label}</span>
                 <button
@@ -742,14 +732,27 @@ export function SearchPage() {
              ESTADO VAZIO INTELIGENTE COM SUGESTÕES ACIONÁVEIS
              ========================================================= */
           <div className="mt-8">
-            <EmptyState
-              icon={<Search size={28} className="text-ondjo-blue" />}
-              title="Nenhum imóvel corresponde aos seus filtros"
-              description="Não encontramos opções em Luanda com a combinação selecionada. Experimente limpar os filtros ou selecionar uma das sugestões abaixo."
-              actionLabel="Limpar todos os filtros"
-              onAction={clearAllFilters}
-              className="border-dashed border-2 border-slate-200 py-12"
-            />
+            <div className="rounded-3xl bg-white p-8 sm:p-12 text-center shadow-ondjo-card border border-slate-100/80 max-w-2xl mx-auto">
+              <div className="mx-auto mb-4 grid size-14 place-items-center rounded-2xl bg-ondjo-blue-soft text-ondjo-blue">
+                <Search size={28} />
+              </div>
+              <h2 className="text-lg sm:text-xl font-black text-ondjo-navy">
+                Nenhum imóvel corresponde aos seus filtros
+              </h2>
+              <p className="mt-2 text-xs sm:text-sm text-ondjo-muted max-w-md mx-auto leading-relaxed">
+                Não encontramos opções em Luanda com a combinação selecionada. Experimente limpar os filtros ou selecionar uma das sugestões abaixo.
+              </p>
+              <div className="mt-5 flex justify-center">
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  className="focus-ring inline-flex items-center gap-2 rounded-full bg-ondjo-navy hover:bg-slate-800 text-white font-bold text-xs px-5 py-2.5 shadow-xs active:scale-95 transition-all cursor-pointer"
+                >
+                  <RotateCcw size={14} />
+                  <span>Limpar todos os filtros</span>
+                </button>
+              </div>
+            </div>
 
             {/* Sugestões Rápidas de Pesquisa */}
             <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
@@ -760,7 +763,7 @@ export function SearchPage() {
                   const next = { ...defaultSearchFilters(), location: "Talatona" };
                   handleFilterChange(next);
                 }}
-                className="rounded-full border border-ondjo-border bg-white px-3 py-1 text-xs font-bold text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue transition-colors cursor-pointer"
+                className="rounded-full bg-white px-3.5 py-1.5 text-xs font-bold text-ondjo-ink hover:text-ondjo-blue shadow-2xs hover:shadow-xs transition-all cursor-pointer border border-slate-200/40"
               >
                 Imóveis em Talatona
               </button>
@@ -770,7 +773,7 @@ export function SearchPage() {
                   const next = { ...defaultSearchFilters(), location: "Kilamba" };
                   handleFilterChange(next);
                 }}
-                className="rounded-full border border-ondjo-border bg-white px-3 py-1 text-xs font-bold text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue transition-colors cursor-pointer"
+                className="rounded-full bg-white px-3.5 py-1.5 text-xs font-bold text-ondjo-ink hover:text-ondjo-blue shadow-2xs hover:shadow-xs transition-all cursor-pointer border border-slate-200/40"
               >
                 Apartamentos no Kilamba
               </button>
@@ -780,14 +783,14 @@ export function SearchPage() {
                   const next = { ...defaultSearchFilters(), purpose: "arrendar" };
                   handleFilterChange(next);
                 }}
-                className="rounded-full border border-ondjo-border bg-white px-3 py-1 text-xs font-bold text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue transition-colors cursor-pointer"
+                className="rounded-full bg-white px-3.5 py-1.5 text-xs font-bold text-ondjo-ink hover:text-ondjo-blue shadow-2xs hover:shadow-xs transition-all cursor-pointer border border-slate-200/40"
               >
                 Ver opções para Arrendar
               </button>
             </div>
 
             {/* Secção de Imóveis Recomendados para o utilizador nunca ficar preso */}
-            <div className="mt-14 pt-10 border-t border-slate-200">
+            <div className="mt-14 pt-10 border-t border-slate-200/60">
               <div className="mb-6 flex items-center justify-between">
                 <div>
                   <h2 className="text-lg sm:text-xl font-bold text-ondjo-navy">
@@ -857,7 +860,7 @@ export function SearchPage() {
                     <button
                       type="button"
                       onClick={() => setMobileModalOpen(false)}
-                      className="focus-ring grid size-10 place-items-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 active:scale-95 transition-colors cursor-pointer"
+                      className="focus-ring grid size-9.5 place-items-center rounded-full bg-slate-100/80 text-slate-600 hover:bg-slate-200/80 active:scale-95 transition-colors cursor-pointer"
                       aria-label="Fechar filtros (Esc)"
                     >
                       <X size={18} />
@@ -871,14 +874,14 @@ export function SearchPage() {
                       <span className="block text-xs font-bold text-ondjo-ink uppercase tracking-wider mb-2">
                         Finalidade
                       </span>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-slate-100/90">
                         <button
                           type="button"
                           onClick={() => setFilterField("purpose", "comprar")}
-                          className={`min-h-11 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                          className={`min-h-10 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                             !isArrendamento
-                              ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue shadow-2xs"
-                              : "border-ondjo-border text-ondjo-muted hover:bg-slate-50"
+                              ? "bg-white text-ondjo-navy shadow-xs"
+                              : "text-ondjo-muted hover:text-ondjo-ink"
                           }`}
                         >
                           Comprar
@@ -886,10 +889,10 @@ export function SearchPage() {
                         <button
                           type="button"
                           onClick={() => setFilterField("purpose", "arrendar")}
-                          className={`min-h-11 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                          className={`min-h-10 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                             isArrendamento
-                              ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue shadow-2xs"
-                              : "border-ondjo-border text-ondjo-muted hover:bg-slate-50"
+                              ? "bg-white text-ondjo-navy shadow-xs"
+                              : "text-ondjo-muted hover:text-ondjo-ink"
                           }`}
                         >
                           Arrendar
@@ -912,7 +915,7 @@ export function SearchPage() {
                             value={filters.location}
                             onChange={(e) => setFilterField("location", e.target.value)}
                             placeholder="Ex.: Talatona, Maianga, Kilamba..."
-                            className="h-11 w-full rounded-xl border border-ondjo-border bg-slate-50/70 pl-10 pr-3 text-sm font-semibold text-ondjo-ink outline-none transition-colors focus:border-ondjo-blue focus:bg-white"
+                            className="h-11 w-full rounded-2xl bg-slate-100/80 pl-10 pr-3 text-sm font-semibold text-ondjo-ink outline-none transition-all focus:bg-white focus:ring-2 focus:ring-ondjo-blue/20"
                           />
                         </div>
                       </label>
@@ -924,10 +927,10 @@ export function SearchPage() {
                             key={neigh}
                             type="button"
                             onClick={() => setFilterField("location", neigh)}
-                            className={`rounded-full px-3 py-1 text-xs font-semibold border transition-all cursor-pointer ${
+                            className={`rounded-full px-3.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
                               filters.location === neigh
-                                ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold"
-                                : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                                ? "bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
+                                : "bg-slate-100/80 text-slate-600 hover:bg-slate-200/70"
                             }`}
                           >
                             {neigh}
@@ -949,10 +952,10 @@ export function SearchPage() {
                               key={pt.value}
                               type="button"
                               onClick={() => setFilterField("type", pt.value)}
-                              className={`min-h-10 rounded-xl px-3 text-xs font-semibold border transition-all cursor-pointer text-center ${
+                              className={`min-h-10 rounded-xl px-3 text-xs font-semibold transition-all cursor-pointer text-center ${
                                 isSelected
-                                  ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold shadow-2xs"
-                                  : "border-ondjo-border text-slate-600 hover:bg-slate-50"
+                                  ? "bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
+                                  : "bg-slate-100/80 text-slate-700 hover:bg-slate-200/60"
                               }`}
                             >
                               {pt.label}
@@ -975,10 +978,10 @@ export function SearchPage() {
                               key={bed.value}
                               type="button"
                               onClick={() => setFilterField("bedrooms", bed.value)}
-                              className={`min-h-10 rounded-xl px-2 text-xs font-semibold border transition-all cursor-pointer ${
+                              className={`min-h-10 rounded-xl px-2 text-xs font-semibold transition-all cursor-pointer ${
                                 isSelected
-                                  ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold shadow-2xs"
-                                  : "border-ondjo-border text-slate-600 hover:bg-slate-50"
+                                  ? "bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
+                                  : "bg-slate-100/80 text-slate-700 hover:bg-slate-200/60"
                               }`}
                             >
                               {bed.label}
@@ -988,29 +991,18 @@ export function SearchPage() {
                       </div>
                     </div>
 
-                    {/* 5. Faixa de Preço */}
+                    {/* 5. Faixa de Preço (Dual Range Slider integrado) */}
                     <div>
                       <span className="block text-xs font-bold text-ondjo-ink uppercase tracking-wider mb-2">
                         Faixa de Preço (Kz)
                       </span>
-                      <div className="grid grid-cols-2 gap-2">
-                        <input
-                          inputMode="numeric"
-                          value={filters.minPrice}
-                          onChange={(e) =>
-                            setFilterField("minPrice", e.target.value.replace(/\D/g, ""))
-                          }
-                          placeholder="Mínimo (Kz)"
-                          className="h-11 w-full rounded-xl border border-ondjo-border bg-slate-50/70 px-3 text-sm font-semibold text-ondjo-ink outline-none transition-colors focus:border-ondjo-blue focus:bg-white"
-                        />
-                        <input
-                          inputMode="numeric"
-                          value={filters.maxPrice}
-                          onChange={(e) =>
-                            setFilterField("maxPrice", e.target.value.replace(/\D/g, ""))
-                          }
-                          placeholder="Máximo (Kz)"
-                          className="h-11 w-full rounded-xl border border-ondjo-border bg-slate-50/70 px-3 text-sm font-semibold text-ondjo-ink outline-none transition-colors focus:border-ondjo-blue focus:bg-white"
+                      <div className="rounded-2xl bg-slate-50/80 p-3.5">
+                        <PriceDualRangeSlider
+                          purpose={filters.purpose}
+                          minPrice={filters.minPrice}
+                          maxPrice={filters.maxPrice}
+                          onChangeMin={(val) => setFilterField("minPrice", val)}
+                          onChangeMax={(val) => setFilterField("maxPrice", val)}
                         />
                       </div>
                     </div>
@@ -1029,10 +1021,10 @@ export function SearchPage() {
                                 key={val}
                                 type="button"
                                 onClick={() => setFilterField("bathrooms", val)}
-                                className={`flex-1 min-h-10 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                                className={`flex-1 min-h-10 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                                   isSelected
-                                    ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold shadow-2xs"
-                                    : "border-ondjo-border text-slate-600 hover:bg-slate-50"
+                                    ? "bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
+                                    : "bg-slate-100/80 text-slate-700 hover:bg-slate-200/60"
                                 }`}
                               >
                                 {val ? `${val}+` : "Todas"}
@@ -1054,10 +1046,10 @@ export function SearchPage() {
                                 key={val}
                                 type="button"
                                 onClick={() => setFilterField("parking", val)}
-                                className={`flex-1 min-h-10 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                                className={`flex-1 min-h-10 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                                   isSelected
-                                    ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold shadow-2xs"
-                                    : "border-ondjo-border text-slate-600 hover:bg-slate-50"
+                                    ? "bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
+                                    : "bg-slate-100/80 text-slate-700 hover:bg-slate-200/60"
                                 }`}
                               >
                                 {val ? `${val}+` : "Todas"}
@@ -1082,16 +1074,25 @@ export function SearchPage() {
                               key={orig.id}
                               type="button"
                               onClick={() => setFilterField("origin", orig.id)}
-                              className={`min-h-11 rounded-xl px-3 text-xs font-semibold border transition-all cursor-pointer flex items-center justify-between gap-1.5 ${
+                              className={`min-h-11 rounded-xl px-3 text-xs font-semibold transition-all cursor-pointer flex items-center justify-between gap-1.5 ${
                                 isSel
                                   ? orig.id === "verificados"
-                                    ? "border-emerald-400 bg-emerald-50 text-emerald-900 font-bold shadow-2xs"
-                                    : "border-ondjo-blue bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
-                                  : "border-ondjo-border text-slate-700 hover:bg-slate-50"
+                                    ? "bg-emerald-50 text-emerald-900 font-bold shadow-2xs border border-emerald-200/50"
+                                    : "bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
+                                  : "bg-slate-100/80 text-slate-700 hover:bg-slate-200/60"
                               }`}
                             >
                               <div className="flex items-center gap-1.5 min-w-0">
-                                <Icon size={14} className={isSel ? "text-ondjo-blue" : "text-slate-400"} />
+                                <Icon
+                                  size={14}
+                                  className={
+                                    isSel
+                                      ? orig.id === "verificados"
+                                        ? "text-emerald-700"
+                                        : "text-ondjo-blue"
+                                      : "text-slate-400"
+                                  }
+                                />
                                 <span className="truncate">{orig.shortLabel}</span>
                               </div>
                               {isSel && <Check size={13} className="shrink-0" />}
@@ -1132,35 +1133,32 @@ export function SearchPage() {
                                   : [...cur, item.id];
                                 setFilterField("amenities", next);
                               }}
-                              className={[
-                                "focus-ring group relative flex flex-col items-center justify-center rounded-xl p-2 transition-all cursor-pointer select-none border min-h-[58px]",
+                              className={`focus-ring group relative flex flex-col items-center justify-center rounded-xl p-2 transition-all cursor-pointer select-none min-h-[58px] ${
                                 isSelected
-                                  ? "bg-[#8A3C14] border-[#A84A1A] text-white shadow-xs scale-[1.02]"
-                                  : "bg-slate-50/90 hover:bg-slate-100 border-slate-200/90 text-slate-700 hover:border-slate-300",
-                              ].join(" ")}
+                                  ? "bg-ondjo-navy text-white shadow-xs scale-[1.02]"
+                                  : "bg-slate-100/80 hover:bg-slate-200/60 text-slate-700"
+                              }`}
                             >
                               {isSelected && (
-                                <span className="absolute top-1 right-1 grid size-3.5 place-items-center rounded-full bg-white text-[#8A3C14] text-[9px] shadow-2xs">
+                                <span className="absolute top-1 right-1 grid size-3.5 place-items-center rounded-full bg-white text-ondjo-navy text-[9px] shadow-2xs">
                                   <Check size={9} strokeWidth={3} />
                                 </span>
                               )}
 
                               <span
-                                className={[
-                                  "grid size-6 place-items-center rounded-lg transition-transform mb-1 shrink-0",
+                                className={`grid size-6 place-items-center rounded-lg transition-transform mb-1 shrink-0 ${
                                   isSelected
                                     ? "bg-white/20 text-white"
-                                    : `${item.bgSoftClass} ${item.colorClass} group-hover:scale-105`,
-                                ].join(" ")}
+                                    : `${item.bgSoftClass} ${item.colorClass} group-hover:scale-105`
+                                }`}
                               >
                                 <Icon size={13} strokeWidth={2.2} />
                               </span>
 
                               <span
-                                className={[
-                                  "text-[10px] font-semibold text-center leading-tight tracking-tight line-clamp-2 px-0.5",
-                                  isSelected ? "text-white" : "text-slate-700",
-                                ].join(" ")}
+                                className={`text-[10px] font-semibold text-center leading-tight tracking-tight line-clamp-2 px-0.5 ${
+                                  isSelected ? "text-white" : "text-slate-700"
+                                }`}
                               >
                                 {item.shortLabel || item.label}
                               </span>
@@ -1172,7 +1170,7 @@ export function SearchPage() {
                   </div>
 
                   {/* Rodapé Fixo do Modal */}
-                  <div className="border-t border-slate-100 bg-slate-50/80 px-6 py-4 flex items-center justify-between gap-3 shrink-0">
+                  <div className="border-t border-slate-100 bg-slate-50/90 px-6 py-4 flex items-center justify-between gap-3 shrink-0">
                     <button
                       type="button"
                       onClick={clearAllFilters}
@@ -1210,7 +1208,7 @@ function ListPropertyCard({ property }: { property: (typeof properties)[number] 
       whileHover={{ y: -2 }}
       transition={{ duration: 0.2 }}
       onClick={() => navigate(`imovel/${property.id}`)}
-      className="focus-ring group grid w-full gap-4 rounded-3xl border border-ondjo-border/80 bg-white p-3.5 sm:p-4 shadow-ondjo-card hover:shadow-ondjo-card-hover transition-all duration-300 sm:grid-cols-[240px_1fr] cursor-pointer relative"
+      className="focus-ring group grid w-full gap-4 sm:gap-5 rounded-3xl bg-white p-3.5 sm:p-4 shadow-ondjo-card hover:shadow-ondjo-card-hover border border-slate-100/80 transition-all duration-300 sm:grid-cols-[260px_1fr] cursor-pointer relative"
     >
       <div className="relative overflow-hidden rounded-2xl bg-slate-100 aspect-4/3 w-full sm:aspect-auto sm:h-full">
         <PropertyImageCarousel
@@ -1224,17 +1222,17 @@ function ListPropertyCard({ property }: { property: (typeof properties)[number] 
         {/* Badges */}
         <div className="pointer-events-none absolute left-3 top-3 z-10 flex items-center gap-1.5">
           {property.verified && (
-            <div className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-0.5 text-[11px] font-bold text-ondjo-navy shadow-xs backdrop-blur-md">
-              <ShieldCheck size={12} className="text-ondjo-blue" />
+            <div className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800 shadow-xs backdrop-blur-md">
+              <ShieldCheck size={12} className="text-emerald-600" />
               <span>Verificado</span>
             </div>
           )}
           <span className="inline-flex items-center rounded-full bg-ondjo-navy/85 px-2.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-md">
-            {isArrendamento ? "Arrendar" : "Venda"}
+            {isArrendamento ? "Arrendamento" : "Venda"}
           </span>
         </div>
 
-        {/* Coração */}
+        {/* Coração Favorito */}
         <button
           type="button"
           onClick={(e) => {
@@ -1242,7 +1240,7 @@ function ListPropertyCard({ property }: { property: (typeof properties)[number] 
             e.stopPropagation();
             toggleFavorite(property.id);
           }}
-          className="focus-ring absolute right-3 top-3 z-20 flex size-8 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-sm backdrop-blur-xs transition hover:scale-110 active:scale-90 cursor-pointer"
+          className="focus-ring absolute right-3 top-3 z-20 flex size-8.5 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-sm backdrop-blur-xs transition hover:scale-110 active:scale-90 cursor-pointer"
           aria-label={favorite ? "Remover dos favoritos" : "Guardar nos favoritos"}
         >
           <Heart
@@ -1260,30 +1258,27 @@ function ListPropertyCard({ property }: { property: (typeof properties)[number] 
             </h3>
           </div>
 
-          <p className="mt-1 text-xs sm:text-sm text-ondjo-muted line-clamp-1">
+          <p className="mt-1 text-xs sm:text-sm text-ondjo-muted line-clamp-1 font-medium">
             {property.title}
           </p>
 
-          <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-slate-600">
-            <span>T{property.bedrooms}</span>
-            <span className="text-slate-300">·</span>
-            <span>{property.bathrooms} WC</span>
-            <span className="text-slate-300">·</span>
-            <span>{property.area} m²</span>
+          <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs font-semibold text-slate-600">
+            <span className="rounded-lg bg-slate-100/80 px-2 py-0.5 text-slate-700">T{property.bedrooms}</span>
+            <span className="rounded-lg bg-slate-100/80 px-2 py-0.5 text-slate-700">{property.bathrooms} WC</span>
+            <span className="rounded-lg bg-slate-100/80 px-2 py-0.5 text-slate-700">{property.area} m²</span>
             {property.parking > 0 && (
-              <>
-                <span className="text-slate-300">·</span>
-                <span>{property.parking} Vaga{property.parking > 1 ? "s" : ""}</span>
-              </>
+              <span className="rounded-lg bg-slate-100/80 px-2 py-0.5 text-slate-700">
+                {property.parking} Vaga{property.parking > 1 ? "s" : ""}
+              </span>
             )}
           </div>
         </div>
 
-        <div className="mt-4 pt-3 border-t border-slate-100 flex items-baseline justify-between gap-2">
+        <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
           <span className="text-lg sm:text-xl font-extrabold text-ondjo-navy tracking-tight">
             {formatKz(property.price, { perMonth: isArrendamento })}
           </span>
-          <span className="text-xs font-bold text-ondjo-blue group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+          <span className="text-xs font-bold text-ondjo-blue bg-ondjo-blue-soft/60 group-hover:bg-ondjo-blue group-hover:text-white px-3 py-1.5 rounded-full transition-all inline-flex items-center gap-1">
             Ver detalhes →
           </span>
         </div>
