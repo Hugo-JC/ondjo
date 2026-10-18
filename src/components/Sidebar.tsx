@@ -1,444 +1,479 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronLeft, Plus, Sparkles, X } from "lucide-react";
+import {
+  CircleHelp,
+  Heart,
+  Home,
+  MessageSquare,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Plus,
+  Search,
+  UserRound,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import { Logo } from "./Logo";
 import { useFavorites } from "../hooks/useFavorites";
-import {
-  accountNavigation,
-  mainNavigation,
-  ownerNavigation,
-  secondaryNavigation,
-  type NavigationItem,
-} from "../config/navigation";
+import { useHashRoute } from "../hooks/useHashRoute";
 
 interface SidebarProps {
   expanded?: boolean;
   onExpandedChange?: (expanded: boolean) => void;
 }
 
+interface NavItemConfig {
+  id: string;
+  label: string;
+  hint: string;
+  href: string;
+  icon: LucideIcon;
+  badgeType?: "favorites" | "messages";
+  highlight?: boolean;
+}
+
+const PRIMARY_NAV: NavItemConfig[] = [
+  {
+    id: "home",
+    label: "Início",
+    hint: "Explorar imóveis em Angola",
+    href: "#/",
+    icon: Home,
+  },
+  {
+    id: "search",
+    label: "Pesquisar",
+    hint: "Filtros por zona, tipo e preço",
+    href: "#/pesquisar",
+    icon: Search,
+  },
+  {
+    id: "favorites",
+    label: "Favoritos",
+    hint: "Os seus imóveis guardados",
+    href: "#/favoritos",
+    icon: Heart,
+    badgeType: "favorites",
+  },
+  {
+    id: "chat",
+    label: "Mensagens",
+    hint: "Conversas e agendamento de visitas",
+    href: "#/chat",
+    icon: MessageSquare,
+    badgeType: "messages",
+  },
+];
+
+const SECONDARY_NAV: NavItemConfig[] = [
+  {
+    id: "publish",
+    label: "Publicar imóvel",
+    hint: "Anuncie para milhares de compradores",
+    href: "#/login",
+    icon: Plus,
+    highlight: true,
+  },
+  {
+    id: "help",
+    label: "Ajuda & Dúvidas",
+    hint: "Suporte e como funciona o ONDJO",
+    href: "#/login",
+    icon: CircleHelp,
+  },
+];
+
 export default function Sidebar({
   expanded: controlledExpanded,
   onExpandedChange,
 }: SidebarProps = {}) {
+  const route = useHashRoute();
+  const { favoriteCount } = useFavorites();
+
   const [internalExpanded, setInternalExpanded] = useState(() => {
     if (typeof window === "undefined") return false;
     return window.localStorage.getItem("ondjo-sidebar-expanded") === "true";
   });
 
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [hash, setHash] = useState(() =>
-    typeof window !== "undefined" ? window.location.hash || "#/" : "#/",
-  );
-  const { favoriteCount: favoritesCount } = useFavorites();
-
   const isControlled = controlledExpanded !== undefined;
   const expanded = controlledExpanded ?? internalExpanded;
-  const wide = expanded || mobileOpen;
 
-  function changeExpanded(next: boolean) {
+  function toggleExpanded() {
+    const next = !expanded;
     if (!isControlled) setInternalExpanded(next);
     onExpandedChange?.(next);
   }
 
+  // Fecha o drawer mobile ao mudar de página
   useEffect(() => {
-    const updateHash = () => {
-      setHash(window.location.hash || "#/");
-      setMobileOpen(false);
-    };
-    window.addEventListener("hashchange", updateHash);
-    return () => window.removeEventListener("hashchange", updateHash);
-  }, []);
+    setMobileOpen(false);
+  }, [route]);
 
+  // Persiste preferência de expandir/recolher
   useEffect(() => {
     if (!isControlled) {
       window.localStorage.setItem("ondjo-sidebar-expanded", String(expanded));
     }
   }, [expanded, isControlled]);
 
+  // Escuta evento customizado e cliques em [data-sidebar-toggle]
   useEffect(() => {
-    const button = document.querySelector<HTMLButtonElement>(
-      "[data-sidebar-toggle]",
-    );
-    if (!button) return;
-    const openMenu = () => setMobileOpen(true);
-    button.addEventListener("click", openMenu);
-    return () => button.removeEventListener("click", openMenu);
+    const handleCustomOpen = () => setMobileOpen(true);
+    window.addEventListener("ondjo:open-sidebar", handleCustomOpen);
+
+    const handleButtonClick = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement).closest("[data-sidebar-toggle]");
+      if (target) {
+        setMobileOpen(true);
+      }
+    };
+    document.addEventListener("click", handleButtonClick);
+
+    return () => {
+      window.removeEventListener("ondjo:open-sidebar", handleCustomOpen);
+      document.removeEventListener("click", handleButtonClick);
+    };
   }, []);
 
+  // Fechar com Escape
   useEffect(() => {
     if (!mobileOpen) return;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMobileOpen(false);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileOpen(false);
     };
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [mobileOpen]);
 
-  function isActive(href: string) {
-    const currentPath = hash.split("?")[0];
-    return href === "#/" ? currentPath === "#/" : currentPath === href;
+  function isItemActive(href: string) {
+    if (href === "#/") return route.page === "home";
+    if (href === "#/pesquisar") return route.page === "search";
+    if (href === "#/favoritos") return route.page === "favorites";
+    if (href === "#/chat") return route.page === "chat";
+    return false;
   }
 
   return (
     <>
+      {/* Backdrop Mobile */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-ondjo-navy/40 backdrop-blur-sm lg:hidden"
+          role="presentation"
           onClick={() => setMobileOpen(false)}
+          className="fixed inset-0 z-50 bg-ondjo-navy/60 backdrop-blur-xs transition-opacity lg:hidden"
           aria-hidden="true"
         />
       )}
 
+      {/* Sidebar Principal (Vertical Desktop + Drawer Mobile) */}
       <aside
-        aria-label="Menu lateral ONDJO"
-        data-expanded={expanded}
+        aria-label="Navegação lateral ONDJO"
         className={[
-          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-ondjo-border bg-ondjo-surface shadow-sm",
+          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-ondjo-border/80 bg-white/95 backdrop-blur-md shadow-xs",
           "transition-[width,transform] duration-200 ease-out motion-reduce:transition-none",
           expanded ? "lg:w-64" : "lg:w-20",
           "w-72 max-w-[85vw]",
-          mobileOpen
-            ? "translate-x-0 shadow-2xl shadow-ondjo-navy/20"
-            : "-translate-x-full lg:translate-x-0",
-          "lg:translate-x-0",
+          mobileOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:translate-x-0",
         ].join(" ")}
       >
-        {/* Topo / Brand Header */}
+        {/* Topo: Logótipo & Fechar Mobile */}
         <div
           className={[
-            "flex min-h-20 shrink-0 border-b border-ondjo-border/80 px-4",
-            wide
-              ? "items-center justify-between"
-              : "flex-col items-center justify-center gap-2 py-3",
+            "flex h-16 sm:h-20 shrink-0 items-center border-b border-ondjo-border/60 px-3.5",
+            expanded ? "justify-between px-5" : "justify-center",
           ].join(" ")}
         >
-          {wide && (
-            <a
-              href="#/"
-              aria-label="ONDJO — página inicial"
-              onClick={() => setMobileOpen(false)}
-              className="focus-ring flex min-w-0 flex-col gap-1.5 rounded-xl select-none"
-            >
-              <Logo height={34} decorative />
-              <span className="block truncate text-[10px] font-semibold uppercase tracking-[0.16em] text-ondjo-muted">
-                Encontre o seu lugar
-              </span>
-            </a>
-          )}
-
-          {/* Botão fechar mobile */}
-          <button
-            type="button"
-            aria-label="Fechar menu"
+          <a
+            href="#/"
+            aria-label="ONDJO — Página Inicial"
             onClick={() => setMobileOpen(false)}
-            className="focus-ring grid size-9 place-items-center rounded-xl text-ondjo-muted transition-colors hover:bg-ondjo-bg hover:text-ondjo-ink lg:hidden"
+            className="focus-ring flex items-center gap-2.5 rounded-xl p-1 transition-transform hover:opacity-90 active:scale-95"
           >
-            <X size={19} aria-hidden="true" />
-          </button>
+            {expanded ? (
+              <div className="flex flex-col">
+                <Logo variant="full" height={32} decorative />
+                <span className="text-[10px] font-bold uppercase tracking-wider text-ondjo-muted mt-0.5">
+                  Mercado Imobiliário
+                </span>
+              </div>
+            ) : (
+              <Logo variant="mark" height={34} decorative />
+            )}
+          </a>
 
-          {/* Botão alternar expandido (desktop) com animação suave */}
+          {/* Botão fechar (Mobile apenas) */}
           <button
             type="button"
-            aria-label={
-              expanded ? "Recolher menu lateral" : "Expandir menu lateral"
-            }
-            aria-expanded={expanded}
-            onClick={() => changeExpanded(!expanded)}
-            className="focus-ring hidden size-9 shrink-0 place-items-center rounded-xl border border-ondjo-border bg-ondjo-surface text-ondjo-muted transition-colors hover:bg-ondjo-bg hover:text-ondjo-ink lg:grid"
+            onClick={() => setMobileOpen(false)}
+            aria-label="Fechar menu"
+            className="focus-ring grid size-9 place-items-center rounded-xl text-ondjo-muted hover:bg-slate-100 hover:text-ondjo-ink lg:hidden cursor-pointer"
           >
-            <span
-              className={`grid place-items-center transition-transform duration-200 motion-reduce:transition-none ${expanded ? "" : "rotate-180"}`}
-            >
-              <ChevronLeft size={16} strokeWidth={2.2} aria-hidden="true" />
-            </span>
+            <X size={20} aria-hidden="true" />
           </button>
         </div>
 
-        {/* Navegação Principal */}
+        {/* Corpo com Itens Verticais */}
         <nav
-          aria-label="Navegação principal"
-          className="scrollbar-subtle flex-1 overflow-y-auto px-3 py-5"
+          aria-label="Menu principal"
+          className="flex-1 overflow-y-auto px-2.5 py-4 scrollbar-none flex flex-col gap-1.5"
         >
-          <NavSectionLabel expanded={wide}>Descobrir</NavSectionLabel>
-          <ul className="space-y-1">
-            {mainNavigation.map((item) => (
-              <li key={item.label}>
-                <SidebarItem
+          {/* Itens Primários (Início, Pesquisar, Favoritos, Mensagens) */}
+          <div className="flex flex-col gap-1.5">
+            {PRIMARY_NAV.map((item) => {
+              const active = isItemActive(item.href);
+              const badgeCount = item.badgeType === "favorites" ? favoriteCount : 0;
+
+              return (
+                <SidebarButton
+                  key={item.id}
                   item={item}
-                  expanded={wide}
-                  active={isActive(item.href)}
-                  badgeCount={
-                    item.badge === "favorites" ? favoritesCount : undefined
-                  }
+                  active={active}
+                  expanded={expanded}
+                  badgeCount={badgeCount}
                   onNavigate={() => setMobileOpen(false)}
                 />
-              </li>
+              );
+            })}
+          </div>
+
+          {/* Separador elegante */}
+          <div className={expanded ? "my-3 px-2" : "my-2.5 flex justify-center"}>
+            <div className={expanded ? "h-px w-full bg-ondjo-border/70" : "h-px w-8 bg-ondjo-border/80"} />
+          </div>
+
+          {/* Itens Secundários (Publicar Imóvel, Ajuda) */}
+          <div className="flex flex-col gap-1.5">
+            {SECONDARY_NAV.map((item) => (
+              <SidebarButton
+                key={item.id}
+                item={item}
+                active={isItemActive(item.href)}
+                expanded={expanded}
+                onNavigate={() => setMobileOpen(false)}
+              />
             ))}
-          </ul>
+          </div>
 
-          <div className="my-5 h-px bg-ondjo-border/80" />
-
-          <NavSectionLabel expanded={wide}>Área pessoal</NavSectionLabel>
-          <ul className="space-y-1">
-            {ownerNavigation.map((item) => (
-              <li key={item.label}>
-                <SidebarItem
-                  item={item}
-                  expanded={wide}
-                  active={isActive(item.href)}
-                  onNavigate={() => setMobileOpen(false)}
-                />
-              </li>
-            ))}
-          </ul>
-
-          <div className="my-5 h-px bg-ondjo-border/80" />
-
-          <ul className="space-y-1">
-            {secondaryNavigation.map((item) => (
-              <li key={item.label}>
-                <SidebarItem
-                  item={item}
-                  expanded={wide}
-                  active={isActive(item.href)}
-                  onNavigate={() => setMobileOpen(false)}
-                />
-              </li>
-            ))}
-          </ul>
-
-          {wide && (
-            <div className="mt-6">
-              <div className="relative rounded-2xl border border-ondjo-blue-soft bg-ondjo-blue-soft/35 p-4">
-                <div className="flex items-center gap-2">
-                  <span className="grid size-8 place-items-center rounded-lg bg-ondjo-blue text-white shadow-xs">
-                    <Sparkles size={15} aria-hidden="true" />
-                  </span>
-                  <span className="text-xs font-bold uppercase tracking-wider text-ondjo-blue">
-                    Proprietários
-                  </span>
-                </div>
-
-                <p className="mt-2.5 text-sm font-bold text-ondjo-navy">
-                  Tem um imóvel?
+          {/* Card de Anúncio para Proprietários no modo expandido */}
+          {expanded && (
+            <div className="mt-auto pt-4 px-1">
+              <div className="rounded-2xl border border-ondjo-blue-soft bg-ondjo-blue-50/60 p-3.5">
+                <p className="text-xs font-bold text-ondjo-navy">É proprietário ou corretor?</p>
+                <p className="mt-1 text-[11px] leading-relaxed text-ondjo-muted">
+                  Anuncie o seu imóvel e chegue a milhares de compradores em Angola.
                 </p>
-                <p className="mt-1 text-xs leading-relaxed text-ondjo-muted">
-                  Anuncie no ONDJO e alcance milhares de compradores em Angola.
-                </p>
-
                 <a
                   href="#/login"
                   onClick={() => setMobileOpen(false)}
-                  className="focus-ring mt-3.5 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-ondjo-blue px-3 text-sm font-bold text-white transition-colors hover:bg-ondjo-blue-dark active:bg-ondjo-navy"
+                  className="focus-ring mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-ondjo-blue py-2 text-xs font-bold text-white shadow-xs hover:bg-ondjo-blue-dark transition-colors"
                 >
-                  <Plus size={16} strokeWidth={2.4} aria-hidden="true" />
-                  Publicar imóvel
+                  <Plus size={14} strokeWidth={2.6} />
+                  <span>Anunciar agora</span>
                 </a>
               </div>
             </div>
           )}
         </nav>
 
-        {/* Rodapé / Perfil & CTA */}
-        <div className="shrink-0 border-t border-ondjo-border/80 p-3 bg-ondjo-surface/80 backdrop-blur-xs">
-          <a
-            href={accountNavigation.href}
-            onClick={() => setMobileOpen(false)}
+        {/* Rodapé da Sidebar: Perfil de Utilizador & Botão de Expandir/Recolher */}
+        <div className="shrink-0 border-t border-ondjo-border/60 p-2.5 bg-slate-50/50 flex flex-col gap-1.5">
+          {/* Link para Conta / Login */}
+          <SidebarButton
+            item={{
+              id: "account",
+              label: "Minha conta",
+              hint: "Entrar ou registar perfil",
+              href: "#/login",
+              icon: UserRound,
+            }}
+            active={route.page === "login" || route.page === "register"}
+            expanded={expanded}
+            onNavigate={() => setMobileOpen(false)}
+          />
+
+          {/* Botão de Alternar Largura (Apenas no Desktop) */}
+          <button
+            type="button"
+            onClick={toggleExpanded}
+            aria-label={expanded ? "Recolher menu lateral" : "Expandir menu lateral"}
+            title={expanded ? "Recolher menu lateral" : "Expandir menu lateral"}
             className={[
-              "group focus-ring relative flex min-h-12 items-center gap-3 rounded-xl border border-ondjo-border/80 bg-ondjo-bg px-3",
-              "text-sm font-bold text-ondjo-navy transition-all duration-200 hover:border-ondjo-blue-soft hover:bg-ondjo-blue-soft/30 hover:text-ondjo-blue",
-              wide ? "" : "justify-center",
+              "focus-ring hidden lg:flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold text-ondjo-muted hover:bg-white hover:text-ondjo-ink hover:shadow-2xs transition-all cursor-pointer",
+              expanded ? "justify-start w-full" : "justify-center size-11 mx-auto",
             ].join(" ")}
           >
-            <accountNavigation.icon
-              size={19}
-              className="shrink-0 text-ondjo-muted transition-colors group-hover:text-ondjo-blue"
-              aria-hidden="true"
-            />
-            {wide && (
-              <span className="min-w-0 flex-1 truncate">
-                {accountNavigation.label}
-              </span>
+            {expanded ? (
+              <>
+                <PanelLeftClose size={18} aria-hidden="true" />
+                <span className="truncate">Recolher menu</span>
+              </>
+            ) : (
+              <PanelLeftOpen size={18} aria-hidden="true" />
             )}
-          </a>
-
-          {wide && (
-            <p className="mt-2.5 px-1 text-center text-[11px] font-medium text-ondjo-muted/80">
-              O seu próximo lar começa aqui.
-            </p>
-          )}
+          </button>
         </div>
       </aside>
     </>
   );
 }
 
-function NavSectionLabel({
-  expanded,
-  children,
-}: {
-  expanded: boolean;
-  children: string;
-}) {
-  return (
-    <p
-      className={[
-        "mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-ondjo-muted/90 select-none",
-        expanded ? "" : "sr-only",
-      ].join(" ")}
-    >
-      {children}
-    </p>
-  );
-}
-
-function SidebarItem({
-  item,
-  expanded,
-  active,
-  badgeCount,
-  onNavigate,
-}: {
-  item: NavigationItem;
-  expanded: boolean;
+interface SidebarButtonProps {
+  item: NavItemConfig;
   active: boolean;
+  expanded: boolean;
   badgeCount?: number;
   onNavigate: () => void;
-}) {
+}
+
+function SidebarButton({
+  item,
+  active,
+  expanded,
+  badgeCount = 0,
+  onNavigate,
+}: SidebarButtonProps) {
   const Icon = item.icon;
   const [isHovered, setIsHovered] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const anchorRef = useRef<HTMLAnchorElement>(null);
   const tooltipId = useId();
-  const [tooltipPosition, setTooltipPosition] = useState<{
-    left: number;
-    top: number;
-  } | null>(null);
+  const [coords, setCoords] = useState<{ left: number; top: number } | null>(null);
 
+  const showTooltip = !expanded && (isHovered || isFocused);
+
+  // Calcula coordenadas do tooltip flutuante
   useEffect(() => {
-    if (expanded || !isHovered || !anchorRef.current) {
-      setTooltipPosition(null);
+    if (!showTooltip || !anchorRef.current) {
+      setCoords(null);
       return;
     }
 
-    const updatePosition = () => {
-      const bounds = anchorRef.current?.getBoundingClientRect();
-      if (!bounds) return;
-      setTooltipPosition({
-        left: bounds.right + 14,
-        top: bounds.top + bounds.height / 2,
+    const updateCoords = () => {
+      const rect = anchorRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      setCoords({
+        left: rect.right + 12,
+        top: rect.top + rect.height / 2,
       });
     };
 
-    updatePosition();
-    window.addEventListener("resize", updatePosition);
-    window.addEventListener("scroll", updatePosition, true);
+    updateCoords();
+    window.addEventListener("scroll", updateCoords, true);
+    window.addEventListener("resize", updateCoords);
     return () => {
-      window.removeEventListener("resize", updatePosition);
-      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener("scroll", updateCoords, true);
+      window.removeEventListener("resize", updateCoords);
     };
-  }, [expanded, isHovered]);
+  }, [showTooltip]);
 
   return (
-    <div className="relative">
+    <>
       <a
         ref={anchorRef}
         href={item.href}
         onClick={onNavigate}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        onFocus={() => setIsHovered(true)}
-        onBlur={() => setIsHovered(false)}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
         aria-current={active ? "page" : undefined}
-        aria-label={expanded ? undefined : item.label}
-        aria-describedby={tooltipPosition ? tooltipId : undefined}
+        aria-label={!expanded ? `${item.label} — ${item.hint}` : undefined}
+        aria-describedby={showTooltip ? tooltipId : undefined}
         className={[
-          "group relative flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold select-none focus-ring",
-          "transition-colors duration-200",
-          expanded ? "" : "justify-center",
+          "group relative flex items-center rounded-2xl select-none focus-ring transition-all cursor-pointer",
+          expanded
+            ? "min-h-12 w-full gap-3.5 px-3.5 text-sm font-semibold"
+            : "size-12 justify-center mx-auto",
           active
-            ? "text-ondjo-blue font-bold"
-            : "text-ondjo-muted hover:text-ondjo-ink",
+            ? "bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
+            : item.highlight
+              ? "text-ondjo-ink hover:bg-ondjo-blue-50/70 hover:text-ondjo-blue"
+              : "text-ondjo-muted hover:text-ondjo-ink hover:bg-slate-100/80",
         ].join(" ")}
       >
-        {active && (
+        {/* Barra lateral de estado ativo (Modo Compacto) */}
+        {!expanded && active && (
           <span
-            className="absolute inset-0 rounded-xl border border-ondjo-blue/15 bg-ondjo-blue-soft shadow-xs"
             aria-hidden="true"
+            className="absolute left-0 top-2.5 bottom-2.5 w-1 rounded-r-full bg-ondjo-blue"
           />
         )}
 
-        {active && (
-          <span
-            aria-hidden="true"
-            className="absolute bottom-2.5 left-0 top-2.5 w-[3.5px] rounded-r-full bg-ondjo-blue shadow-xs"
-          />
-        )}
-
-        <span className="relative z-10 shrink-0 grid place-items-center">
+        {/* Ícone com Badge de Contagem */}
+        <span className="relative grid place-items-center shrink-0">
           <Icon
-            size={19}
-            strokeWidth={active ? 2.3 : 1.9}
-            className={
+            size={20}
+            strokeWidth={active ? 2.5 : 2}
+            className={[
+              "transition-colors",
               active
                 ? "text-ondjo-blue"
-                : "text-ondjo-muted group-hover:text-ondjo-ink transition-colors"
-            }
+                : item.highlight
+                  ? "text-ondjo-blue group-hover:scale-105 transition-transform"
+                  : "text-ondjo-muted group-hover:text-ondjo-ink",
+            ].join(" ")}
             aria-hidden="true"
           />
 
-          {!expanded && badgeCount !== undefined && badgeCount > 0 && (
-            <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-ondjo-blue px-1 text-[9px] font-black text-white shadow-xs">
+          {/* Badge flutuante no modo compacto */}
+          {!expanded && badgeCount > 0 && (
+            <span
+              aria-hidden="true"
+              className="absolute -top-1.5 -right-2 grid min-w-4 h-4 place-items-center rounded-full bg-ondjo-navy px-1 text-[9px] font-black text-white shadow-xs"
+            >
               {badgeCount > 9 ? "9+" : badgeCount}
             </span>
           )}
         </span>
 
+        {/* Rótulo de texto no modo expandido */}
         {expanded && (
-          <span className="relative z-10 flex min-w-0 flex-1 items-center justify-between gap-2">
+          <div className="flex flex-1 items-center justify-between min-w-0">
             <span className="truncate">{item.label}</span>
-
-            {/* Contador de favoritos no modo expandido */}
-            {badgeCount !== undefined && badgeCount > 0 && (
-              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-ondjo-blue/10 px-1.5 text-[11px] font-bold text-ondjo-blue">
+            {badgeCount > 0 && (
+              <span className="grid min-w-5 h-5 place-items-center rounded-full bg-ondjo-blue px-1.5 text-[10px] font-black text-white">
                 {badgeCount}
               </span>
             )}
-
-            {/* Tag de secção restrita */}
-            {item.private && (
-              <span className="rounded-md border border-ondjo-border/60 bg-ondjo-bg px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-ondjo-muted group-hover:border-ondjo-border group-hover:text-ondjo-ink transition-colors">
-                Conta
-              </span>
-            )}
-          </span>
+          </div>
         )}
       </a>
 
-      {tooltipPosition &&
+      {/* Tooltip / Pista no Hover Flutuante (Via Portal no Body) */}
+      {showTooltip &&
+        coords &&
+        typeof document !== "undefined" &&
         createPortal(
           <div
             id={tooltipId}
             role="tooltip"
-            className="pointer-events-none fixed z-60 -translate-y-1/2 whitespace-nowrap rounded-xl bg-ondjo-navy px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-ondjo-navy/25"
-            style={{ left: tooltipPosition.left, top: tooltipPosition.top }}
+            style={{ left: coords.left, top: coords.top }}
+            className="pointer-events-none fixed z-70 -translate-y-1/2 flex items-center animate-in fade-in-50 zoom-in-95 duration-150"
           >
-            <div className="flex items-center gap-2">
-              <span>{item.label}</span>
-              {badgeCount !== undefined && badgeCount > 0 && (
-                <span className="rounded-full bg-ondjo-blue px-1.5 py-0.2 text-[10px] font-black text-white">
-                  {badgeCount}
-                </span>
-              )}
-            </div>
-
-            {/* Pequena setinha apontando para o ícone */}
+            {/* Setinha apontando para a esquerda */}
             <span
-              className="absolute right-full top-1/2 -mr-px -translate-y-1/2 border-4 border-transparent border-r-ondjo-navy"
+              className="border-y-4 border-y-transparent border-r-6 border-r-ondjo-navy -mr-0.5"
               aria-hidden="true"
             />
+
+            {/* Caixa do Tooltip */}
+            <div className="rounded-xl border border-white/10 bg-ondjo-navy px-3 py-2 text-white shadow-xl shadow-ondjo-navy/30 whitespace-nowrap">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold leading-tight">{item.label}</span>
+                {badgeCount > 0 && (
+                  <span className="rounded-full bg-ondjo-blue px-1.5 py-0.2 text-[10px] font-black text-white leading-none">
+                    {badgeCount}
+                  </span>
+                )}
+              </div>
+              <p className="mt-0.5 text-[11px] font-normal leading-tight text-ondjo-blue-soft/90">
+                {item.hint}
+              </p>
+            </div>
           </div>,
           document.body,
         )}
-    </div>
+    </>
   );
 }

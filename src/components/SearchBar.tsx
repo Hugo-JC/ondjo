@@ -10,6 +10,10 @@ import {
   BedDouble,
   Bath,
   Car,
+  UserCheck,
+  Building2,
+  Sparkles,
+  type LucideIcon,
 } from "lucide-react";
 import { AMENITY_OPTIONS, type AmenityDefinition } from "../data/amenities";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
@@ -66,15 +70,47 @@ export const PURPOSE_OPTIONS: { id: SearchPurpose; label: string }[] = [
   { id: "arrendar", label: "Arrendar" },
 ];
 
-export const ORIGIN_OPTIONS: {
+export interface OriginOption {
   id: SearchOrigin;
   label: string;
-  icon?: typeof ShieldCheck;
-}[] = [
-  { id: "todos", label: "Todos os imóveis" },
-  { id: "verificados", label: "Verificados ONDJO", icon: ShieldCheck },
-  { id: "proprietario", label: "Proprietário", icon: ShieldCheck },
-  { id: "agentes", label: "Agentes", icon: ShieldCheck },
+  shortLabel: string;
+  description: string;
+  icon: LucideIcon;
+  badge?: string;
+}
+
+export const ORIGIN_OPTIONS: OriginOption[] = [
+  {
+    id: "todos",
+    label: "Todos os anúncios",
+    shortLabel: "Todos",
+    description: "Todos os imóveis disponíveis em Luanda",
+    icon: Sparkles,
+  },
+  {
+    id: "verificados",
+    label: "Verificados ONDJO",
+    shortLabel: "Verificados",
+    description: "Documentação e titularidade auditadas",
+    icon: ShieldCheck,
+    badge: "Auditado",
+  },
+  {
+    id: "proprietario",
+    label: "Direto com Proprietário",
+    shortLabel: "Proprietário",
+    description: "Sem taxa de agência ou intermediários",
+    icon: UserCheck,
+    badge: "Direto",
+  },
+  {
+    id: "agentes",
+    label: "Agências & Corretores",
+    shortLabel: "Agências",
+    description: "Imobiliárias e corretores credenciados",
+    icon: Building2,
+    badge: "Profissional",
+  },
 ];
 
 export type AmenityOption = AmenityDefinition;
@@ -155,6 +191,7 @@ export function SearchBar({
     setSelectedAmenities(next);
     onChange({ ...value, amenities: next });
   };
+
   const reduceMotion = useReducedMotion();
   const barRef = useRef<HTMLDivElement>(null);
   const locationInputRef = useRef<HTMLInputElement>(null);
@@ -197,16 +234,19 @@ export function SearchBar({
   };
 
   const currentPurpose = value.purpose || "comprar";
-  const currentOrigin = value.origin || "todos";
+  const currentOrigin = (value.origin || "todos") as SearchOrigin;
 
-  // Contagem de filtros ativos (excluindo purpose padrão)
+  // Contagem de filtros ativos (excluindo purpose padrão e origin=todos)
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (value.location || value.query) count++;
     if (value.type) count++;
     if (value.bedrooms) count++;
+    if (value.bathrooms) count++;
+    if (value.parking) count++;
     if (value.minPrice || value.maxPrice) count++;
-    if (value.origin === "verificados") count++;
+    if (value.origin && value.origin !== "todos") count++;
+    if (value.amenities && value.amenities.length > 0) count += value.amenities.length;
     return count;
   }, [value]);
 
@@ -224,7 +264,7 @@ export function SearchBar({
     .filter((loc) =>
       loc.toLowerCase().includes(searchText.trim().toLowerCase()),
     )
-    .slice(0, 6);
+    .slice(0, 8);
 
   const clearAllFilters = () => {
     onChange({
@@ -241,6 +281,9 @@ export function SearchBar({
     onSearch();
   };
 
+  // Obter label curta da origem selecionada
+  const activeOriginOption = ORIGIN_OPTIONS.find((o) => o.id === currentOrigin) || ORIGIN_OPTIONS[0];
+
   return (
     <div
       ref={barRef}
@@ -250,16 +293,16 @@ export function SearchBar({
       ].join(" ")}
     >
       {/* ========================================================
-          CABEÇALHO DA BUSCA: MOBILE EM 2 NÍVEIS ESCALÁVEIS
-          Linha 1: Segmented Control Comprar | Arrendar (Largura total, alvo >= 44px)
-          Linha 2: Chips rápidos com scroll horizontal suave e selo Verificados
+          CABEÇALHO DA BUSCA MOBILE (MODERNO, CONSISTENTE, MOBILE-FIRST)
+          Linha 1: Segmented Control Comprar | Arrendar (Largura total, toque mínimo 44px)
+          Linha 2: Régua horizontal de ORIGIN_OPTIONS com scroll suave e ícones consistentes
          ======================================================== */}
       <div className="mb-3 flex flex-col gap-2.5 md:hidden">
-        {/* Linha 1 Mobile: Comprar / Arrendar largura total */}
+        {/* Linha 1 Mobile: Comprar / Arrendar */}
         <div
           role="tablist"
           aria-label="Modalidade de negócio"
-          className="grid grid-cols-2 w-full rounded-2xl bg-slate-100/90 p-1 backdrop-blur-xs border border-slate-200/70 shadow-2xs"
+          className="grid grid-cols-2 w-full rounded-2xl bg-slate-100/90 p-1 backdrop-blur-xs border border-ondjo-border/80 shadow-2xs"
         >
           {PURPOSE_OPTIONS.map((opt) => {
             const isSelected = currentPurpose === opt.id;
@@ -283,35 +326,50 @@ export function SearchBar({
           })}
         </div>
 
-        {/* Linha 2 Mobile: Chips rápidos roláveis horizontalmente com fade suave */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5 px-0.5">
-          {/* Chip Selo: Verificados ONDJO */}
-          <button
-            type="button"
-            onClick={() =>
-              set(
-                "origin",
-                currentOrigin === "verificados" ? "todos" : "verificados",
-              )
-            }
-            className={[
-              "inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-bold transition-all cursor-pointer active:scale-95",
-              currentOrigin === "verificados"
-                ? "border-emerald-500/40 bg-emerald-50 text-emerald-800 shadow-2xs"
-                : "border-slate-200/90 bg-white text-slate-700 hover:border-slate-300",
-            ].join(" ")}
-          >
-            <ShieldCheck
-              size={14}
-              className={
-                currentOrigin === "verificados"
-                  ? "text-emerald-600"
-                  : "text-slate-400"
-              }
-              aria-hidden="true"
-            />
-            <span>Verificados</span>
-          </button>
+        {/* Linha 2 Mobile: Régua de ORIGIN_OPTIONS com scroll horizontal suave */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5 px-0.5 -mx-0.5">
+          {ORIGIN_OPTIONS.map((opt) => {
+            const isSelected = currentOrigin === opt.id;
+            const Icon = opt.icon;
+
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => set("origin", opt.id)}
+                className={[
+                  "inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-all cursor-pointer active:scale-95",
+                  isSelected
+                    ? opt.id === "verificados"
+                      ? "border-emerald-500/50 bg-emerald-50 text-emerald-900 font-bold shadow-2xs"
+                      : opt.id === "proprietario"
+                        ? "border-ondjo-blue bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
+                        : opt.id === "agentes"
+                          ? "border-indigo-400 bg-indigo-50 text-indigo-900 font-bold shadow-2xs"
+                          : "border-ondjo-navy bg-ondjo-navy text-white font-bold shadow-2xs"
+                    : "border-slate-200/90 bg-white text-slate-700 hover:border-slate-300",
+                ].join(" ")}
+              >
+                <Icon
+                  size={14}
+                  className={[
+                    "shrink-0",
+                    isSelected
+                      ? opt.id === "verificados"
+                        ? "text-emerald-700"
+                        : opt.id === "proprietario"
+                          ? "text-ondjo-blue"
+                          : opt.id === "agentes"
+                            ? "text-indigo-700"
+                            : "text-white"
+                      : "text-slate-400",
+                  ].join(" ")}
+                  aria-hidden="true"
+                />
+                <span>{opt.shortLabel}</span>
+              </button>
+            );
+          })}
 
           {/* Botão Todos os Filtros com Badge */}
           <button
@@ -366,34 +424,46 @@ export function SearchBar({
           })}
         </div>
 
-        {/* Toggle de Verificados ONDJO Desktop */}
-        <div className="flex items-center gap-2">
+        {/* Régua de ORIGIN_OPTIONS no Desktop */}
+        <div className="flex items-center gap-1.5">
           {ORIGIN_OPTIONS.map((orig) => {
             const isSelected = currentOrigin === orig.id;
             const Icon = orig.icon;
-            if (orig.id === "todos") return null;
+
             return (
               <button
                 key={orig.id}
                 type="button"
-                onClick={() => set("origin", isSelected ? "todos" : orig.id)}
+                onClick={() => set("origin", orig.id)}
                 className={[
                   "inline-flex min-h-8.5 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-all cursor-pointer",
                   isSelected
-                    ? "border-emerald-500/30 bg-emerald-50 text-emerald-800 shadow-xs"
+                    ? orig.id === "verificados"
+                      ? "border-emerald-500/40 bg-emerald-50 text-emerald-900 font-bold shadow-xs"
+                      : orig.id === "proprietario"
+                        ? "border-ondjo-blue bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-xs"
+                        : orig.id === "agentes"
+                          ? "border-indigo-300 bg-indigo-50 text-indigo-900 font-bold shadow-xs"
+                          : "border-ondjo-navy bg-ondjo-navy text-white font-bold shadow-xs"
                     : "border-slate-200/80 bg-white/90 text-slate-600 hover:border-slate-300 hover:text-ondjo-ink",
                 ].join(" ")}
               >
-                {Icon && (
-                  <Icon
-                    size={14}
-                    aria-hidden="true"
-                    className={
-                      isSelected ? "text-emerald-600" : "text-slate-400"
-                    }
-                  />
-                )}
-                <span>{orig.label}</span>
+                <Icon
+                  size={14}
+                  aria-hidden="true"
+                  className={
+                    isSelected
+                      ? orig.id === "todos"
+                        ? "text-white"
+                        : orig.id === "verificados"
+                          ? "text-emerald-700"
+                          : orig.id === "proprietario"
+                            ? "text-ondjo-blue"
+                            : "text-indigo-700"
+                      : "text-slate-400"
+                  }
+                />
+                <span>{orig.shortLabel}</span>
               </button>
             );
           })}
@@ -472,7 +542,7 @@ export function SearchBar({
             }`}
           />
 
-          {/* SEGMENTO 3: COMODIDADES (INSPIRADO NA REFERÊNCIA) */}
+          {/* SEGMENTO 3: COMODIDADES */}
           <button
             type="button"
             onClick={() =>
@@ -597,6 +667,8 @@ export function SearchBar({
                         "Benfica",
                         "Camama",
                         "Viana",
+                        "Alvalade",
+                        "Miramar",
                       ]
                   ).map((loc) => (
                     <button
@@ -647,7 +719,7 @@ export function SearchBar({
                       className={[
                         "flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all cursor-pointer",
                         isSelected
-                          ? "bg-ondjo-blue text-white shadow-xs"
+                          ? "bg-ondjo-blue text-white shadow-xs font-bold"
                           : "text-slate-700 hover:bg-slate-50",
                       ].join(" ")}
                     >
@@ -807,7 +879,7 @@ export function SearchBar({
                 {/* Linha separadora */}
                 <div className="my-2 h-px bg-slate-100" />
 
-                {/* Grelha de Boxes em Laranja / Terracota com opções checks */}
+                {/* Grelha de Comodidades */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">
@@ -842,12 +914,12 @@ export function SearchBar({
                           className={[
                             "focus-ring group relative flex flex-col items-center justify-center rounded-xl p-1.5 sm:p-2 transition-all cursor-pointer select-none border min-h-14.5 sm:min-h-15.5",
                             isSelected
-                              ? "bg-ondjo-blue border-ondjo-blue-50 text-white shadow-xs scale-[1.02]"
+                              ? "bg-ondjo-blue border-ondjo-blue text-white shadow-xs scale-[1.02]"
                               : "bg-slate-50/90 hover:bg-slate-100 border-slate-200/90 text-slate-700 hover:border-slate-300",
                           ].join(" ")}
                         >
                           {isSelected && (
-                            <span className="absolute top-1 right-1 grid size-3.7 place-items-center rounded-full bg-white text-ondjo-blue-50 text-[10px] shadow-2xs">
+                            <span className="absolute top-1 right-1 grid size-3.7 place-items-center rounded-full bg-white text-ondjo-blue text-[10px] shadow-2xs">
                               <Check size={10} strokeWidth={3} />
                             </span>
                           )}
@@ -966,42 +1038,66 @@ export function SearchBar({
       </div>
 
       {/* ========================================================
-          MOBILE: BARRA TOUCH COMPACTA EM PÍLULA (AIRBNB MOBILE)
+          MOBILE: BARRA TOUCH COMPACTA EM PÍLULA (MODERNO E ELEGANTE)
          ======================================================== */}
       <div className="block md:hidden">
         <button
           type="button"
           onClick={() => setMobileModalOpen(true)}
-          className="flex min-h-14 w-full items-center gap-3.5 rounded-full border border-slate-200/90 bg-white p-2.5 shadow-[0_8px_24px_rgba(16,42,67,0.08)] active:scale-[0.99] transition-all cursor-pointer text-left"
+          className="flex min-h-14 w-full items-center gap-3 rounded-2xl border border-ondjo-border/90 bg-white p-2.5 shadow-[0_8px_24px_rgba(16,42,67,0.08)] active:scale-[0.99] transition-all cursor-pointer text-left"
           aria-label="Abrir filtros de pesquisa de imóveis"
         >
-          <div className="flex size-10 items-center justify-center rounded-full bg-ondjo-blue text-white shadow-xs shrink-0">
+          <div className="flex size-10.5 items-center justify-center rounded-xl bg-ondjo-blue text-white shadow-xs shrink-0">
             <Search size={18} aria-hidden="true" />
           </div>
 
           <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-bold text-ondjo-ink truncate">
-              {searchText || "Onde quer procurar?"}
+            <h4 className="text-sm font-bold text-ondjo-ink truncate flex items-center gap-1.5">
+              {searchText ? (
+                <>
+                  <MapPin size={13} className="text-ondjo-blue shrink-0" />
+                  <span className="truncate">{searchText}</span>
+                </>
+              ) : (
+                "Onde quer procurar?"
+              )}
             </h4>
-            <p className="text-[11px] font-medium text-slate-500 truncate mt-0.5">
-              {value.type || "Qualquer tipo"} ·{" "}
-              {value.bedrooms ? `T${value.bedrooms}` : "Qualquer tipologia"}
-            </p>
+            <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500 truncate mt-0.5">
+              <span>{value.type || "Todos os tipos"}</span>
+              <span>·</span>
+              <span>{value.bedrooms ? `T${value.bedrooms}` : "Qualquer T"}</span>
+              {currentOrigin !== "todos" && (
+                <>
+                  <span>·</span>
+                  <span className="font-bold text-ondjo-blue flex items-center gap-0.5">
+                    {activeOriginOption.shortLabel}
+                  </span>
+                </>
+              )}
+              {value.maxPrice && (
+                <>
+                  <span>·</span>
+                  <span className="font-bold text-ondjo-navy">
+                    Até {Number(value.maxPrice).toLocaleString("pt-AO")} Kz
+                  </span>
+                </>
+              )}
+            </div>
           </div>
 
-          <div className="flex size-9 items-center justify-center rounded-full border border-slate-200/80 text-slate-600 shrink-0">
+          <div className="relative flex size-9 items-center justify-center rounded-xl border border-slate-200/90 text-slate-600 shrink-0">
             <SlidersHorizontal size={15} aria-hidden="true" />
+            {activeFiltersCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 grid size-4 place-items-center rounded-full bg-ondjo-navy text-[9px] font-black text-white shadow-xs">
+                {activeFiltersCount}
+              </span>
+            )}
           </div>
         </button>
       </div>
 
       {/* ========================================================
-          BOTTOM SHEET MOBILE VIA PORTAL (100% IMUNE A CLIPPING)
-          - Renderizado no document.body com AnimatePresence
-          - Cabeçalho fixo (título + fechar 44x44px)
-          - Scroll interno fluído com max-h-[85dvh]
-          - Rodapé fixo com "Limpar tudo" e "Ver resultados (N)"
-          - Inputs com font-size >= 16px para evitar zoom no iOS
+          BOTTOM SHEET MOBILE VIA PORTAL COM SUPORTE TOTAL A ORIGIN_OPTIONS
          ======================================================== */}
       {typeof document !== "undefined" &&
         createPortal(
@@ -1034,7 +1130,7 @@ export function SearchBar({
                     damping: 32,
                     stiffness: 320,
                   }}
-                  className="relative z-10 flex max-h-[88dvh] w-full flex-col overflow-hidden rounded-t-[28px] bg-white shadow-2xl pb-safe"
+                  className="relative z-10 flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-t-[28px] bg-white shadow-2xl pb-safe"
                 >
                   {/* Traço indicador de arrasto */}
                   <div className="pt-3 pb-1 flex justify-center shrink-0">
@@ -1066,8 +1162,8 @@ export function SearchBar({
                   </div>
 
                   {/* Conteúdo com Scroll Interno Fluído */}
-                  <div className="flex-1 overflow-y-auto p-5 space-y-5 overscroll-contain">
-                    {/* Modalidade de Negócio */}
+                  <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5 overscroll-contain">
+                    {/* 1. Modalidade de Negócio */}
                     <div>
                       <label className="text-xs font-bold text-slate-700 block mb-1.5 uppercase tracking-wider">
                         Modalidade
@@ -1083,7 +1179,7 @@ export function SearchBar({
                               className={[
                                 "flex min-h-11 items-center justify-center rounded-xl text-xs font-bold border transition-all cursor-pointer",
                                 isSelected
-                                  ? "border-ondjo-blue bg-ondjo-blue-soft text-ondjo-blue font-black"
+                                  ? "border-ondjo-blue bg-ondjo-blue-soft text-ondjo-blue font-black shadow-2xs"
                                   : "border-slate-200 text-slate-700 hover:bg-slate-50",
                               ].join(" ")}
                             >
@@ -1094,7 +1190,87 @@ export function SearchBar({
                       </div>
                     </div>
 
-                    {/* Localização com Auto-sugestões */}
+                    {/* 2. Origem & Auditoria do Anúncio (ORIGIN_OPTIONS Completo) */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                          Origem do Anúncio
+                        </label>
+                        <span className="text-[11px] text-slate-400">
+                          Auditoria e intermediação
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {ORIGIN_OPTIONS.map((opt) => {
+                          const isSelected = currentOrigin === opt.id;
+                          const Icon = opt.icon;
+
+                          return (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              onClick={() => set("origin", opt.id)}
+                              className={[
+                                "relative flex items-center justify-between rounded-2xl border p-3 text-left transition-all cursor-pointer min-h-18 active:scale-[0.99]",
+                                isSelected
+                                  ? "border-ondjo-blue bg-ondjo-blue-soft/50 ring-2 ring-ondjo-blue/20 shadow-xs"
+                                  : "border-slate-200/90 bg-white hover:bg-slate-50",
+                              ].join(" ")}
+                            >
+                              <div className="flex items-center gap-3 min-w-0 pr-2">
+                                <span
+                                  className={[
+                                    "grid size-9 place-items-center rounded-xl shrink-0 transition-colors",
+                                    isSelected
+                                      ? "bg-ondjo-blue text-white"
+                                      : "bg-slate-100 text-slate-600",
+                                  ].join(" ")}
+                                >
+                                  <Icon size={17} strokeWidth={2.2} />
+                                </span>
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-1.5">
+                                    <span
+                                      className={[
+                                        "text-xs font-bold truncate",
+                                        isSelected
+                                          ? "text-ondjo-navy"
+                                          : "text-slate-800",
+                                      ].join(" ")}
+                                    >
+                                      {opt.label}
+                                    </span>
+                                    {opt.badge && (
+                                      <span className="rounded-full bg-slate-100 px-1.5 py-0.2 text-[9px] font-bold text-slate-600">
+                                        {opt.badge}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                                    {opt.description}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <span
+                                className={[
+                                  "grid size-5 place-items-center rounded-full border shrink-0 transition-colors",
+                                  isSelected
+                                    ? "border-ondjo-blue bg-ondjo-blue text-white"
+                                    : "border-slate-300 bg-white",
+                                ].join(" ")}
+                              >
+                                {isSelected && (
+                                  <Check size={12} strokeWidth={3} />
+                                )}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* 3. Localização com Auto-sugestões */}
                     <div>
                       <label className="text-xs font-bold text-slate-700 block mb-1.5 uppercase tracking-wider">
                         Localização em Luanda
@@ -1139,6 +1315,8 @@ export function SearchBar({
                           "Benfica",
                           "Camama",
                           "Viana",
+                          "Alvalade",
+                          "Miramar",
                         ].map((loc) => {
                           const isSel = value.location === loc;
                           return (
@@ -1155,7 +1333,7 @@ export function SearchBar({
                               className={[
                                 "min-h-8 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-all cursor-pointer",
                                 isSel
-                                  ? "border-ondjo-blue bg-ondjo-blue-soft text-ondjo-blue font-bold"
+                                  ? "border-ondjo-blue bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
                                   : "border-slate-200 text-slate-600 hover:bg-slate-100",
                               ].join(" ")}
                             >
@@ -1166,7 +1344,7 @@ export function SearchBar({
                       </div>
                     </div>
 
-                    {/* Tipo de Imóvel */}
+                    {/* 4. Tipo de Imóvel */}
                     <div>
                       <label className="text-xs font-bold text-slate-700 block mb-1.5 uppercase tracking-wider">
                         Tipo de Imóvel
@@ -1194,212 +1372,208 @@ export function SearchBar({
                       </div>
                     </div>
 
-                    {/* Comodidades e Preferências (Mobile Sheet) */}
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
-                      <label className="text-xs font-bold text-slate-700 block mb-3 uppercase tracking-wider">
-                        Comodidades & Espaços
+                    {/* 5. Quartos, Banheiros e Garagem */}
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 space-y-3">
+                      <label className="text-xs font-bold text-slate-700 block mb-1 uppercase tracking-wider">
+                        Dimensões & Espaços
                       </label>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="grid size-7 place-items-center rounded-lg bg-blue-50 text-blue-600">
-                              <BedDouble size={14} strokeWidth={2.2} />
-                            </span>
-                            <span className="text-xs sm:text-sm font-semibold text-ondjo-navy">
-                              Quartos (T0+)
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2.5">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const cur = parseInt(value.bedrooms || "0", 10);
-                                const next = Math.max(0, cur - 1);
-                                set("bedrooms", next === 0 ? "" : String(next));
-                              }}
-                              className="grid size-7 sm:size-8 place-items-center rounded-full border border-slate-200 bg-slate-50 text-slate-700 active:scale-90"
-                            >
-                              <Minus size={13} strokeWidth={2.5} />
-                            </button>
-                            <span className="w-5 text-center text-xs sm:text-sm font-bold text-ondjo-navy">
-                              {value.bedrooms ? `T${value.bedrooms}` : "0"}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const cur = parseInt(value.bedrooms || "0", 10);
-                                set("bedrooms", String(cur + 1));
-                              }}
-                              className="grid size-7 sm:size-8 place-items-center rounded-full bg-ondjo-blue text-white font-bold active:scale-90 shadow-2xs"
-                            >
-                              <Plus size={13} strokeWidth={2.5} />
-                            </button>
-                          </div>
-                        </div>
 
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="grid size-7 place-items-center rounded-lg bg-sky-50 text-sky-600">
-                              <Bath size={14} strokeWidth={2.2} />
-                            </span>
-                            <span className="text-xs sm:text-sm font-semibold text-ondjo-navy">
-                              Banheiros
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2.5">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const cur = parseInt(
-                                  value.bathrooms || "0",
-                                  10,
-                                );
-                                const next = Math.max(0, cur - 1);
-                                set(
-                                  "bathrooms",
-                                  next === 0 ? "" : String(next),
-                                );
-                              }}
-                              className="grid size-7 sm:size-8 place-items-center rounded-full border border-slate-200 bg-slate-50 text-slate-700 active:scale-90"
-                            >
-                              <Minus size={13} strokeWidth={2.5} />
-                            </button>
-                            <span className="w-5 text-center text-xs sm:text-sm font-bold text-ondjo-navy">
-                              {value.bathrooms || "0"}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const cur = parseInt(
-                                  value.bathrooms || "0",
-                                  10,
-                                );
-                                set("bathrooms", String(cur + 1));
-                              }}
-                              className="grid size-7 sm:size-8 place-items-center rounded-full bg-ondjo-blue text-white font-bold active:scale-90 shadow-2xs"
-                            >
-                              <Plus size={13} strokeWidth={2.5} />
-                            </button>
-                          </div>
+                      {/* Quartos */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="grid size-7 place-items-center rounded-lg bg-blue-50 text-blue-600">
+                            <BedDouble size={14} strokeWidth={2.2} />
+                          </span>
+                          <span className="text-xs sm:text-sm font-semibold text-ondjo-navy">
+                            Quartos (T0 a T5+)
+                          </span>
                         </div>
-
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="grid size-7 place-items-center rounded-lg bg-amber-50 text-amber-600">
-                              <Car size={14} strokeWidth={2.2} />
-                            </span>
-                            <span className="text-xs sm:text-sm font-semibold text-ondjo-navy">
-                              Vagas de Garagem
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2.5">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const cur = parseInt(value.parking || "0", 10);
-                                const next = Math.max(0, cur - 1);
-                                set("parking", next === 0 ? "" : String(next));
-                              }}
-                              className="grid size-7 sm:size-8 place-items-center rounded-full border border-slate-200 bg-slate-50 text-slate-700 active:scale-90"
-                            >
-                              <Minus size={13} strokeWidth={2.5} />
-                            </button>
-                            <span className="w-5 text-center text-xs sm:text-sm font-bold text-ondjo-navy">
-                              {value.parking || "0"}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const cur = parseInt(value.parking || "0", 10);
-                                set("parking", String(cur + 1));
-                              }}
-                              className="grid size-7 sm:size-8 place-items-center rounded-full bg-ondjo-blue text-white font-bold active:scale-90 shadow-2xs"
-                            >
-                              <Plus size={13} strokeWidth={2.5} />
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="pt-2.5 border-t border-slate-200">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                              Comodidades{" "}
-                              {selectedAmenities.length > 0 &&
-                                `(${selectedAmenities.length})`}
-                            </span>
-                            {selectedAmenities.length > 0 && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setSelectedAmenities([]);
-                                  onChange({ ...value, amenities: [] });
-                                }}
-                                className="text-[11px] font-bold text-ondjo-blue hover:underline cursor-pointer"
-                              >
-                                Limpar
-                              </button>
-                            )}
-                          </div>
-                          <div
-                            aria-label="Opções de comodidades"
-                            className="h-46.5 overflow-x-hidden overflow-y-scroll overscroll-y-contain pr-1 scrollbar-subtle touch-pan-y"
-                            role="region"
-                            tabIndex={0}
+                        <div className="flex items-center gap-2.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const cur = parseInt(value.bedrooms || "0", 10);
+                              const next = Math.max(0, cur - 1);
+                              set("bedrooms", next === 0 ? "" : String(next));
+                            }}
+                            className="grid size-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 active:scale-90"
                           >
-                            <div className="grid grid-cols-3 auto-rows-14.5 gap-1.5">
-                              {AMENITY_OPTIONS.map((item) => {
-                                const isSelected =
-                                  selectedAmenities.includes(item.id) ||
-                                  selectedAmenities.includes(item.label);
-                                const Icon = item.icon;
-                                return (
-                                  <button
-                                    key={item.id}
-                                    type="button"
-                                    onClick={() => toggleAmenity(item.id)}
-                                    aria-label={item.label}
-                                    aria-pressed={isSelected}
-                                    className={`group relative flex flex-col items-center justify-center rounded-xl p-1.5 text-center border transition-all cursor-pointer select-none min-h-14.5 ${
-                                      isSelected
-                                        ? "bg-ondjo-blue border-[#A84A1A] text-white shadow-xs"
-                                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
-                                    }`}
-                                  >
-                                    {isSelected && (
-                                      <span className="absolute top-1 right-1 grid size-3 place-items-center rounded-full bg-white text-[#8A3C14] text-[8px] shadow-2xs">
-                                        <Check size={8} strokeWidth={3} />
-                                      </span>
-                                    )}
+                            <Minus size={13} strokeWidth={2.5} />
+                          </button>
+                          <span className="w-6 text-center text-xs sm:text-sm font-bold text-ondjo-navy">
+                            {value.bedrooms ? `T${value.bedrooms}` : "0"}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const cur = parseInt(value.bedrooms || "0", 10);
+                              set("bedrooms", String(cur + 1));
+                            }}
+                            className="grid size-8 place-items-center rounded-full bg-ondjo-blue text-white font-bold active:scale-90 shadow-2xs"
+                          >
+                            <Plus size={13} strokeWidth={2.5} />
+                          </button>
+                        </div>
+                      </div>
 
-                                    <span
-                                      className={`grid size-6 place-items-center rounded-lg mb-1 shrink-0 ${
-                                        isSelected
-                                          ? "bg-white/20 text-white"
-                                          : `${item.bgSoftClass} ${item.colorClass}`
-                                      }`}
-                                    >
-                                      <Icon size={12} strokeWidth={2.2} />
-                                    </span>
+                      {/* Banheiros */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="grid size-7 place-items-center rounded-lg bg-sky-50 text-sky-600">
+                            <Bath size={14} strokeWidth={2.2} />
+                          </span>
+                          <span className="text-xs sm:text-sm font-semibold text-ondjo-navy">
+                            Banheiros (WC)
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const cur = parseInt(value.bathrooms || "0", 10);
+                              const next = Math.max(0, cur - 1);
+                              set("bathrooms", next === 0 ? "" : String(next));
+                            }}
+                            className="grid size-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 active:scale-90"
+                          >
+                            <Minus size={13} strokeWidth={2.5} />
+                          </button>
+                          <span className="w-6 text-center text-xs sm:text-sm font-bold text-ondjo-navy">
+                            {value.bathrooms || "0"}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const cur = parseInt(value.bathrooms || "0", 10);
+                              set("bathrooms", String(cur + 1));
+                            }}
+                            className="grid size-8 place-items-center rounded-full bg-ondjo-blue text-white font-bold active:scale-90 shadow-2xs"
+                          >
+                            <Plus size={13} strokeWidth={2.5} />
+                          </button>
+                        </div>
+                      </div>
 
-                                    <span
-                                      className={`text-[9.5px] font-semibold text-center leading-tight tracking-tight line-clamp-2 px-0.5 ${
-                                        isSelected
-                                          ? "text-white"
-                                          : "text-slate-700"
-                                      }`}
-                                    >
-                                      {item.shortLabel || item.label}
-                                    </span>
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
+                      {/* Vagas */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="grid size-7 place-items-center rounded-lg bg-amber-50 text-amber-600">
+                            <Car size={14} strokeWidth={2.2} />
+                          </span>
+                          <span className="text-xs sm:text-sm font-semibold text-ondjo-navy">
+                            Vagas de Garagem
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const cur = parseInt(value.parking || "0", 10);
+                              const next = Math.max(0, cur - 1);
+                              set("parking", next === 0 ? "" : String(next));
+                            }}
+                            className="grid size-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 active:scale-90"
+                          >
+                            <Minus size={13} strokeWidth={2.5} />
+                          </button>
+                          <span className="w-6 text-center text-xs sm:text-sm font-bold text-ondjo-navy">
+                            {value.parking || "0"}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const cur = parseInt(value.parking || "0", 10);
+                              set("parking", String(cur + 1));
+                            }}
+                            className="grid size-8 place-items-center rounded-full bg-ondjo-blue text-white font-bold active:scale-90 shadow-2xs"
+                          >
+                            <Plus size={13} strokeWidth={2.5} />
+                          </button>
                         </div>
                       </div>
                     </div>
 
-                    {/* Faixa de Preço em Kz */}
+                    {/* 6. Comodidades & Preferências (15 comodidades oficiais) */}
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                      <div className="flex items-center justify-between mb-2.5">
+                        <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                          Comodidades{" "}
+                          {selectedAmenities.length > 0 &&
+                            `(${selectedAmenities.length})`}
+                        </span>
+                        {selectedAmenities.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedAmenities([]);
+                              onChange({ ...value, amenities: [] });
+                            }}
+                            className="text-[11px] font-bold text-ondjo-blue hover:underline cursor-pointer"
+                          >
+                            Limpar
+                          </button>
+                        )}
+                      </div>
+
+                      <div
+                        aria-label="Opções de comodidades"
+                        className="max-h-56 overflow-y-auto pr-1 scrollbar-subtle overscroll-contain"
+                      >
+                        <div className="grid grid-cols-3 gap-1.5">
+                          {AMENITY_OPTIONS.map((item) => {
+                            const isSelected =
+                              selectedAmenities.includes(item.id) ||
+                              selectedAmenities.includes(item.label);
+                            const Icon = item.icon;
+                            return (
+                              <button
+                                key={item.id}
+                                type="button"
+                                onClick={() => toggleAmenity(item.id)}
+                                aria-label={item.label}
+                                aria-pressed={isSelected}
+                                className={[
+                                  "group relative flex flex-col items-center justify-center rounded-xl p-1.5 text-center border transition-all cursor-pointer select-none min-h-14.5",
+                                  isSelected
+                                    ? "bg-ondjo-blue border-ondjo-blue text-white shadow-xs"
+                                    : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50",
+                                ].join(" ")}
+                              >
+                                {isSelected && (
+                                  <span className="absolute top-1 right-1 grid size-3.5 place-items-center rounded-full bg-white text-ondjo-blue text-[9px] shadow-2xs">
+                                    <Check size={9} strokeWidth={3} />
+                                  </span>
+                                )}
+
+                                <span
+                                  className={[
+                                    "grid size-6 place-items-center rounded-lg mb-1 shrink-0",
+                                    isSelected
+                                      ? "bg-white/20 text-white"
+                                      : `${item.bgSoftClass} ${item.colorClass}`,
+                                  ].join(" ")}
+                                >
+                                  <Icon size={12} strokeWidth={2.2} />
+                                </span>
+
+                                <span
+                                  className={[
+                                    "text-[9.5px] font-semibold text-center leading-tight tracking-tight line-clamp-2 px-0.5",
+                                    isSelected
+                                      ? "text-white"
+                                      : "text-slate-700",
+                                  ].join(" ")}
+                                >
+                                  {item.shortLabel || item.label}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 7. Faixa de Preço em Kz */}
                     <div>
                       <label className="text-xs font-bold text-slate-700 block mb-1.5 uppercase tracking-wider">
                         Preço em Kwanzas (Kz)
@@ -1436,52 +1610,6 @@ export function SearchBar({
                           />
                         </div>
                       </div>
-                    </div>
-
-                    {/* Verificação Documental ONDJO */}
-                    <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/60 p-3.5 flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="grid size-9 place-items-center rounded-xl bg-emerald-100 text-emerald-800 shrink-0">
-                          <ShieldCheck size={18} />
-                        </div>
-                        <div>
-                          <h4 className="text-xs font-bold text-emerald-950">
-                            Apenas Verificados ONDJO
-                          </h4>
-                          <p className="text-[11px] text-emerald-800">
-                            Imóveis com documentação e titularidade auditadas
-                          </p>
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        role="switch"
-                        aria-checked={currentOrigin === "verificados"}
-                        onClick={() =>
-                          set(
-                            "origin",
-                            currentOrigin === "verificados"
-                              ? "todos"
-                              : "verificados",
-                          )
-                        }
-                        className={[
-                          "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
-                          currentOrigin === "verificados"
-                            ? "bg-emerald-600"
-                            : "bg-slate-300",
-                        ].join(" ")}
-                      >
-                        <span
-                          className={[
-                            "pointer-events-none inline-block size-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
-                            currentOrigin === "verificados"
-                              ? "translate-x-5"
-                              : "translate-x-0",
-                          ].join(" ")}
-                        />
-                      </button>
                     </div>
                   </div>
 

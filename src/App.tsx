@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import Header from "./components/Header";
+import Sidebar from "./components/Sidebar";
 import { MobileBottomNav } from "./components/MobileBottomNav";
 import { Home } from "./pages/Home";
 import { SearchPage } from "./pages/SearchPage";
@@ -61,6 +63,15 @@ function AppShell({
   children: React.ReactNode;
   fixedContent?: boolean;
 }) {
+  const [sidebarExpanded, setSidebarExpanded] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem("ondjo-sidebar-expanded") === "true";
+  });
+
+  useEffect(() => {
+    window.localStorage.setItem("ondjo-sidebar-expanded", String(sidebarExpanded));
+  }, [sidebarExpanded]);
+
   return (
     <div
       className={
@@ -69,9 +80,22 @@ function AppShell({
           : "min-h-dvh w-full max-w-full overflow-x-clip bg-ondjo-bg flex flex-col pb-16 lg:pb-0"
       }
     >
-      <Header />
-      <div className={fixedContent ? "flex-1 min-h-0 overflow-hidden" : "flex-1 min-w-0"}>
-        {children}
+      <Sidebar expanded={sidebarExpanded} onExpandedChange={setSidebarExpanded} />
+      <div
+        className={[
+          "flex-1 flex flex-col min-w-0 transition-[padding] duration-200 ease-out motion-reduce:transition-none",
+          sidebarExpanded ? "lg:pl-64" : "lg:pl-20",
+          fixedContent ? "h-dvh overflow-hidden" : "",
+        ].join(" ")}
+      >
+        <Header />
+        <div
+          className={
+            fixedContent ? "flex-1 min-h-0 overflow-hidden" : "flex-1 min-w-0"
+          }
+        >
+          {children}
+        </div>
       </div>
       <MobileBottomNav />
     </div>

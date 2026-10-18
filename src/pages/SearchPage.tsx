@@ -27,6 +27,7 @@ import {
   PROPERTY_TYPES,
   BEDROOM_OPTIONS,
   AMENITY_OPTIONS,
+  ORIGIN_OPTIONS,
 } from "../components/SearchBar";
 import { navigate } from "../hooks/useHashRoute";
 import { useFavorites } from "../hooks/useFavorites";
@@ -233,10 +234,11 @@ export function SearchPage() {
         onRemove: () => setFilterField("parking", ""),
       });
     }
-    if (filters.origin === "verificados") {
+    if (filters.origin && filters.origin !== "todos") {
+      const matchOrigin = ORIGIN_OPTIONS.find((o) => o.id === filters.origin);
       list.push({
         id: "origin",
-        label: "Só Verificados",
+        label: matchOrigin ? matchOrigin.shortLabel : "Origem",
         onRemove: () => setFilterField("origin", "todos"),
       });
     }
@@ -1069,32 +1071,33 @@ export function SearchPage() {
                     {/* 7. Origem / Verificação */}
                     <div>
                       <span className="block text-xs font-bold text-ondjo-ink uppercase tracking-wider mb-2">
-                        Auditoria & Verificação
+                        Origem & Auditoria
                       </span>
                       <div className="grid grid-cols-2 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setFilterField("origin", "todos")}
-                          className={`min-h-10 rounded-xl px-3 text-xs font-semibold border transition-all cursor-pointer ${
-                            filters.origin !== "verificados"
-                              ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold shadow-2xs"
-                              : "border-ondjo-border text-slate-600 hover:bg-slate-50"
-                          }`}
-                        >
-                          Todos os Anúncios
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setFilterField("origin", "verificados")}
-                          className={`min-h-10 rounded-xl px-3 text-xs font-semibold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                            filters.origin === "verificados"
-                              ? "border-emerald-300 bg-emerald-50 text-emerald-800 font-bold shadow-2xs"
-                              : "border-ondjo-border text-slate-600 hover:bg-slate-50"
-                          }`}
-                        >
-                          <ShieldCheck size={14} className="text-emerald-600" />
-                          <span>Só Verificados</span>
-                        </button>
+                        {ORIGIN_OPTIONS.map((orig) => {
+                          const isSel = (filters.origin || "todos") === orig.id;
+                          const Icon = orig.icon;
+                          return (
+                            <button
+                              key={orig.id}
+                              type="button"
+                              onClick={() => setFilterField("origin", orig.id)}
+                              className={`min-h-11 rounded-xl px-3 text-xs font-semibold border transition-all cursor-pointer flex items-center justify-between gap-1.5 ${
+                                isSel
+                                  ? orig.id === "verificados"
+                                    ? "border-emerald-400 bg-emerald-50 text-emerald-900 font-bold shadow-2xs"
+                                    : "border-ondjo-blue bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
+                                  : "border-ondjo-border text-slate-700 hover:bg-slate-50"
+                              }`}
+                            >
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <Icon size={14} className={isSel ? "text-ondjo-blue" : "text-slate-400"} />
+                                <span className="truncate">{orig.shortLabel}</span>
+                              </div>
+                              {isSel && <Check size={13} className="shrink-0" />}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
 
