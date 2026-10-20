@@ -1,8 +1,18 @@
 import { useState } from "react";
-import { ExternalLink, MapPin, Minus, Plus, RefreshCw, ShieldCheck } from "lucide-react";
+import {
+  ExternalLink,
+  MapPin,
+  Minus,
+  Plus,
+  RefreshCw,
+  ShieldCheck,
+} from "lucide-react";
 
 // Coordenadas centrais calibradas dos bairros e municípios de Luanda, Angola
-export const LUANDA_COORDINATES: Record<string, { lat: number; lng: number; label: string }> = {
+export const LUANDA_COORDINATES: Record<
+  string,
+  { lat: number; lng: number; label: string }
+> = {
   talatona: { lat: -8.918, lng: 13.186, label: "Talatona" },
   maianga: { lat: -8.8355, lng: 13.2325, label: "Maianga" },
   kilamba: { lat: -8.996, lng: 13.257, label: "Centralidade do Kilamba" },
@@ -162,7 +172,9 @@ export function PropertyMap({
           <div className="flex items-center gap-2">
             <span className="size-2.5 rounded-full bg-emerald-500 animate-pulse" />
             <strong className="truncate text-xs font-bold text-ondjo-navy">
-              {propertyTitle ? `${neighborhood} — ${propertyTitle}` : neighborhood}
+              {propertyTitle
+                ? `${neighborhood} — ${propertyTitle}`
+                : neighborhood}
             </strong>
           </div>
           <p className="mt-0.5 text-[10px] text-slate-500">
@@ -175,7 +187,10 @@ export function PropertyMap({
       <div className="mt-3.5 flex items-start gap-2 text-[11px] text-slate-500 leading-relaxed">
         <ShieldCheck size={14} className="text-ondjo-blue shrink-0 mt-0.5" />
         <span>
-          <strong>Proteção e Privacidade:</strong> O marcador indica a área aproximada no bairro de {neighborhood}. O endereço exato com número de porta é disponibilizado pelo consultor credenciado no momento da confirmação da visita presencial.
+          <strong>Proteção e Privacidade:</strong> O marcador indica a área
+          aproximada no bairro de {neighborhood}. O endereço exato com número de
+          porta é disponibilizado pelo consultor credenciado no momento da
+          confirmação da visita presencial.
         </span>
       </div>
     </section>

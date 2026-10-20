@@ -919,7 +919,7 @@ export function PropertyPage({ id }: { id: string }) {
                   <div className="mt-0.5 flex flex-col items-center gap-1 text-[11px] text-ondjo-muted">
                     <span>Contacto direto pelo WhatsApp e chat</span>
                     {property.advertiser?.phone && (
-                      <div className="mt-1 flex w-full items-center justify-between gap-2 rounded-xl border border-ondjo-border/80 bg-ondjo-bg px-3 py-2">
+                      <div className="mt-1 flex w-full items-center justify-between gap-2 rounded-xl bg-ondjo-bg px-3 py-2">
                         <span className="font-semibold text-sm text-ondjo-ink">
                           {formatAngolanPhone(property.advertiser.phone)}
                         </span>
@@ -934,15 +934,15 @@ export function PropertyPage({ id }: { id: string }) {
                           className="focus-ring inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold text-ondjo-blue transition hover:bg-ondjo-blue-soft active:scale-95"
                         >
                           {phoneCopyStatus === "copied" ? (
-                            <Check size={14} aria-hidden="true" />
+                            <Check size={17} aria-hidden="true" />
                           ) : (
-                            <Copy size={14} aria-hidden="true" />
+                            <Copy size={17} aria-hidden="true" />
                           )}
-                          <span>
+                          {/* <span>
                             {phoneCopyStatus === "copied"
                               ? "Copiado"
                               : "Copiar"}
-                          </span>
+                          </span> */}
                         </button>
                         <span className="sr-only" aria-live="polite">
                           {phoneCopyStatus === "copied"

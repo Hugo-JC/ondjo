@@ -1121,7 +1121,7 @@ export function SearchBar({
                           onClick={() => toggleAmenity(item.id)}
                           aria-pressed={isSelected}
                           className={[
-                            "focus-ring group relative flex flex-col items-center justify-center rounded-2xl p-2.5 transition-all duration-150 cursor-pointer select-none border min-h-[72px]",
+                            "focus-ring group relative flex flex-col items-center justify-center rounded-2xl p-2.5 transition-all duration-150 cursor-pointer select-none border min-h-18",
                             isSelected
                               ? "bg-ondjo-blue/8 border-2 border-ondjo-blue shadow-xs"
                               : "bg-white hover:bg-ondjo-blue-50/20 border-slate-200/90 hover:border-ondjo-blue/40 shadow-2xs",
@@ -1188,9 +1188,9 @@ export function SearchBar({
               transition={{ duration: reduceMotion ? 0 : 0.16 }}
               className="absolute right-0 top-full mt-3 w-88 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-[0_20px_50px_rgba(16,42,67,0.22)] z-50"
             >
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-3">
+              {/* <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-3">
                 Faixa de preço (Kz)
-              </span>
+              </span> */}
 
               <PriceDualRangeSlider
                 purpose={value.purpose}
@@ -1709,7 +1709,7 @@ export function SearchBar({
                                 aria-label={item.label}
                                 aria-pressed={isSelected}
                                 className={[
-                                  "group relative flex flex-col items-center justify-center rounded-2xl p-2 text-center border transition-all duration-150 cursor-pointer select-none min-h-[72px] active:scale-97",
+                                  "group relative flex flex-col items-center justify-center rounded-2xl p-2 text-center border transition-all duration-150 cursor-pointer select-none min-h-18 active:scale-97",
                                   isSelected
                                     ? "bg-ondjo-blue/8 border-2 border-ondjo-blue shadow-xs"
                                     : "bg-white border-slate-200/90 text-slate-700 hover:bg-slate-50 shadow-2xs",

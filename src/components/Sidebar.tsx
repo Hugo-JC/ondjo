@@ -93,6 +93,7 @@ export default function Sidebar({
 
   const isControlled = controlledExpanded !== undefined;
   const expanded = controlledExpanded ?? internalExpanded;
+  const sidebarExpanded = expanded || mobileOpen;
 
   function toggleExpanded() {
     const next = !expanded;
@@ -165,21 +166,23 @@ export default function Sidebar({
       <aside
         aria-label="Navegação lateral ONDJO"
         className={[
-          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-ondjo-border/80 bg-white/95 backdrop-blur-md shadow-xs",
+          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-ondjo-border/80 bg-white shadow-xs",
           "transition-[width,transform] duration-200 ease-out motion-reduce:transition-none",
           expanded ? "lg:w-64" : "lg:w-20",
           "w-72 max-w-[85vw]",
-          mobileOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:translate-x-0",
+          mobileOpen
+            ? "translate-x-0 shadow-2xl"
+            : "-translate-x-full lg:translate-x-0",
         ].join(" ")}
       >
         {/* Topo: Logótipo & Ícone de Expandir no Hover (Compacto) ou Fechar (Mobile) */}
         <div
           className={[
             "flex h-16 sm:h-20 shrink-0 items-center border-b border-ondjo-border/60 px-3",
-            expanded ? "justify-between px-4" : "justify-center",
+            sidebarExpanded ? "justify-between px-4" : "justify-center",
           ].join(" ")}
         >
-          {expanded ? (
+          {sidebarExpanded ? (
             <div className="flex items-center justify-between w-full">
               <a
                 href="#/"
@@ -195,7 +198,7 @@ export default function Sidebar({
                 type="button"
                 onClick={toggleExpanded}
                 aria-label="Recolher menu lateral"
-                                className="focus-ring hidden lg:grid size-8.5 place-items-center rounded-xl text-ondjo-muted hover:bg-slate-100 hover:text-ondjo-ink cursor-pointer transition-colors"
+                className="focus-ring hidden lg:grid size-8.5 place-items-center rounded-xl text-ondjo-muted hover:bg-slate-100 hover:text-ondjo-ink cursor-pointer transition-colors"
               >
                 <PanelLeftClose size={18} aria-hidden="true" />
               </button>
@@ -208,13 +211,15 @@ export default function Sidebar({
               onMouseEnter={() => setIsTopIconHovered(true)}
               onMouseLeave={() => setIsTopIconHovered(false)}
               aria-label="Expandir menu lateral"
-                            className="focus-ring group relative flex size-12 items-center justify-center rounded-2xl bg-slate-50/80 hover:bg-ondjo-blue-soft/80 border border-slate-200/60 hover:border-ondjo-blue/30 transition-all cursor-pointer shadow-2xs"
+              className="focus-ring group relative flex size-12 items-center justify-center rounded-2xl bg-slate-50/80 hover:bg-ondjo-blue-soft/80 border border-slate-200/60 hover:border-ondjo-blue/30 transition-all cursor-pointer shadow-2xs"
             >
               {/* Marca ONDJO (Padrão) */}
               <div
                 className={[
                   "absolute inset-0 flex items-center justify-center transition-all duration-200",
-                  isTopIconHovered ? "opacity-0 scale-75" : "opacity-100 scale-100",
+                  isTopIconHovered
+                    ? "opacity-0 scale-75"
+                    : "opacity-100 scale-100",
                 ].join(" ")}
               >
                 <Logo variant="mark" height={30} decorative />
@@ -224,7 +229,9 @@ export default function Sidebar({
               <div
                 className={[
                   "absolute inset-0 flex items-center justify-center text-ondjo-blue transition-all duration-200",
-                  isTopIconHovered ? "opacity-100 scale-100" : "opacity-0 scale-75",
+                  isTopIconHovered
+                    ? "opacity-100 scale-100"
+                    : "opacity-0 scale-75",
                 ].join(" ")}
               >
                 <PanelLeftOpen size={22} strokeWidth={2.4} aria-hidden="true" />
@@ -252,14 +259,15 @@ export default function Sidebar({
           <div className="flex flex-col gap-1.5">
             {PRIMARY_NAV.map((item) => {
               const active = isItemActive(item.href);
-              const badgeCount = item.badgeType === "favorites" ? favoriteCount : 0;
+              const badgeCount =
+                item.badgeType === "favorites" ? favoriteCount : 0;
 
               return (
                 <SidebarButton
                   key={item.id}
                   item={item}
                   active={active}
-                  expanded={expanded}
+                  expanded={sidebarExpanded}
                   badgeCount={badgeCount}
                   onNavigate={() => setMobileOpen(false)}
                 />
@@ -268,8 +276,20 @@ export default function Sidebar({
           </div>
 
           {/* Separador elegante */}
-          <div className={expanded ? "my-3 px-2" : "my-2.5 flex justify-center"}>
-            <div className={expanded ? "h-px w-full bg-ondjo-border/70" : "h-px w-10 bg-ondjo-border/80"} />
+          <div
+            className={
+              sidebarExpanded
+                ? "my-3 px-2"
+                : "my-2.5 flex justify-center"
+            }
+          >
+            <div
+              className={
+                sidebarExpanded
+                  ? "h-px w-full bg-ondjo-border/70"
+                  : "h-px w-10 bg-ondjo-border/80"
+              }
+            />
           </div>
 
           {/* Itens Secundários (Publicar Imóvel, Ajuda) */}
@@ -279,19 +299,22 @@ export default function Sidebar({
                 key={item.id}
                 item={item}
                 active={isItemActive(item.href)}
-                expanded={expanded}
+                expanded={sidebarExpanded}
                 onNavigate={() => setMobileOpen(false)}
               />
             ))}
           </div>
 
           {/* Card de Anúncio para Proprietários no modo expandido */}
-          {expanded && (
+          {sidebarExpanded && (
             <div className="mt-auto pt-4 px-1">
               <div className="rounded-2xl border border-ondjo-blue-soft bg-ondjo-blue-50/60 p-3.5">
-                <p className="text-xs font-bold text-ondjo-navy">É proprietário ou corretor?</p>
+                <p className="text-xs font-bold text-ondjo-navy">
+                  É proprietário ou corretor?
+                </p>
                 <p className="mt-1 text-[11px] leading-relaxed text-ondjo-muted">
-                  Anuncie o seu imóvel e chegue a milhares de compradores em Angola.
+                  Anuncie o seu imóvel e chegue a milhares de compradores em
+                  Angola.
                 </p>
                 <a
                   href="#/login"
@@ -317,7 +340,7 @@ export default function Sidebar({
               icon: UserRound,
             }}
             active={route.page === "login" || route.page === "register"}
-            expanded={expanded}
+            expanded={sidebarExpanded}
             onNavigate={() => setMobileOpen(false)}
           />
 
@@ -325,10 +348,14 @@ export default function Sidebar({
           <button
             type="button"
             onClick={toggleExpanded}
-            aria-label={expanded ? "Recolher menu lateral" : "Expandir menu lateral"}
-                        className={[
+            aria-label={
+              expanded ? "Recolher menu lateral" : "Expandir menu lateral"
+            }
+            className={[
               "focus-ring hidden lg:flex items-center gap-3 rounded-2xl p-2.5 text-xs font-semibold text-ondjo-muted hover:bg-white hover:text-ondjo-ink hover:shadow-2xs transition-all cursor-pointer",
-              expanded ? "justify-start w-full px-3" : "justify-center w-full max-w-14 h-12 mx-auto",
+              expanded
+                ? "justify-start w-full px-3"
+                : "justify-center w-full max-w-14 h-12 mx-auto",
             ].join(" ")}
           >
             {expanded ? (
@@ -367,7 +394,9 @@ function SidebarButton({
   const [isDismissed, setIsDismissed] = useState(false);
   const anchorRef = useRef<HTMLAnchorElement>(null);
   const tooltipId = useId();
-  const [coords, setCoords] = useState<{ left: number; top: number } | null>(null);
+  const [coords, setCoords] = useState<{ left: number; top: number } | null>(
+    null,
+  );
 
   const showTooltip = !expanded && !isDismissed && (isHovered || isFocused);
 

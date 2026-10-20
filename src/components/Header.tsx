@@ -54,7 +54,7 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-[45] w-full border-b border-ondjo-border/80 bg-white/95 backdrop-blur-md transition-all">
+    <header className="sticky top-0 z-45 w-full border-b border-ondjo-border/80 bg-white/95 backdrop-blur-md transition-all">
       <div className="mx-auto flex h-14 sm:h-16 lg:h-18 w-full max-w-7xl items-center justify-between gap-3 px-3.5 sm:px-6 lg:px-8">
         {/* Lado Esquerdo: Logótipo Oficial ONDJO (logo.svg) com link direto para a Home */}
         <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 min-w-0">
@@ -72,9 +72,9 @@ export default function Header() {
           {/* Botão Secundário: Publicar Imóvel */}
           <a
             href="#/login"
-            className="focus-ring hidden sm:inline-flex items-center gap-1.5 rounded-full border border-ondjo-border/90 bg-white px-4 py-2 text-xs font-bold text-ondjo-ink shadow-2xs transition hover:border-slate-300 hover:bg-slate-50 active:scale-95"
+            className="focus-ring hidden sm:inline-flex items-center gap-1.5 rounded-full border border-ondjo-border/90 bg-white px-4 py-3 text-xs font-bold text-ondjo-ink shadow-2xs transition hover:border-slate-300 hover:bg-slate-50 active:scale-95"
           >
-            <Plus size={15} className="text-ondjo-blue" aria-hidden="true" />
+            <Plus size={17} className="text-ondjo-blue" aria-hidden="true" />
             <span>Publicar imóvel</span>
           </a>
 
