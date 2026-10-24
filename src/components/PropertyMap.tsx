@@ -103,7 +103,7 @@ export function PropertyMap({
           href={directOsmUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="focus-ring inline-flex items-center gap-1.5 self-start sm:self-auto rounded-full border border-slate-200 bg-slate-50 px-3.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-ondjo-navy transition active:scale-95"
+          className="focus-ring inline-flex items-center gap-1.5 self-start sm:self-auto rounded-full border border-slate-100 bg-slate-50 px-3.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-ondjo-navy transition active:scale-95"
         >
           <span>Abrir no OpenStreetMap</span>
           <ExternalLink size={12} />

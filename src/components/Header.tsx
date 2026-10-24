@@ -54,8 +54,9 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-45 w-full border-b border-ondjo-border/80 bg-white/95 backdrop-blur-md transition-all">
-      <div className="mx-auto flex h-10 sm:h-16 lg:h-18 w-full max-w-7xl items-center justify-between gap-3 px-3.5 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-45 w-full py-1.5 border-b border-ondjo-border/80 bg-white/95 backdrop-blur-md transition-all">
+      {/* Ajuste h-10, sm:h-15 e lg:h-17 para alterar a altura do Header por ecrã. */}
+      <div className="mx-auto flex h-10 sm:h-15 lg:h-17 w-full max-w-7xl items-center justify-between gap-3 px-5 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 min-w-0">
           <a
             href="#/"

@@ -154,6 +154,7 @@ function SafeGalleryImage({
   alt,
   className = "",
   imgClassName = "",
+  fit = "cover",
   priority = false,
   onClick,
 }: {
@@ -161,6 +162,7 @@ function SafeGalleryImage({
   alt: string;
   className?: string;
   imgClassName?: string;
+  fit?: "cover" | "contain";
   priority?: boolean;
   onClick?: () => void;
 }) {
@@ -202,7 +204,7 @@ function SafeGalleryImage({
             setLoaded(true);
             setError(true);
           }}
-          className={`h-full w-full object-contain transition-opacity duration-300 ${
+          className={`${fit === "cover" ? "h-full w-full object-cover" : "max-h-full max-w-full object-contain"} transition-opacity duration-300 ${
             loaded ? "opacity-100" : "opacity-0"
           } ${imgClassName}`}
         />
@@ -387,7 +389,7 @@ export function PropertyPage({ id }: { id: string }) {
   };
 
   return (
-    <main className="min-h-screen w-full bg-ondjo-bg pb-28 pt-4 sm:pt-6 lg:pb-24">
+    <main className="min-h-screen w-full bg-ondjo-bg pb-40 pt-4 sm:pt-6 lg:pb-24">
       <div className="mx-auto max-w-7xl px-3.5 sm:px-6 lg:px-8">
         {/* =========================================================
             BREADCRUMBS & AÇÕES SUPERIORES (PARTILHAR, GUARDAR, VOLTAR)
@@ -989,6 +991,15 @@ export function PropertyPage({ id }: { id: string }) {
                   <CalendarDays size={17} />
                   <span>Agendar visita guiada</span>
                 </button>
+
+                <button
+                  type="button"
+                  aria-label="Denunciar este anúncio"
+                  className="focus-ring flex min-h-10 w-full items-center justify-center gap-2 rounded-2xl px-4 text-xs font-bold text-slate-500 transition hover:bg-red-50 hover:text-red-700 cursor-pointer"
+                >
+                  <ShieldAlert size={15} aria-hidden="true" />
+                  <span>Denunciar anúncio</span>
+                </button>
               </div>
 
               {/* Dica de Confiança */}
@@ -1045,9 +1056,9 @@ export function PropertyPage({ id }: { id: string }) {
       <div
         role="region"
         aria-label="Ações rápidas móveis"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-ondjo-border/90 bg-white/95 p-3 pb-safe shadow-[0_-8px_30px_rgba(16,24,40,0.12)] backdrop-blur-md lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-ondjo-border/90 bg-white/95 px-4 py-4 pb-safe shadow-[0_-8px_30px_rgba(16,24,40,0.12)] backdrop-blur-md lg:hidden"
       >
-        <div className="mx-auto flex max-w-lg items-center justify-between gap-3">
+        <div className="mx-auto flex max-w-lg flex-col mb-2.5 gap-3">
           <div className="min-w-0">
             <span className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
               Preço oficial
@@ -1057,7 +1068,7 @@ export function PropertyPage({ id }: { id: string }) {
             </strong>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="grid w-full grid-cols-[44px_minmax(0,1fr)_minmax(0,1.2fr)] items-center gap-2">
             {/* WhatsApp Móvel Rápido */}
             <a
               href={whatsappUrl}
@@ -1073,7 +1084,7 @@ export function PropertyPage({ id }: { id: string }) {
             <button
               type="button"
               onClick={() => setScheduleVisitOpen(true)}
-              className="focus-ring inline-flex min-h-11 items-center justify-center gap-1.5 rounded-2xl border-2 border-ondjo-blue bg-white px-3.5 text-xs font-extrabold text-ondjo-blue active:scale-95"
+              className="focus-ring inline-flex min-h-11 min-w-0 items-center justify-center gap-1.5 rounded-2xl border-2 border-ondjo-blue bg-white px-2 text-xs font-extrabold text-ondjo-blue active:scale-95"
             >
               <CalendarDays size={15} />
               <span>Visita</span>
@@ -1083,7 +1094,7 @@ export function PropertyPage({ id }: { id: string }) {
             <button
               type="button"
               onClick={handleContactChat}
-              className="focus-ring inline-flex min-h-11 items-center justify-center gap-1.5 rounded-2xl bg-ondjo-blue px-3.5 text-xs font-extrabold text-white active:scale-95 shadow-xs"
+              className="focus-ring inline-flex min-h-11 min-w-0 items-center justify-center gap-1.5 rounded-2xl bg-ondjo-blue px-2 text-xs font-extrabold text-white active:scale-95 shadow-xs"
             >
               <MessageCircle size={15} />
               <span>Contactar</span>
@@ -1148,8 +1159,9 @@ export function PropertyPage({ id }: { id: string }) {
                       src={getOptimizedImageUrl(property.images[activePhoto], 1400, 85)}
                       alt={`${property.title} - Foto ${activePhoto + 1} de ${totalPhotos}`}
                       priority={true}
-                      className="max-h-[66dvh] sm:max-h-[72dvh] w-auto max-w-full object-contain rounded-lg"
-                      imgClassName="max-h-[66dvh] sm:max-h-[72dvh] w-auto max-w-full object-contain rounded-lg select-none"
+                      fit="contain"
+                      className="h-full w-full max-h-[66dvh] sm:max-h-[72dvh] flex items-center justify-center rounded-lg"
+                      imgClassName="max-h-[66dvh] sm:max-h-[72dvh] select-none"
                     />
 
                     {totalPhotos > 1 && (

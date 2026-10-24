@@ -265,12 +265,12 @@ export function SearchPage() {
 
   return (
     <main className="min-h-screen w-full bg-ondjo-bg pb-20">
-      {/* =========================================================
-          BARRA DE FILTROS RÁPIDOS (STICKY) - DESIGN LIMPO & HARMONIOSO
-          ========================================================= */}
+      {/* ===================================
+           BARRA DE FILTROS RÁPIDOS (STICKY)
+          =================================== */}
       <section
         aria-label="Filtros rápidos de pesquisa"
-        className="sticky top-14 sm:top-18 lg:top-20 z-40 w-full border-b border-slate-200/50 bg-white/90 backdrop-blur-md shadow-[0_2px_12px_rgba(16,42,67,0.03)] transition-all"
+        className="sticky top-10 sm:top-10 lg:top-10 z-40 w-full border-b border-slate-200/50 bg-white/90 backdrop-blur-md shadow-[0_2px_12px_rgba(16,42,67,0.03)] transition-all"
         ref={popoverRef}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-3.5 sm:px-6 lg:px-8 py-2.5 sm:py-3">
@@ -1133,7 +1133,7 @@ export function SearchPage() {
                                   : [...cur, item.id];
                                 setFilterField("amenities", next);
                               }}
-                              className={`focus-ring group relative flex flex-col items-center justify-center rounded-xl p-2 transition-all cursor-pointer select-none min-h-[58px] ${
+                              className={`focus-ring group relative flex flex-col items-center justify-center rounded-xl p-2 transition-all cursor-pointer select-none min-h-14.5 ${
                                 isSelected
                                   ? "bg-ondjo-navy text-white shadow-xs scale-[1.02]"
                                   : "bg-slate-100/80 hover:bg-slate-200/60 text-slate-700"
