@@ -4,15 +4,9 @@ import {
   Building2,
   CalendarCheck,
   CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
-  Droplets,
-  MapPin,
   MessageSquare,
   Search,
   ShieldCheck,
-  Sparkles,
-  Zap,
 } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useMemo, useRef, useState } from "react";
@@ -28,24 +22,11 @@ import {
 import { Footer } from "../components/Footer";
 import { Button } from "../components/ui";
 import { getImageSrcSet, getOptimizedImageUrl } from "../utils/images";
-import { formatKz } from "../utils/format";
-
 const HERO_IMAGE_URL =
   "https://images.unsplash.com/photo-1600585154340-be6161a56a0c";
 
-const POPULAR_QUICK_FILTERS = [
-  { label: "Talatona", patch: { location: "Talatona" }, icon: MapPin },
-  { label: "Kilamba", patch: { location: "Kilamba" }, icon: MapPin },
-  { label: "Maianga", patch: { location: "Maianga" }, icon: MapPin },
-  { label: "Benfica", patch: { location: "Benfica" }, icon: MapPin },
-  { label: "Verificados ONDJO", patch: { origin: "verificados" }, icon: ShieldCheck },
-  { label: "Arrendamento", patch: { purpose: "arrendamento" }, icon: Sparkles },
-  { label: "Com Gerador", patch: { amenities: ["gerador"] }, icon: Zap },
-];
-
 export function Home() {
   const [filters, setFilters] = useState<SearchFilters>(defaultSearchFilters());
-  const [spotlightIndex, setSpotlightIndex] = useState(0);
 
   const featuredScrollerRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
@@ -64,46 +45,6 @@ export function Home() {
     });
 
     navigate(`pesquisar?${params.toString()}`);
-  };
-
-  const handleQuickFilter = (patch: Partial<SearchFilters>) => {
-    const next: SearchFilters = { ...filters, ...patch };
-    setFilters(next);
-
-    const params = new URLSearchParams();
-    Object.entries(next).forEach(([key, value]) => {
-      if (value) {
-        if (Array.isArray(value)) {
-          if (value.length > 0) params.set(key, value.join(","));
-        } else {
-          params.set(key, String(value));
-        }
-      }
-    });
-
-    navigate(`pesquisar?${params.toString()}`);
-  };
-
-  // Imóveis em destaque para o showcase do Hero (seleção editorial verificada)
-  const spotlightProperties = useMemo(() => {
-    return properties
-      .filter((p) => p.featured && p.images && p.images.length > 0)
-      .slice(0, 5);
-  }, []);
-
-  const currentSpotlight =
-    spotlightProperties[spotlightIndex] || spotlightProperties[0] || properties[0];
-
-  const prevSpotlight = () => {
-    setSpotlightIndex((prev) =>
-      prev === 0 ? spotlightProperties.length - 1 : prev - 1,
-    );
-  };
-
-  const nextSpotlight = () => {
-    setSpotlightIndex((prev) =>
-      prev === spotlightProperties.length - 1 ? 0 : prev + 1,
-    );
   };
 
   // Seleciona até 8 imóveis com destaque primeiro, garantindo variedade e scroll rico
@@ -130,7 +71,7 @@ export function Home() {
           ========================================================= */}
       <section
         aria-label="Pesquisa principal e destaque de imóveis"
-        className="relative z-30 w-full max-w-full bg-[#0A1A2E] text-white overflow-hidden"
+        className="relative z-30 w-full max-w-full bg-[#0A1A2E] text-white"
       >
         {/* Camada Atmosférica de Fundo */}
         <div
@@ -166,21 +107,6 @@ export function Home() {
         <div className="relative mx-auto w-full max-w-7xl px-4 pt-8 pb-10 sm:px-6 sm:pt-14 sm:pb-16 lg:px-8 lg:pt-16 lg:pb-20">
           {/* Topo do Hero: Eyebrow e Título Magnético */}
           <div className="mx-auto max-w-4xl text-center">
-            {/* Eyebrow Badge com Indicador em Tempo Real */}
-            <motion.div
-              initial={reduceMotion ? undefined : { opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 text-xs font-semibold text-ondjo-blue-soft backdrop-blur-md shadow-xs mb-4"
-            >
-              <span className="flex size-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>O Marketplace Imobiliário de Angola</span>
-              <span className="hidden sm:inline text-white/40">·</span>
-              <span className="hidden sm:inline text-slate-200">
-                +500 imóveis auditados
-              </span>
-            </motion.div>
-
             {/* Título Principal */}
             <motion.h1
               initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
@@ -218,257 +144,14 @@ export function Home() {
             className="relative z-20 mx-auto mt-6 max-w-5xl sm:mt-8 w-full"
             tabIndex={-1}
           >
-            <div className="w-full rounded-2xl sm:rounded-3xl shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
-              <SearchBar
-                value={filters}
-                onChange={setFilters}
-                onSearch={search}
-              />
-            </div>
-
-            {/* Chips de Descoberta Rápida (Atalhos de Luanda & Filtros Chave) */}
-            <div className="mt-4 flex items-center justify-center gap-2 overflow-x-auto no-scrollbar scrollbar-none py-1 px-1">
-              <span className="text-xs font-semibold text-slate-300 shrink-0 hidden sm:inline">
-                Explorar rápido:
-              </span>
-              {POPULAR_QUICK_FILTERS.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.label}
-                    type="button"
-                    onClick={() => handleQuickFilter(item.patch)}
-                    className="inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/90 backdrop-blur-xs transition-all duration-150 hover:bg-white/20 hover:text-white active:scale-95 cursor-pointer focus-ring"
-                  >
-                    <Icon size={12} className="text-ondjo-blue-soft" />
-                    <span>{item.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+            <SearchBar
+              value={filters}
+              onChange={setFilters}
+              onSearch={search}
+            />
           </motion.div>
-
-          {/* =======================================================
-              SHOWCASE DE DESTAQUE FLUTUANTE (CLIENT MAGNET)
-              Apresenta uma oportunidade real de sonho com navegação interativa
-              ======================================================= */}
-          {currentSpotlight && (
-            <motion.div
-              initial={reduceMotion ? undefined : { opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-              className="mt-8 sm:mt-12 mx-auto max-w-4xl"
-            >
-              <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-white/15 bg-white/95 p-3 sm:p-5 text-ondjo-ink shadow-[0_20px_50px_rgba(0,0,0,0.3)] backdrop-blur-md">
-                <div className="flex flex-col md:flex-row items-center gap-4 sm:gap-6">
-                  {/* Imagem do Imóvel com Badges */}
-                  <div 
-                    onClick={() => navigate(`imovel/${currentSpotlight.id}`)}
-                    className="relative aspect-4/3 sm:aspect-16/10 w-full md:w-80 shrink-0 overflow-hidden rounded-xl sm:rounded-2xl bg-slate-100 cursor-pointer group"
-                    role="link"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        navigate(`imovel/${currentSpotlight.id}`);
-                      }
-                    }}
-                    aria-label={`Ver detalhes de ${currentSpotlight.title}`}
-                  >
-                    <img
-                      src={getOptimizedImageUrl(currentSpotlight.images[0], 600, 80)}
-                      alt={currentSpotlight.title}
-                      loading="lazy"
-                      className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-
-                    {/* Badge Verificado */}
-                    <div className="absolute top-2.5 left-2.5 inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold text-emerald-800 shadow-sm backdrop-blur-xs">
-                      <ShieldCheck size={13} className="text-emerald-600" />
-                      <span>Verificado ONDJO</span>
-                    </div>
-
-                    {/* Preço em Destaque Flutuante no Mobile */}
-                    <div className="absolute bottom-2.5 left-2.5 md:hidden rounded-lg bg-ondjo-navy/90 px-2.5 py-1 text-xs font-black text-white backdrop-blur-xs">
-                      {formatKz(currentSpotlight.price, {
-                        perMonth: currentSpotlight.purpose === "arrendamento",
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Informações & Ações */}
-                  <div className="flex-1 min-w-0 flex flex-col justify-between w-full">
-                    <div>
-                      {/* Eyebrow & Localização */}
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-ondjo-blue">
-                          <Sparkles size={14} />
-                          <span>Destaque da Semana</span>
-                        </div>
-
-                        {/* Controles de Navegação Prev / Next */}
-                        <div className="flex items-center gap-1">
-                          <span className="text-[11px] font-semibold text-slate-400 mr-1 hidden sm:inline">
-                            {spotlightIndex + 1} de {spotlightProperties.length}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={prevSpotlight}
-                            aria-label="Ver destaque anterior"
-                            className="grid size-7.5 place-items-center rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 active:scale-95 transition-all cursor-pointer"
-                          >
-                            <ChevronLeft size={16} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={nextSpotlight}
-                            aria-label="Ver próximo destaque"
-                            className="grid size-7.5 place-items-center rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 active:scale-95 transition-all cursor-pointer"
-                          >
-                            <ChevronRight size={16} />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Título */}
-                      <h2 
-                        onClick={() => navigate(`imovel/${currentSpotlight.id}`)}
-                        className="mt-1 text-base sm:text-lg font-black text-ondjo-navy line-clamp-1 cursor-pointer hover:text-ondjo-blue transition-colors"
-                      >
-                        {currentSpotlight.title}
-                      </h2>
-
-                      {/* Localização e Tipologia */}
-                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 font-medium">
-                        <span className="inline-flex items-center gap-1 text-slate-700 font-semibold">
-                          <MapPin size={13} className="text-ondjo-blue" />
-                          {currentSpotlight.neighborhood}, {currentSpotlight.city}
-                        </span>
-                        <span>·</span>
-                        <span>{currentSpotlight.bedrooms} quartos</span>
-                        <span>·</span>
-                        <span>{currentSpotlight.bathrooms} banheiros</span>
-                        <span>·</span>
-                        <span>{currentSpotlight.area} m²</span>
-                      </div>
-
-                      {/* Comodidades de Destaque em Luanda */}
-                      <div className="mt-3 flex flex-wrap gap-1.5">
-                        {currentSpotlight.features.slice(0, 3).map((feat) => (
-                          <span
-                            key={feat}
-                            className="inline-flex items-center gap-1 rounded-md bg-slate-100/90 px-2 py-0.5 text-[11px] font-semibold text-slate-700"
-                          >
-                            {feat.toLowerCase().includes("gerador") && (
-                              <Zap size={11} className="text-amber-600" />
-                            )}
-                            {feat.toLowerCase().includes("água") && (
-                              <Droplets size={11} className="text-sky-600" />
-                            )}
-                            {feat.toLowerCase().includes("segurança") && (
-                              <ShieldCheck size={11} className="text-emerald-600" />
-                            )}
-                            <span>{feat}</span>
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Preço Desktop e Botão de Ação */}
-                    <div className="mt-4 pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                      <div className="hidden md:block">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                          Valor Oficial
-                        </span>
-                        <span className="text-lg font-black text-ondjo-navy">
-                          {formatKz(currentSpotlight.price, {
-                            perMonth: currentSpotlight.purpose === "arrendamento",
-                          })}
-                        </span>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => navigate(`imovel/${currentSpotlight.id}`)}
-                        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-ondjo-blue px-4 py-2 text-xs sm:text-sm font-bold text-white shadow-xs transition hover:bg-ondjo-blue-dark active:scale-98 cursor-pointer"
-                      >
-                        <span>Ver detalhes deste imóvel</span>
-                        <ArrowRight size={14} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* =======================================================
-              FAIXA DE PILARES DE CONFIANÇA (TRUST & VALUE STRIP)
-              4 pilares essenciais com visual limpo e sem bordas pesadas
-              ======================================================= */}
-          <div className="mt-10 sm:mt-14 pt-8 border-t border-white/10 grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            <div className="flex items-start gap-3">
-              <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/10 text-ondjo-blue-soft">
-                <CheckCircle2 size={18} />
-              </span>
-              <div>
-                <h4 className="text-xs sm:text-sm font-bold text-white">
-                  100% Preços em Kwanzas
-                </h4>
-                <p className="mt-0.5 text-[11px] sm:text-xs text-slate-300 leading-relaxed">
-                  Cotações na moeda nacional sem taxas ou conversões surpresa.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/10 text-emerald-400">
-                <ShieldCheck size={18} />
-              </span>
-              <div>
-                <h4 className="text-xs sm:text-sm font-bold text-white">
-                  Documentação Auditada
-                </h4>
-                <p className="mt-0.5 text-[11px] sm:text-xs text-slate-300 leading-relaxed">
-                  Verificação de Registo Predial e IPU para prevenir fraudes.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/10 text-sky-400">
-                <MessageSquare size={18} />
-              </span>
-              <div>
-                <h4 className="text-xs sm:text-sm font-bold text-white">
-                  Contacto Direto no WhatsApp
-                </h4>
-                <p className="mt-0.5 text-[11px] sm:text-xs text-slate-300 leading-relaxed">
-                  Fale com proprietários e consultores credenciados.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/10 text-amber-400">
-                <Zap size={18} />
-              </span>
-              <div>
-                <h4 className="text-xs sm:text-sm font-bold text-white">
-                  Infraestruturas Reais
-                </h4>
-                <p className="mt-0.5 text-[11px] sm:text-xs text-slate-300 leading-relaxed">
-                  Confirmação clara de gerador, tanque de água e segurança.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
-
-      {/* =========================================================
-          CORPO PRINCIPAL: DESTAQUES, ZONAS E EXPERIÊNCIA
-          ========================================================= */}
       <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-14 lg:px-8 lg:py-18 flex-1 min-w-0">
         {/* =========================================================
             IMÓVEIS EM DESTAQUE (SELEÇÃO ONDJO)

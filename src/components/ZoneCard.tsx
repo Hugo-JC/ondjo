@@ -91,7 +91,7 @@ export function ZoneCard({ zone }: { zone: ZoneSummary }) {
     <a
       href={`#/pesquisar?location=${encodeURIComponent(name)}`}
       aria-label={`Explorar ${count} imóveis em ${name}, a partir de ${formatKz(minPrice)}`}
-      className="focus-ring group relative flex h-68 sm:h-72 w-full flex-col justify-between overflow-hidden rounded-[25px] bg-ondjo-navy text-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-400/50 hover:shadow-xl hover:shadow-slate-900/15 active:scale-[0.99]"
+      className="focus-ring group relative flex h-68 sm:h-72 w-full flex-col justify-between overflow-hidden rounded-[25px] bg-ondjo-navy text-white shadow-sm transition-all duration-400 hover:-translate-y-1 hover:border-blue-400/50 hover:shadow-xl hover:shadow-slate-900/15 active:scale-[0.99]"
     >
       {/* Imagem de Fundo com Formatos Modernos (WebP/AVIF), SrcSet e Carregamento Diferido */}
       <div className="absolute inset-0 overflow-hidden bg-ondjo-navy">
@@ -103,7 +103,7 @@ export function ZoneCard({ zone }: { zone: ZoneSummary }) {
           aria-hidden="true"
           loading="lazy"
           decoding="async"
-          className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          className="size-full object-cover"
         />
         {/* Camada Dupla de Gradiente para Máxima Legibilidade (WCAG AAA) */}
         <div

@@ -55,8 +55,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-45 w-full border-b border-ondjo-border/80 bg-white/95 backdrop-blur-md transition-all">
-      <div className="mx-auto flex h-14 sm:h-16 lg:h-18 w-full max-w-7xl items-center justify-between gap-3 px-3.5 sm:px-6 lg:px-8">
-        {/* Lado Esquerdo: Logótipo Oficial ONDJO (logo.svg) com link direto para a Home */}
+      <div className="mx-auto flex h-10 sm:h-16 lg:h-18 w-full max-w-7xl items-center justify-between gap-3 px-3.5 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 min-w-0">
           <a
             href="#/"
@@ -88,11 +87,7 @@ export default function Header() {
               aria-label="Menu da conta de utilizador"
               className="focus-ring flex items-center gap-2.5 rounded-full border border-ondjo-border bg-white py-1.5 pl-3 pr-1.5 text-ondjo-ink shadow-2xs transition hover:border-slate-300 hover:shadow-xs active:scale-98 cursor-pointer"
             >
-              <Menu
-                size={16}
-                className="text-ondjo-muted"
-                aria-hidden="true"
-              />
+              <Menu size={16} className="text-ondjo-muted" aria-hidden="true" />
               <div className="grid size-7 place-items-center rounded-full bg-ondjo-navy text-white text-xs font-bold">
                 <UserRound size={15} aria-hidden="true" />
               </div>
