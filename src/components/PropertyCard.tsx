@@ -74,7 +74,7 @@ export const PropertyCard = memo(function PropertyCard({
 
         <div className="pointer-events-none absolute left-3 top-3 z-10 flex max-w-[calc(100%-4rem)] flex-wrap items-center gap-1.5">
           {property.verified ? (
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-slate-900 shadow-sm">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-ondjo-border/80 bg-white px-3 py-1 text-xs font-semibold text-slate-900 shadow-sm">
               <ShieldCheck
                 size={13}
                 className="shrink-0 text-ondjo-blue"
@@ -83,7 +83,7 @@ export const PropertyCard = memo(function PropertyCard({
               <span>Verificado</span>
             </div>
           ) : property.featured ? (
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-slate-900 shadow-sm">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-ondjo-border/80 bg-white px-3 py-1 text-xs font-semibold text-slate-900 shadow-sm">
               <Sparkles
                 size={13}
                 className="shrink-0 text-amber-500"
@@ -93,7 +93,7 @@ export const PropertyCard = memo(function PropertyCard({
             </div>
           ) : null}
 
-          <span className="inline-flex items-center rounded-full bg-ondjo-navy/90 px-2.5 py-0.5 text-[11px] font-bold text-white shadow-xs">
+          <span className="inline-flex items-center rounded-full bg-ondjo-navy px-2.5 py-1 text-[11px] font-bold text-white shadow-xs">
             {isArrendamento ? "Arrendar" : "Venda"}
           </span>
         </div>

@@ -13,7 +13,7 @@ const badgeVariants = cva(
         default:
           "border-ondjo-blue bg-ondjo-blue text-white [a]:hover:bg-ondjo-blue-dark",
         secondary:
-          "border-ondjo-border-accent/60 bg-ondjo-blue-50 text-ondjo-blue [a]:hover:bg-ondjo-blue-soft",
+          "border-ondjo-border-accent bg-ondjo-blue-50 text-ondjo-blue [a]:hover:bg-ondjo-blue-soft",
         destructive:
           "border-ondjo-danger-border bg-ondjo-danger-soft text-ondjo-danger",
         outline:
@@ -24,17 +24,19 @@ const badgeVariants = cva(
         verified:
           "border-ondjo-success-border bg-ondjo-green-soft text-ondjo-green",
         featured:
-          "border-ondjo-blue bg-ondjo-blue text-white shadow-ondjo-pill",
+          "border-ondjo-blue bg-ondjo-blue text-white shadow-xs",
         neutral:
-          "border-white/80 bg-white/95 text-ondjo-navy shadow-ondjo-pill backdrop-blur-sm",
+          "border-ondjo-border bg-white text-ondjo-navy shadow-xs",
         navy: "border-ondjo-navy bg-ondjo-navy text-white",
         warning:
           "border-ondjo-warning-border bg-ondjo-warning-soft text-ondjo-warning",
         danger:
           "border-ondjo-danger-border bg-ondjo-danger-soft text-ondjo-danger",
+        info: "border-blue-200 bg-ondjo-blue-50 text-ondjo-blue [a]:hover:bg-ondjo-blue-soft",
       },
       size: {
         default: "text-xs px-2.5 py-1",
+        xs: "text-[11px] px-2 py-0.5",
         sm: "text-xs px-2.5 py-1",
         md: "text-sm px-3 py-1.5",
       },
@@ -86,7 +88,9 @@ function Badge({
             {defaultIcon && (
               <span className="flex shrink-0 items-center">{defaultIcon}</span>
             )}
-            <span className="truncate">{children}</span>
+            <span className="inline-flex min-w-0 items-center gap-1 truncate">
+              {children}
+            </span>
           </>
         ),
       },

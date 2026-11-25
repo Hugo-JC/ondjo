@@ -316,7 +316,7 @@ export function PropertyPageSkeleton() {
       {/* Barra Fixa Mobile */}
       <div
         aria-hidden="true"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-ondjo-border/90 bg-white/95 px-4 py-4 pb-safe shadow-[0_-8px_30px_rgba(16,24,40,0.12)] backdrop-blur-md lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-ondjo-border bg-white px-4 py-3 pb-safe shadow-[0_-6px_24px_rgba(16,24,40,0.08)] lg:hidden"
       >
         <div className="mx-auto flex max-w-lg flex-col mb-2.5 gap-3">
           <div className="space-y-1.5">

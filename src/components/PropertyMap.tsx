@@ -119,11 +119,11 @@ export function PropertyMap({
         {/* Skeleton de carregamento */}
         {!mapLoaded && (
           <div
-            className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-100 p-4 text-center animate-pulse"
+            className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-100 p-4 text-center"
             aria-hidden="true"
           >
-            <MapPin size={32} className="text-slate-300 animate-bounce" />
-            <span className="mt-2 text-xs font-semibold text-slate-400">
+            <MapPin size={32} className="text-slate-400" />
+            <span className="mt-2 text-xs font-semibold text-slate-500">
               A carregar mapa de {neighborhood}...
             </span>
           </div>
@@ -139,7 +139,7 @@ export function PropertyMap({
         />
 
         {/* Controlos de Zoom Flutuantes no Mapa */}
-        <div className="absolute right-3 top-3 z-20 flex flex-col gap-1.5 rounded-2xl bg-white/95 p-1.5 shadow-md backdrop-blur-md border border-white/80">
+        <div className="absolute right-3 top-3 z-20 flex flex-col gap-1.5 rounded-2xl border border-ondjo-border bg-white p-1.5 shadow-md">
           <button
             type="button"
             onClick={handleZoomIn}
@@ -172,9 +172,9 @@ export function PropertyMap({
         </div>
 
         {/* Card Informativo Flutuante no Canto Inferior Esquerdo */}
-        <div className="pointer-events-none absolute bottom-3 left-3 z-20 max-w-[calc(100%-4rem)] rounded-2xl border border-white/80 bg-white/95 px-3.5 py-2 shadow-sm backdrop-blur-md">
+        <div className="pointer-events-none absolute bottom-3 left-3 z-20 max-w-[calc(100%-4rem)] rounded-2xl border border-ondjo-border bg-white px-3.5 py-2 shadow-sm">
           <div className="flex items-center gap-2">
-            <span className="size-2.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="size-2.5 shrink-0 rounded-full bg-emerald-600" />
             <strong className="truncate text-xs font-bold text-ondjo-navy">
               {propertyTitle
                 ? `${neighborhood} — ${propertyTitle}`

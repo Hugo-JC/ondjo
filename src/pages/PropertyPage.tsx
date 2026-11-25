@@ -37,9 +37,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { AnimatePresence, m } from "framer-motion";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { createPortal } from "react-dom";
 import { properties } from "../data/properties";
 import { formatKz } from "../utils/format";
 import { whatsappLink, formatAngolanPhone } from "../utils/whatsapp";
@@ -54,6 +52,7 @@ import { PropertyPageSkeleton } from "../components/ui/ondjo-skeletons";
 import {
   Badge,
   Button,
+  buttonVariants,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -305,8 +304,7 @@ export function PropertyPage({ id }: { id: string }) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const favorite = property ? isFavorite(property.id) : false;
 
-  // Referência para fechar a lightbox e limpar temporizadores
-  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  // Referências para limpar temporizadores
   const copyTimerRef = useRef<number | null>(null);
   const phoneTimerRef = useRef<number | null>(null);
 
@@ -346,32 +344,22 @@ export function PropertyPage({ id }: { id: string }) {
     [id, property?.neighborhood, property?.type],
   );
 
-  // Acessibilidade por teclado na Lightbox (Escape, Setas)
+  // Navegação por setas na Lightbox (Escape e scroll lock são geridos pelo Dialog)
   useEffect(() => {
-    if (!lightboxOpen) return;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    if (!lightboxOpen || !property) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+      if (e.key === "ArrowRight") {
         e.preventDefault();
-        setLightboxOpen(false);
-      } else if (e.key === "ArrowRight") {
-        e.preventDefault();
-        if (property) {
-          setActivePhoto((curr) => (curr + 1) % property.images.length);
-        }
+        setActivePhoto((curr) => (curr + 1) % property.images.length);
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
-        if (property) {
-          setActivePhoto((curr) => (curr - 1 + property.images.length) % property.images.length);
-        }
+        setActivePhoto((curr) => (curr - 1 + property.images.length) % property.images.length);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => {
-      document.body.style.overflow = prevOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [lightboxOpen, property]);
@@ -508,49 +496,33 @@ export function PropertyPage({ id }: { id: string }) {
   };
 
   return (
-    <main className="min-h-screen w-full bg-ondjo-bg pb-40 pt-4 sm:pt-6 lg:pb-24">
+    <main className="min-h-screen w-full bg-ondjo-bg pb-32 pt-4 sm:pt-6 lg:pb-24">
       <div className="mx-auto max-w-7xl px-3.5 sm:px-6 lg:px-8">
         {/* =========================================================
-            BREADCRUMBS & AÇÕES SUPERIORES (PARTILHAR, GUARDAR, VOLTAR)
+            AÇÕES SUPERIORES (VOLTAR, PARTILHAR, GUARDAR)
             ========================================================= */}
-        <nav
-          aria-label="Breadcrumb e ações"
-          className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-        >
-          <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold text-ondjo-muted">
-            <a
-              href="#/"
-              className="hover:text-ondjo-blue transition-colors focus-ring rounded-md"
-            >
-              Início
-            </a>
-            <span className="text-slate-300">/</span>
-            <a
-              href="#/pesquisar"
-              className="hover:text-ondjo-blue transition-colors focus-ring rounded-md"
-            >
-              Pesquisar
-            </a>
-            <span className="text-slate-300">/</span>
-            <a
-              href={`#/pesquisar?location=${encodeURIComponent(property.neighborhood)}`}
-              className="hover:text-ondjo-blue transition-colors focus-ring rounded-md"
-            >
-              {property.neighborhood}
-            </a>
-            <span className="text-slate-300">/</span>
-            <span className="max-w-50 truncate sm:max-w-xs text-ondjo-ink font-bold">
-              {property.title}
-            </span>
-          </div>
+        <div className="flex items-center justify-between gap-2">
+          {/* Botão Voltar */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("pesquisar")}
+            className="h-10 rounded-full font-bold text-ondjo-blue shadow-2xs hover:bg-ondjo-blue-50"
+          >
+            <ArrowLeft size={14} />
+            <span>Voltar</span>
+          </Button>
 
-          <div className="flex items-center gap-2 self-end sm:self-auto">
+          <div className="flex items-center gap-2">
             {/* Botão de Partilha */}
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
               onClick={handleShare}
               aria-label={copiedLink ? "Link copiado" : "Partilhar este imóvel"}
-              className="focus-ring inline-flex min-h-10 items-center gap-1.5 rounded-full border border-ondjo-border/90 bg-white px-3.5 text-xs font-bold text-ondjo-ink shadow-2xs hover:bg-slate-50 active:scale-95 transition cursor-pointer"
+              className="h-10 rounded-full font-bold text-ondjo-ink shadow-2xs"
             >
               {copiedLink ? (
                 <>
@@ -563,38 +535,31 @@ export function PropertyPage({ id }: { id: string }) {
                   <span>Partilhar</span>
                 </>
               )}
-            </button>
+            </Button>
 
             {/* Botão de Favoritos */}
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
               onClick={() => toggleFavorite(property.id)}
               aria-pressed={favorite}
               aria-label={favorite ? "Remover dos favoritos" : "Guardar nos favoritos"}
-              className={`focus-ring inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3.5 text-xs font-bold shadow-2xs transition active:scale-95 cursor-pointer ${
+              className={cn(
+                "h-10 rounded-full font-bold shadow-2xs",
                 favorite
-                  ? "border-red-200 bg-red-50 text-red-600"
-                  : "border-ondjo-border/90 bg-white text-ondjo-ink hover:bg-slate-50"
-              }`}
+                  ? "border-red-200 bg-red-50 text-red-600 hover:border-red-300 hover:bg-red-100"
+                  : "text-ondjo-ink",
+              )}
             >
               <Heart
                 size={14}
                 className={favorite ? "fill-red-500 text-red-500" : "text-slate-600"}
               />
               <span>{favorite ? "Guardado" : "Guardar"}</span>
-            </button>
-
-            {/* Botão Voltar */}
-            <button
-              type="button"
-              onClick={() => navigate("pesquisar")}
-              className="focus-ring inline-flex min-h-10 items-center gap-1.5 rounded-full border border-ondjo-border/90 bg-white px-3.5 text-xs font-bold text-ondjo-blue shadow-2xs hover:bg-blue-50 active:scale-95 transition cursor-pointer"
-            >
-              <ArrowLeft size={14} />
-              <span className="hidden sm:inline">Voltar</span>
-            </button>
+            </Button>
           </div>
-        </nav>
+        </div>
 
         {/* =========================================================
             TÍTULO PRINCIPAL & SUBTÍTULO
@@ -693,17 +658,19 @@ export function PropertyPage({ id }: { id: string }) {
             })}
 
             {/* Botão "Ver todas as fotos" flutuante */}
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
               onClick={() => {
                 setActivePhoto(0);
                 setLightboxOpen(true);
               }}
-              className="focus-ring absolute right-3.5 bottom-3.5 z-10 inline-flex items-center gap-1.5 rounded-xl border border-white/70 bg-white/95 px-3 py-1.5 text-xs font-bold text-ondjo-navy shadow-md backdrop-blur-md hover:bg-white active:scale-95 transition cursor-pointer"
+              leftIcon={<Maximize2 size={13} className="text-ondjo-blue" aria-hidden="true" />}
+              className="absolute right-3.5 bottom-3.5 z-10 rounded-xl border-ondjo-border bg-white text-ondjo-navy shadow-md hover:bg-slate-50"
             >
-              <Maximize2 size={13} className="text-ondjo-blue" aria-hidden="true" />
-              <span>Ver fotos ({totalPhotos})</span>
-            </button>
+              Ver fotos ({totalPhotos})
+            </Button>
           </div>
 
           {/* 2. Carrossel Mobile Compacto com Swipe (< md) */}
@@ -728,7 +695,7 @@ export function PropertyPage({ id }: { id: string }) {
                   type="button"
                   onClick={prevPhoto}
                   aria-label="Foto anterior"
-                  className="focus-ring absolute left-2.5 top-1/2 -translate-y-1/2 z-10 grid size-9 place-items-center rounded-full bg-black/50 text-white backdrop-blur-md active:scale-90"
+                  className="focus-ring absolute left-2.5 top-1/2 -translate-y-1/2 z-10 grid size-9 place-items-center rounded-full bg-ondjo-navy text-white shadow-md active:scale-90 cursor-pointer"
                 >
                   <ChevronLeft size={20} />
                 </button>
@@ -736,7 +703,7 @@ export function PropertyPage({ id }: { id: string }) {
                   type="button"
                   onClick={nextPhoto}
                   aria-label="Próxima foto"
-                  className="focus-ring absolute right-2.5 top-1/2 -translate-y-1/2 z-10 grid size-9 place-items-center rounded-full bg-black/50 text-white backdrop-blur-md active:scale-90"
+                  className="focus-ring absolute right-2.5 top-1/2 -translate-y-1/2 z-10 grid size-9 place-items-center rounded-full bg-ondjo-navy text-white shadow-md active:scale-90 cursor-pointer"
                 >
                   <ChevronRight size={20} />
                 </button>
@@ -744,7 +711,7 @@ export function PropertyPage({ id }: { id: string }) {
             )}
 
             {/* Contador de fotos no mobile */}
-            <div className="absolute bottom-3 left-3 z-10 inline-flex items-center rounded-full bg-black/60 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-md">
+            <div className="absolute bottom-3 left-3 z-10 inline-flex items-center rounded-full bg-ondjo-navy px-3 py-1 text-[11px] font-bold text-white shadow-sm">
               {activePhoto + 1} / {totalPhotos}
             </div>
 
@@ -753,9 +720,9 @@ export function PropertyPage({ id }: { id: string }) {
               type="button"
               onClick={() => setLightboxOpen(true)}
               aria-label="Abrir galeria em ecrã inteiro"
-              className="focus-ring absolute bottom-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-md active:scale-95"
+              className="focus-ring absolute bottom-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-full border border-ondjo-border bg-white px-3 py-1 text-[11px] font-bold text-ondjo-navy shadow-sm active:scale-95 cursor-pointer"
             >
-              <Maximize2 size={12} />
+              <Maximize2 size={12} className="text-ondjo-blue" />
               <span>Galeria</span>
             </button>
           </div>
@@ -1102,44 +1069,56 @@ export function PropertyPage({ id }: { id: string }) {
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="focus-ring flex min-h-12 w-full items-center justify-center gap-2.5 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] px-4 text-sm font-extrabold text-white shadow-xs active:scale-98 transition cursor-pointer"
+                  className={cn(
+                    buttonVariants({ size: "lg" }),
+                    "h-12 w-full rounded-2xl bg-[#25D366] px-4 text-sm font-extrabold text-white shadow-xs hover:bg-[#20bd5a]",
+                  )}
                 >
                   <Phone size={17} className="fill-white" />
                   <span>Conversar no WhatsApp</span>
                 </a>
 
                 {/* 2. Botão de Chat ONDJO */}
-                <button
+                <Button
                   type="button"
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  leftIcon={<MessageCircle size={17} />}
                   onClick={handleContactChat}
-                  className="focus-ring flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-ondjo-blue px-4 text-sm font-extrabold text-white shadow-xs hover:bg-ondjo-blue-dark active:scale-98 transition cursor-pointer"
+                  className="rounded-2xl text-sm font-extrabold"
                 >
-                  <MessageCircle size={17} />
-                  <span>Mensagem na ONDJO</span>
-                </button>
+                  Mensagem na ONDJO
+                </Button>
 
                 {/* 3. Botão de Agendamento */}
-                <button
+                <Button
                   type="button"
+                  variant="outline"
+                  size="lg"
+                  fullWidth
+                  leftIcon={<CalendarDays size={17} />}
                   onClick={() => setScheduleVisitOpen(true)}
-                  className="focus-ring flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border-2 border-ondjo-blue bg-white px-4 text-sm font-extrabold text-ondjo-blue hover:bg-blue-50/70 active:scale-98 transition cursor-pointer"
+                  className="rounded-2xl border-2 border-ondjo-blue text-sm font-extrabold text-ondjo-blue hover:bg-ondjo-blue-50"
                 >
-                  <CalendarDays size={17} />
-                  <span>Agendar visita guiada</span>
-                </button>
+                  Agendar visita guiada
+                </Button>
 
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="default"
+                  fullWidth
+                  leftIcon={<ShieldAlert size={15} aria-hidden="true" />}
                   onClick={() => {
                     setReportSubmitted(false);
                     setReportOpen(true);
                   }}
                   aria-label="Denunciar este anúncio"
-                  className="focus-ring flex min-h-10 w-full items-center justify-center gap-2 rounded-2xl px-4 text-xs font-bold text-slate-500 transition-colors duration-150 hover:bg-red-50 hover:text-red-700 cursor-pointer"
+                  className="rounded-2xl text-xs font-bold text-slate-500 hover:bg-red-50 hover:text-red-700"
                 >
-                  <ShieldAlert size={15} aria-hidden="true" />
-                  <span>Denunciar anúncio</span>
-                </button>
+                  Denunciar anúncio
+                </Button>
               </div>
 
               {/* Dica de Confiança */}
@@ -1196,14 +1175,14 @@ export function PropertyPage({ id }: { id: string }) {
       <div
         role="region"
         aria-label="Ações rápidas móveis"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-ondjo-border/90 bg-white/95 px-4 py-4 pb-safe shadow-[0_-8px_30px_rgba(16,24,40,0.12)] backdrop-blur-md lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-ondjo-border bg-white px-3.5 pt-2.5 pb-[calc(0.625rem+env(safe-area-inset-bottom,0px))] shadow-[0_-4px_20px_rgba(16,24,40,0.08)] lg:hidden"
       >
-        <div className="mx-auto flex max-w-lg flex-col mb-2.5 gap-3">
-          <div className="min-w-0">
-            <span className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+        <div className="mx-auto flex max-w-lg flex-col gap-2">
+          <div className="flex items-baseline justify-between gap-2 min-w-0">
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 shrink-0">
               Preço oficial
             </span>
-            <strong className="block truncate text-base font-black text-ondjo-navy sm:text-lg">
+            <strong className="truncate text-base font-black text-ondjo-navy">
               {formatKz(property.price, { perMonth: isArrendamento })}
             </strong>
           </div>
@@ -1215,158 +1194,137 @@ export function PropertyPage({ id }: { id: string }) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Contactar por WhatsApp"
-              className="focus-ring grid size-11 place-items-center rounded-2xl bg-[#25D366] text-white shadow-xs active:scale-95 transition"
+              className="focus-ring grid size-11 place-items-center rounded-xl bg-[#25D366] text-white shadow-xs active:scale-95 transition"
             >
               <Phone size={18} className="fill-white" />
             </a>
 
-            {/* Agendar ou Mensagem Móvel */}
-            <button
+            {/* Agendar Visita Móvel */}
+            <Button
               type="button"
+              variant="outline"
               onClick={() => setScheduleVisitOpen(true)}
-              className="focus-ring inline-flex min-h-11 min-w-0 items-center justify-center gap-1.5 rounded-2xl border-2 border-ondjo-blue bg-white px-2 text-xs font-extrabold text-ondjo-blue active:scale-95"
+              leftIcon={<CalendarDays size={15} />}
+              className="h-11 min-w-0 rounded-xl border-2 border-ondjo-blue px-2 text-xs font-extrabold text-ondjo-blue hover:bg-ondjo-blue-50"
             >
-              <CalendarDays size={15} />
-              <span>Visita</span>
-            </button>
+              Visita
+            </Button>
 
             {/* Contactar Chat */}
-            <button
+            <Button
               type="button"
+              variant="primary"
               onClick={handleContactChat}
-              className="focus-ring inline-flex min-h-11 min-w-0 items-center justify-center gap-1.5 rounded-2xl bg-ondjo-blue px-2 text-xs font-extrabold text-white active:scale-95 shadow-xs"
+              leftIcon={<MessageCircle size={15} />}
+              className="h-11 min-w-0 rounded-xl px-2 text-xs font-extrabold"
             >
-              <MessageCircle size={15} />
-              <span>Contactar</span>
-            </button>
+              Contactar
+            </Button>
           </div>
         </div>
       </div>
 
       {/* =========================================================
-          LIGHTBOX MODAL EM ECRÃ INTEIRO (ACESSIBILIDADE COMPLETA)
+          LIGHTBOX MODAL EM ECRÃ INTEIRO (shadcn Dialog)
           ========================================================= */}
-      {typeof document !== "undefined" &&
-        createPortal(
-          <AnimatePresence>
-            {lightboxOpen && (
-              <div
-                role="dialog"
-                aria-modal="true"
-                aria-label={`Galeria de fotos: ${property.title}`}
-                className="fixed inset-0 z-100 flex items-center justify-center p-3 sm:p-6"
-              >
-                <m.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.12 }}
-                  onClick={() => setLightboxOpen(false)}
-                  className="absolute inset-0 bg-black/92"
-                />
+      <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+        <DialogContent
+          showCloseButton={false}
+          aria-label={`Galeria de fotos: ${property.title}`}
+          className="flex max-h-[92dvh] w-full max-w-[calc(100%-1rem)] flex-col gap-0 border-slate-800 bg-slate-950 p-3 text-white sm:max-w-5xl sm:p-5"
+        >
+          {/* Cabeçalho da Lightbox */}
+          <div className="flex w-full items-center justify-between gap-3 px-1 pb-2 text-white">
+            <div className="flex min-w-0 flex-1 items-center gap-2.5">
+              <DialogTitle className="truncate text-sm font-bold text-white sm:text-base">
+                {property.title}
+              </DialogTitle>
+              <span className="shrink-0 whitespace-nowrap rounded-full bg-slate-800 px-2.5 py-0.5 text-xs font-semibold text-slate-200">
+                {activePhoto + 1} de {totalPhotos}
+              </span>
+            </div>
 
-                <m.div
-                  initial={{ opacity: 0, scale: 0.97 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.97 }}
-                  transition={{ duration: 0.12, ease: "easeOut" }}
-                  className="relative z-10 flex flex-col items-center max-w-5xl w-full max-h-[92dvh]"
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-md"
+              onClick={() => setLightboxOpen(false)}
+              className="shrink-0 bg-slate-800 text-white hover:bg-slate-700 hover:text-white"
+              aria-label="Fechar galeria (Esc)"
+            >
+              <X size={20} />
+            </Button>
+          </div>
+
+          {/* Foto Central Ampliada */}
+          <div className="relative my-2 flex w-full flex-1 items-center justify-center overflow-hidden rounded-2xl bg-black sm:my-3">
+            <SafeGalleryImage
+              src={getOptimizedImageUrl(property.images[activePhoto], 1400, 85)}
+              alt={`${property.title} - Foto ${activePhoto + 1} de ${totalPhotos}`}
+              priority={true}
+              fit="contain"
+              className="flex h-full max-h-[64dvh] w-full items-center justify-center rounded-lg sm:max-h-[70dvh]"
+              imgClassName="max-h-[64dvh] sm:max-h-[70dvh] select-none"
+            />
+
+            {totalPhotos > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={prevPhoto}
+                  aria-label="Ver foto anterior"
+                  className="focus-ring absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 grid size-11 sm:size-12 place-items-center rounded-full bg-slate-900 border border-white/20 text-white hover:bg-slate-800 active:scale-95 shadow-lg transition cursor-pointer"
                 >
-                  {/* Cabeçalho da Lightbox */}
-                  <div className="w-full flex items-center justify-between gap-3 px-2 sm:px-3 py-2 text-white">
-                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                      <h2 className="font-bold text-sm sm:text-base truncate text-white">
-                        {property.title}
-                      </h2>
-                      <span className="shrink-0 whitespace-nowrap rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-semibold text-white/90">
-                        {activePhoto + 1} de {totalPhotos}
-                      </span>
-                    </div>
-
-                    <button
-                      ref={closeButtonRef}
-                      type="button"
-                      onClick={() => setLightboxOpen(false)}
-                      className="focus-ring shrink-0 grid size-11 place-items-center rounded-full bg-white/10 text-white hover:bg-white/20 active:scale-95 transition-colors cursor-pointer"
-                      aria-label="Fechar galeria (Esc)"
-                    >
-                      <X size={20} />
-                    </button>
-                  </div>
-
-                  {/* Foto Central Ampliada */}
-                  <div className="relative w-full flex-1 flex items-center justify-center overflow-hidden my-2 sm:my-3 rounded-2xl bg-black/40">
-                    <SafeGalleryImage
-                      src={getOptimizedImageUrl(property.images[activePhoto], 1400, 85)}
-                      alt={`${property.title} - Foto ${activePhoto + 1} de ${totalPhotos}`}
-                      priority={true}
-                      fit="contain"
-                      className="h-full w-full max-h-[66dvh] sm:max-h-[72dvh] flex items-center justify-center rounded-lg"
-                      imgClassName="max-h-[66dvh] sm:max-h-[72dvh] select-none"
-                    />
-
-                    {totalPhotos > 1 && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={prevPhoto}
-                          aria-label="Ver foto anterior"
-                          className="focus-ring absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 grid size-11 sm:size-12 place-items-center rounded-full bg-black/65 text-white hover:bg-black/90 active:scale-95 backdrop-blur-md shadow-lg transition cursor-pointer"
-                        >
-                          <ChevronLeft size={24} className="-translate-x-0.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={nextPhoto}
-                          aria-label="Ver próxima foto"
-                          className="focus-ring absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 grid size-11 sm:size-12 place-items-center rounded-full bg-black/65 text-white hover:bg-black/90 active:scale-95 backdrop-blur-md shadow-lg transition cursor-pointer"
-                        >
-                          <ChevronRight size={24} className="translate-x-0.5" />
-                        </button>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Faixa de Miniaturas na Lightbox */}
-                  {totalPhotos > 1 && (
-                    <div
-                      className="flex items-center justify-center gap-2 sm:gap-2.5 overflow-x-auto max-w-full py-2 px-3 no-scrollbar"
-                      role="tablist"
-                      aria-label="Miniaturas da galeria"
-                    >
-                      {property.images.map((img, idx) => {
-                        const isActive = activePhoto === idx;
-                        return (
-                          <button
-                            key={img}
-                            type="button"
-                            role="tab"
-                            aria-selected={isActive}
-                            aria-label={`Ver foto ${idx + 1}`}
-                            onClick={() => setActivePhoto(idx)}
-                            className={`focus-ring relative size-13 sm:size-14 shrink-0 overflow-hidden rounded-lg transition-all cursor-pointer ${
-                              isActive
-                                ? "ring-2 ring-white ring-offset-2 ring-offset-black/90 opacity-100 shadow-md scale-105"
-                                : "opacity-55 hover:opacity-90 ring-1 ring-white/20"
-                            }`}
-                          >
-                            <img
-                              src={getOptimizedImageUrl(img, 120, 60)}
-                              alt=""
-                              aria-hidden="true"
-                              className="h-full w-full object-cover select-none"
-                            />
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </m.div>
-              </div>
+                  <ChevronLeft size={24} className="-translate-x-0.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={nextPhoto}
+                  aria-label="Ver próxima foto"
+                  className="focus-ring absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 grid size-11 sm:size-12 place-items-center rounded-full bg-slate-900 border border-white/20 text-white hover:bg-slate-800 active:scale-95 shadow-lg transition cursor-pointer"
+                >
+                  <ChevronRight size={24} className="translate-x-0.5" />
+                </button>
+              </>
             )}
-          </AnimatePresence>,
-          document.body,
-        )}
+          </div>
+
+          {/* Faixa de Miniaturas na Lightbox */}
+          {totalPhotos > 1 && (
+            <div
+              className="no-scrollbar flex max-w-full items-center justify-center gap-2 overflow-x-auto px-3 py-2 sm:gap-2.5"
+              role="tablist"
+              aria-label="Miniaturas da galeria"
+            >
+              {property.images.map((img, idx) => {
+                const isActive = activePhoto === idx;
+                return (
+                  <button
+                    key={img}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    aria-label={`Ver foto ${idx + 1}`}
+                    onClick={() => setActivePhoto(idx)}
+                    className={`focus-ring relative size-13 sm:size-14 shrink-0 overflow-hidden rounded-lg transition-all cursor-pointer ${
+                      isActive
+                        ? "ring-2 ring-white ring-offset-2 ring-offset-slate-950 opacity-100 shadow-md scale-105"
+                        : "opacity-55 hover:opacity-90 ring-1 ring-white/20"
+                    }`}
+                  >
+                    <img
+                      src={getOptimizedImageUrl(img, 120, 60)}
+                      alt=""
+                      aria-hidden="true"
+                      className="h-full w-full object-cover select-none"
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Modal de Denúncia de Anúncio (shadcn Dialog + RadioGroup + Textarea) */}
       <Dialog open={reportOpen} onOpenChange={setReportOpen}>

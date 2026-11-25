@@ -2,11 +2,9 @@ import { AnimatePresence, m } from "framer-motion";
 import {
   ArrowUpDown,
   Check,
-  ChevronRight,
   Download,
   Eye,
   Heart,
-  Home,
   LayoutGrid,
   List,
   RotateCcw,
@@ -180,25 +178,9 @@ export function FavoritesPage() {
     query.trim() !== "" || selectedType !== "Todos" || sort !== "saved";
 
   return (
-    <main className="mx-auto max-w-7xl px-4 pb-32 pt-4 sm:px-6 sm:pb-28 sm:pt-6 lg:px-8">
-      {/* Navegação Breadcrumb */}
-      <nav aria-label="Localização atual" className="flex items-center gap-1.5 text-xs text-ondjo-muted">
-        <button
-          type="button"
-          onClick={() => navigate("")}
-          className="focus-ring inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-ondjo-muted transition hover:text-ondjo-blue cursor-pointer"
-        >
-          <Home size={14} aria-hidden="true" />
-          <span>Início</span>
-        </button>
-        <ChevronRight size={13} className="text-slate-400" aria-hidden="true" />
-        <span className="font-semibold text-ondjo-ink" aria-current="page">
-          Favoritos
-        </span>
-      </nav>
-
+    <main className="mx-auto max-w-7xl px-4 pb-44 pt-4 sm:px-6 sm:pb-40 sm:pt-6 lg:px-8 lg:pb-28">
       {/* Cabeçalho da página de Favoritos */}
-      <header className="mt-3 rounded-2xl ondjo-border-surface bg-white p-5 sm:rounded-3xl sm:p-7 shadow-xs">
+      <header className="rounded-2xl ondjo-border-surface bg-white p-5 sm:rounded-3xl sm:p-7 shadow-xs">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
             <Badge
@@ -383,20 +365,22 @@ export function FavoritesPage() {
               })}
 
               {hasActiveFilters && (
-                <button
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
+                  leftIcon={<RotateCcw size={12} aria-hidden="true" />}
                   onClick={() => {
                     setQuery("");
                     setSelectedType("Todos");
                     setSort("saved");
                   }}
-                  className="focus-ring inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-ondjo-muted hover:text-ondjo-ink transition cursor-pointer"
+                  className="shrink-0 bg-slate-50 text-ondjo-muted hover:text-ondjo-ink"
                   title="Repor filtros originais"
                   aria-label="Repor todos os filtros de pesquisa"
                 >
-                  <RotateCcw size={12} aria-hidden="true" />
-                  <span>Repor</span>
-                </button>
+                  Repor
+                </Button>
               )}
             </div>
 
@@ -438,16 +422,18 @@ export function FavoritesPage() {
                   <div key={property.id} className="flex flex-col gap-2">
                     <PropertyCard property={property} index={index} />
 
-                    <button
+                    <Button
                       type="button"
+                      variant={isSelected ? "primary" : "outline"}
+                      fullWidth
                       onClick={() => toggleCompare(property.id)}
                       disabled={isLimitReached}
-                      className={`focus-ring inline-flex min-h-10 w-full items-center justify-between rounded-2xl border px-3.5 text-xs font-bold transition-colors duration-150 cursor-pointer ${
+                      className={`h-10 justify-between rounded-2xl px-3.5 text-xs font-bold ${
                         isSelected
-                          ? "border-ondjo-blue bg-ondjo-blue text-white shadow-xs"
+                          ? "border-ondjo-blue shadow-xs"
                           : isLimitReached
-                            ? "cursor-not-allowed border-slate-200 bg-slate-50 opacity-50 text-slate-400"
-                            : "border-ondjo-border bg-white text-ondjo-ink hover:border-ondjo-blue-soft hover:bg-ondjo-blue-50 hover:text-ondjo-blue"
+                            ? "border-slate-200 bg-slate-50 text-slate-400"
+                            : "text-ondjo-ink hover:border-ondjo-blue-soft hover:bg-ondjo-blue-50 hover:text-ondjo-blue"
                       }`}
                       aria-pressed={isSelected}
                       aria-label={
@@ -478,7 +464,7 @@ export function FavoritesPage() {
                       >
                         {isSelected && <Check size={11} strokeWidth={3} />}
                       </span>
-                    </button>
+                    </Button>
                   </div>
                 );
               })}
@@ -508,18 +494,18 @@ export function FavoritesPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
                 transition={{ duration: 0.14, ease: "easeOut" }}
-                className="fixed bottom-4 inset-x-3.5 z-40 max-w-xl sm:bottom-6 sm:left-1/2 sm:-translate-x-1/2 sm:inset-x-auto sm:w-full"
+                className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] inset-x-3.5 z-40 max-w-xl sm:left-1/2 sm:-translate-x-1/2 sm:inset-x-auto sm:w-full lg:bottom-6"
               >
-                <div className="flex items-center justify-between gap-3 rounded-2xl border border-ondjo-navy/15 bg-ondjo-navy p-3 text-white shadow-xl shadow-slate-950/25 sm:p-4">
-                  <div className="flex items-center gap-2.5 sm:gap-3">
-                    <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-white/10 text-blue-200" aria-hidden="true">
-                      <Scale size={22} />
+                <div className="flex items-center justify-between gap-2 rounded-2xl border border-ondjo-navy/15 bg-ondjo-navy p-2.5 text-white shadow-xl shadow-slate-950/25 sm:gap-3 sm:p-4">
+                  <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+                    <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/15 text-blue-200 sm:size-11" aria-hidden="true">
+                      <Scale size={18} className="sm:size-5.5" />
                     </span>
                     <div className="min-w-0">
-                      <p className="text-xs font-bold uppercase tracking-wider text-blue-200 truncate">
+                      <p className="truncate text-[11px] font-bold uppercase tracking-wider text-blue-200 sm:text-xs">
                         Comparar ({selectedForCompare.length}/3)
                       </p>
-                      <p className="text-xs text-slate-300 truncate hidden xs:block sm:block">
+                      <p className="hidden truncate text-xs text-slate-300 sm:block">
                         {selectedForCompare.length < 2
                           ? "Escolha mais 1 imóvel"
                           : "Pronto para comparar lado a lado"}
@@ -527,12 +513,13 @@ export function FavoritesPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 sm:gap-2">
-                    <button
+                  <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+                    <Button
                       type="button"
+                      variant="primary"
                       onClick={() => setShowComparisonModal(true)}
                       disabled={selectedForCompare.length < 2}
-                      className="focus-ring inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-ondjo-blue px-3.5 text-xs font-bold text-white transition hover:bg-ondjo-blue-dark disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                      className="h-9 rounded-xl px-3 text-xs font-bold sm:h-10 sm:px-3.5"
                       aria-haspopup="dialog"
                       aria-label={
                         selectedForCompare.length < 2
@@ -540,18 +527,20 @@ export function FavoritesPage() {
                           : `Abrir comparador com ${selectedForCompare.length} imóveis selecionados`
                       }
                     >
-                      <span>Ver comparação</span>
-                    </button>
+                      Ver comparação
+                    </Button>
 
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="icon"
                       onClick={clearCompare}
-                      className="focus-ring grid min-h-11 min-w-11 place-items-center rounded-xl text-slate-400 hover:bg-white/10 hover:text-white cursor-pointer"
+                      className="size-9 rounded-xl text-slate-300 hover:bg-white/15 hover:text-white sm:size-10"
                       title="Desmarcar seleção"
                       aria-label="Desmarcar todos os imóveis da comparação"
                     >
-                      <X size={18} aria-hidden="true" />
-                    </button>
+                      <X size={17} aria-hidden="true" />
+                    </Button>
                   </div>
                 </div>
               </m.aside>
@@ -593,7 +582,7 @@ export function FavoritesPage() {
                             <button
                               type="button"
                               onClick={() => toggleCompare(p.id)}
-                              className="focus-ring absolute right-2 top-2 grid size-8 place-items-center rounded-full bg-slate-900/75 text-white backdrop-blur-xs transition hover:bg-ondjo-danger cursor-pointer"
+                              className="focus-ring absolute right-2 top-2 grid size-8 place-items-center rounded-full bg-ondjo-navy text-white shadow-sm transition hover:bg-ondjo-danger cursor-pointer"
                               aria-label={`Remover ${p.title} da comparação`}
                             >
                               <X size={14} aria-hidden="true" />

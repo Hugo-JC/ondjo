@@ -1,8 +1,9 @@
 import React, { forwardRef } from "react";
 import { X } from "lucide-react";
-import { cn } from "../../utils/cn";
+import { cn } from "@/lib/utils";
 
-export interface ChipProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ChipProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   active?: boolean;
   icon?: React.ReactNode;
   count?: number;
@@ -23,22 +24,21 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(
       onClick,
       ...props
     },
-    ref
+    ref,
   ) => {
     const activeClasses =
       variant === "solid"
-        ? "bg-ondjo-blue text-white border-ondjo-blue shadow-xs"
-        : "bg-ondjo-blue-50 text-ondjo-blue border-ondjo-blue-soft font-semibold";
+        ? "bg-ondjo-blue text-white border-ondjo-blue font-semibold shadow-2xs"
+        : "bg-ondjo-blue-50 text-ondjo-blue border-ondjo-blue font-semibold";
 
     const inactiveClasses =
-      "bg-white text-ondjo-ink border-ondjo-border hover:border-ondjo-blue-soft hover:bg-ondjo-bg";
+      "bg-white text-ondjo-ink border-ondjo-border hover:border-ondjo-border-strong hover:bg-slate-50";
 
-    // If onRemove is present, render a composite container with two buttons to avoid invalid nested <button> in HTML
     if (onRemove) {
       return (
         <span
           className={cn(
-            "inline-flex items-center gap-1.5 pl-3.5 pr-1.5 py-1 rounded-full border text-xs sm:text-sm font-medium transition-colors duration-150 ease-out select-none min-h-9.5",
+            "inline-flex items-center gap-1.5 pl-3 pr-1.5 py-1 rounded-full border text-xs sm:text-sm font-medium transition-colors duration-150 select-none min-h-9",
             active ? activeClasses : inactiveClasses,
             className,
           )}
@@ -47,19 +47,19 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(
             type="button"
             onClick={onClick}
             aria-pressed={active}
-            className="inline-flex items-center gap-2 bg-transparent border-0 p-0 text-inherit font-inherit cursor-pointer focus-visible:outline-2 focus-visible:outline-ondjo-blue focus-visible:outline-offset-2 rounded-full"
+            className="inline-flex items-center gap-1.5 bg-transparent border-0 p-0 text-inherit font-inherit cursor-pointer focus-visible:outline-2 focus-visible:outline-ondjo-blue focus-visible:outline-offset-2 rounded-full"
           >
             {icon && <span className="shrink-0 flex items-center">{icon}</span>}
             <span className="truncate">{children}</span>
 
             {count !== undefined && count > 0 && (
               <span
-                className={[
-                  "rounded-full px-1.5 py-0.5 text-[11px] font-bold shrink-0",
+                className={cn(
+                  "rounded-full px-1.5 py-0.5 text-[11px] font-bold shrink-0 tabular-nums",
                   active
                     ? "bg-white/25 text-white"
                     : "bg-ondjo-blue-50 text-ondjo-blue",
-                ].join(" ")}
+                )}
               >
                 {count}
               </span>
@@ -72,12 +72,12 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(
               e.stopPropagation();
               onRemove();
             }}
-            className={[
+            className={cn(
               "rounded-full p-1 transition-colors cursor-pointer shrink-0 flex items-center justify-center focus-visible:outline-2 focus-visible:outline-ondjo-blue",
               active
                 ? "hover:bg-white/20 text-white"
-                : "hover:bg-ondjo-border/60 text-ondjo-muted hover:text-ondjo-ink",
-            ].join(" ")}
+                : "hover:bg-slate-200/70 text-ondjo-muted hover:text-ondjo-navy",
+            )}
             aria-label={`Remover filtro ${typeof children === "string" ? children : ""}`}
           >
             <X size={14} aria-hidden="true" />
@@ -93,8 +93,8 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(
         onClick={onClick}
         aria-pressed={active}
         className={cn(
-          "inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs sm:text-sm font-medium transition-[background-color,border-color,color,transform] duration-150 ease-out select-none",
-          "min-h-9.5 active:scale-[0.98]",
+          "inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border text-xs sm:text-sm font-medium transition-colors duration-150 select-none cursor-pointer",
+          "min-h-9 active:scale-[0.98]",
           "focus-visible:outline-2 focus-visible:outline-ondjo-blue focus-visible:outline-offset-2",
           active ? activeClasses : inactiveClasses,
           className,
@@ -106,19 +106,19 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(
 
         {count !== undefined && count > 0 && (
           <span
-            className={[
-              "rounded-full px-1.5 py-0.5 text-[11px] font-bold shrink-0",
+            className={cn(
+              "rounded-full px-1.5 py-0.5 text-[11px] font-bold shrink-0 tabular-nums",
               active
                 ? "bg-white/20 text-white"
                 : "bg-ondjo-blue-50 text-ondjo-blue",
-            ].join(" ")}
+            )}
           >
             {count}
           </span>
         )}
       </button>
     );
-  }
+  },
 );
 
 Chip.displayName = "Chip";

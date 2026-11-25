@@ -125,8 +125,8 @@ function AppShell({
     <div
       className={
         fixedContent
-          ? "h-dvh w-full max-w-full overflow-hidden bg-ondjo-bg flex flex-col"
-          : "min-h-dvh w-full max-w-full overflow-x-clip bg-ondjo-bg flex flex-col pb-20 lg:pb-0"
+          ? "h-dvh w-full max-w-full overflow-hidden bg-ondjo-bg flex flex-col pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] lg:pb-0"
+          : "min-h-dvh w-full max-w-full overflow-x-clip bg-ondjo-bg flex flex-col pb-24 lg:pb-0"
       }
     >
       <Sidebar expanded={sidebarExpanded} onExpandedChange={setSidebarExpanded} />
@@ -134,13 +134,13 @@ function AppShell({
         className={[
           "flex-1 flex flex-col min-w-0",
           sidebarExpanded ? "lg:pl-64" : "lg:pl-20",
-          fixedContent ? "h-dvh overflow-hidden" : "",
+          fixedContent ? "flex-1 min-h-0 overflow-hidden" : "",
         ].join(" ")}
       >
         <Header />
         <div
           className={
-            fixedContent ? "flex-1 min-h-0 overflow-hidden" : "flex-1 min-w-0"
+            fixedContent ? "flex-1 min-h-0 flex flex-col overflow-hidden" : "flex-1 min-w-0"
           }
         >
           {children}

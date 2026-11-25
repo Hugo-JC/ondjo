@@ -18,14 +18,19 @@ import {
   type SearchOrigin,
 } from "./FilterControls";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import { locations, properties } from "../data/properties";
 import { filterProperties } from "../utils/filterProperties";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Sheet,
   SheetClose,
@@ -169,24 +174,8 @@ export function SearchBar({
     onChange({ ...value, amenities: next });
   };
 
-  const reduceMotion = useReducedMotion();
-  const barRef = useRef<HTMLDivElement>(null);
   const locationInputRef = useRef<HTMLInputElement>(null);
-
   const locationId = useId();
-
-  // Fechar dropdowns ao clicar fora em desktop
-  useEffect(() => {
-    const handleClickOutside = (event: PointerEvent) => {
-      if (barRef.current && !barRef.current.contains(event.target as Node)) {
-        setActiveSegment(null);
-      }
-    };
-
-    document.addEventListener("pointerdown", handleClickOutside);
-    return () =>
-      document.removeEventListener("pointerdown", handleClickOutside);
-  }, []);
 
   const set = (key: keyof SearchFilters, next: unknown) => {
     onChange({ ...value, [key]: next });
@@ -244,7 +233,6 @@ export function SearchBar({
 
   return (
     <div
-      ref={barRef}
       className={cn("relative w-full text-left", compact && "max-w-3xl mx-auto")}
     >
       {/* ========================================================
@@ -258,13 +246,13 @@ export function SearchBar({
         >
           <TabsList
             aria-label="Modalidade de negócio"
-            className="grid w-full grid-cols-2 rounded-2xl bg-slate-100 p-1 ondjo-border-surface shadow-2xs h-auto"
+            className="grid w-full grid-cols-2 rounded-2xl border border-ondjo-border bg-slate-100 p-1 shadow-2xs"
           >
             {PURPOSE_OPTIONS.map((opt) => (
               <TabsTrigger
                 key={opt.id}
                 value={opt.id}
-                className="min-h-11 rounded-xl text-xs font-bold text-slate-600 data-active:bg-white data-active:text-ondjo-navy data-active:font-black data-active:shadow-xs cursor-pointer"
+                className="min-h-10 rounded-xl text-xs font-bold"
               >
                 {opt.label}
               </TabsTrigger>
@@ -272,27 +260,30 @@ export function SearchBar({
           </TabsList>
         </Tabs>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5 px-0.5 -mx-0.5">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5">
           {ORIGIN_OPTIONS.map((opt) => {
             const isSelected = currentOrigin === opt.id;
             const Icon = opt.icon;
 
             return (
-              <button
+              <Button
                 key={opt.id}
                 type="button"
+                variant="outline"
+                size="sm"
+                aria-pressed={isSelected}
                 onClick={() => set("origin", opt.id)}
                 className={cn(
-                  "inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors duration-150 cursor-pointer active:scale-95",
+                  "shrink-0 rounded-full px-3 text-xs font-semibold",
                   isSelected
                     ? opt.id === "verificados"
-                      ? "border-emerald-500/50 bg-emerald-50 text-emerald-900 font-bold shadow-2xs"
+                      ? "border-emerald-600/40 bg-emerald-50 text-emerald-900 font-bold hover:bg-emerald-100"
                       : opt.id === "proprietario"
-                        ? "border-ondjo-blue bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
+                        ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold hover:bg-ondjo-blue-soft"
                         : opt.id === "agentes"
-                          ? "border-indigo-400 bg-indigo-50 text-indigo-900 font-bold shadow-2xs"
-                          : "border-ondjo-navy bg-ondjo-navy text-white font-bold shadow-2xs"
-                    : "border-slate-200/90 bg-white text-slate-700 hover:border-slate-300",
+                          ? "border-indigo-500/40 bg-indigo-50 text-indigo-900 font-bold hover:bg-indigo-100"
+                          : "border-ondjo-blue bg-ondjo-blue text-white font-bold hover:bg-ondjo-blue-dark hover:text-white"
+                    : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50",
                 )}
               >
                 <Icon
@@ -307,19 +298,21 @@ export function SearchBar({
                           : opt.id === "agentes"
                             ? "text-indigo-700"
                             : "text-white"
-                      : "text-slate-400",
+                      : "text-slate-500",
                   )}
                   aria-hidden="true"
                 />
                 <span>{opt.shortLabel}</span>
-              </button>
+              </Button>
             );
           })}
 
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={() => setMobileModalOpen(true)}
-            className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full ondjo-border-interactive bg-white px-3 text-xs font-bold text-ondjo-ink active:scale-95 cursor-pointer hover:bg-slate-50"
+            className="shrink-0 rounded-full border-ondjo-border bg-white px-3 text-xs font-bold text-ondjo-ink"
           >
             <SlidersHorizontal
               size={13}
@@ -328,31 +321,32 @@ export function SearchBar({
             />
             <span>Filtros</span>
             {activeFiltersCount > 0 && (
-              <span className="grid size-4.5 place-items-center rounded-full bg-ondjo-navy text-[10px] font-black text-white">
+              <Badge variant="navy" size="xs" className="px-1.5 min-w-4.5">
                 {activeFiltersCount}
-              </span>
+              </Badge>
             )}
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* ========================================================
           CABEÇALHO DA BUSCA: DESKTOP (Tabs shadcn + Origem)
          ======================================================== */}
-      <div className="hidden md:flex mb-3.5 items-center justify-between px-2 sm:px-4">
+      <div className="hidden md:flex mb-3.5 items-center justify-between gap-3 px-2 sm:px-4">
         <Tabs
           value={currentPurpose}
           onValueChange={(val) => set("purpose", String(val))}
         >
           <TabsList
+            variant="pill"
             aria-label="Modalidade de negócio"
-            className="inline-flex items-center gap-1 rounded-full bg-slate-100 p-1 ondjo-border-hairline shadow-xs h-auto"
+            className="border border-ondjo-border bg-white shadow-2xs"
           >
             {PURPOSE_OPTIONS.map((opt) => (
               <TabsTrigger
                 key={opt.id}
                 value={opt.id}
-                className="min-h-8.5 rounded-full px-4 text-xs font-bold text-slate-600 data-active:bg-white data-active:text-ondjo-navy data-active:shadow-sm cursor-pointer"
+                className="min-h-8.5 rounded-full px-4 text-xs font-bold data-active:bg-ondjo-navy data-active:text-white"
               >
                 {opt.label}
               </TabsTrigger>
@@ -360,27 +354,30 @@ export function SearchBar({
           </TabsList>
         </Tabs>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           {ORIGIN_OPTIONS.map((orig) => {
             const isSelected = currentOrigin === orig.id;
             const Icon = orig.icon;
 
             return (
-              <button
+              <Button
                 key={orig.id}
                 type="button"
+                variant="outline"
+                size="sm"
+                aria-pressed={isSelected}
                 onClick={() => set("origin", orig.id)}
                 className={cn(
-                  "inline-flex min-h-8.5 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors duration-150 cursor-pointer",
+                  "rounded-full px-3 text-xs font-semibold",
                   isSelected
                     ? orig.id === "verificados"
-                      ? "border-emerald-500/40 bg-emerald-50 text-emerald-900 font-bold shadow-xs"
+                      ? "border-emerald-600/40 bg-emerald-50 text-emerald-900 font-bold hover:bg-emerald-100"
                       : orig.id === "proprietario"
-                        ? "border-ondjo-blue bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-xs"
+                        ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold hover:bg-ondjo-blue-soft"
                         : orig.id === "agentes"
-                          ? "border-indigo-300 bg-indigo-50 text-indigo-900 font-bold shadow-xs"
-                          : "border-ondjo-navy bg-ondjo-navy text-white font-bold shadow-xs"
-                    : "border-slate-200/80 bg-white/90 text-slate-600 hover:border-slate-300 hover:text-ondjo-ink",
+                          ? "border-indigo-500/40 bg-indigo-50 text-indigo-900 font-bold hover:bg-indigo-100"
+                          : "border-ondjo-blue bg-ondjo-blue text-white font-bold hover:bg-ondjo-blue-dark hover:text-white"
+                    : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50",
                 )}
               >
                 <Icon
@@ -395,181 +392,64 @@ export function SearchBar({
                           : orig.id === "proprietario"
                             ? "text-ondjo-blue"
                             : "text-indigo-700"
-                      : "text-slate-400"
+                      : "text-slate-500"
                   }
                 />
                 <span>{orig.shortLabel}</span>
-              </button>
+              </Button>
             );
           })}
         </div>
       </div>
 
       {/* ========================================================
-          DESKTOP: BARRA FLUTUANTE INTEGRADA (AIRBNB STYLE)
+          DESKTOP: BARRA INTEGRADA COM SHADCN POPOVER
          ======================================================== */}
       <div className="hidden md:block">
         <div
           className={cn(
-            "relative z-30 flex items-center rounded-full bg-white transition-[background-color,box-shadow] duration-150",
-            "ondjo-border-surface shadow-[0_16px_40px_rgba(16,42,67,0.08)] hover:shadow-[0_20px_50px_rgba(16,42,67,0.14)]",
-            activeSegment && "bg-slate-50/50",
+            "relative z-30 flex items-center rounded-full border border-ondjo-border bg-white shadow-[0_16px_40px_rgba(16,42,67,0.08)] transition-shadow duration-150 hover:shadow-[0_20px_50px_rgba(16,42,67,0.12)]",
+            activeSegment && "bg-slate-50",
           )}
         >
           {/* SEGMENTO 1: ONDE */}
-          <button
-            type="button"
-            onClick={() => {
-              setActiveSegment(
-                activeSegment === "location" ? null : "location",
-              );
-              requestAnimationFrame(() => locationInputRef.current?.focus());
+          <Popover
+            open={activeSegment === "location"}
+            onOpenChange={(open) => {
+              setActiveSegment(open ? "location" : null);
+              if (open) {
+                requestAnimationFrame(() => locationInputRef.current?.focus());
+              }
             }}
-            className={cn(
-              "group relative flex-1 rounded-full px-6 py-3.5 text-left transition-[background-color,box-shadow] duration-150 cursor-pointer",
-              activeSegment === "location"
-                ? "bg-white shadow-[0_8px_24px_rgba(16,42,67,0.12)] z-20 ring-1 ring-slate-200"
-                : "hover:bg-slate-100/70",
-            )}
           >
-            <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Onde
-            </span>
-            <span className="mt-0.5 block truncate text-sm font-semibold text-ondjo-ink">
-              {searchText || "Explorar Luanda ou zonas"}
-            </span>
-          </button>
-
-          <div
-            className={cn(
-              "h-8 w-px bg-slate-200/80 shrink-0 transition-opacity duration-150",
-              activeSegment === "location" || activeSegment === "type"
-                ? "opacity-0"
-                : "opacity-100",
-            )}
-          />
-
-          {/* SEGMENTO 2: TIPO */}
-          <button
-            type="button"
-            onClick={() =>
-              setActiveSegment(activeSegment === "type" ? null : "type")
-            }
-            className={cn(
-              "group relative flex-1 rounded-full px-6 py-3.5 text-left transition-[background-color,box-shadow] duration-150 cursor-pointer",
-              activeSegment === "type"
-                ? "bg-white shadow-[0_8px_24px_rgba(16,42,67,0.12)] z-20 ring-1 ring-slate-200"
-                : "hover:bg-slate-100/70",
-            )}
-          >
-            <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Tipo de Imóvel
-            </span>
-            <span className="mt-0.5 block truncate text-sm font-semibold text-ondjo-ink">
-              {value.type || "Todos os tipos"}
-            </span>
-          </button>
-
-          <div
-            className={cn(
-              "h-8 w-px bg-slate-200/80 shrink-0 transition-opacity duration-150",
-              activeSegment === "type" || activeSegment === "amenities"
-                ? "opacity-0"
-                : "opacity-100",
-            )}
-          />
-
-          {/* SEGMENTO 3: COMODIDADES */}
-          <button
-            type="button"
-            onClick={() =>
-              setActiveSegment(
-                activeSegment === "amenities" ? null : "amenities",
-              )
-            }
-            className={cn(
-              "group relative flex-1 rounded-full px-6 py-3.5 text-left transition-[background-color,box-shadow] duration-150 cursor-pointer",
-              activeSegment === "amenities"
-                ? "bg-white shadow-[0_8px_24px_rgba(16,42,67,0.12)] z-20 ring-1 ring-slate-200"
-                : "hover:bg-slate-100/70",
-            )}
-          >
-            <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Comodidades
-            </span>
-            <span className="mt-0.5 block truncate text-sm font-semibold text-ondjo-ink">
-              {getAmenitiesSummary(
-                value.bedrooms,
-                value.bathrooms,
-                value.parking,
-                selectedAmenities,
-              )}
-            </span>
-          </button>
-
-          <div
-            className={cn(
-              "h-8 w-px bg-slate-200/80 shrink-0 transition-opacity duration-150",
-              activeSegment === "amenities" || activeSegment === "price"
-                ? "opacity-0"
-                : "opacity-100",
-            )}
-          />
-
-          {/* SEGMENTO 4: ORÇAMENTO */}
-          <button
-            type="button"
-            onClick={() =>
-              setActiveSegment(activeSegment === "price" ? null : "price")
-            }
-            className={cn(
-              "group relative flex-1 rounded-full px-6 py-3.5 text-left transition-[background-color,box-shadow] duration-150 cursor-pointer",
-              activeSegment === "price"
-                ? "bg-white shadow-[0_8px_24px_rgba(16,42,67,0.12)] z-20 ring-1 ring-slate-200"
-                : "hover:bg-slate-100/70",
-            )}
-          >
-            <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Orçamento
-            </span>
-            <span className="mt-0.5 block truncate text-sm font-semibold text-ondjo-ink tabular-nums">
-              {value.maxPrice
-                ? `Até ${formatCompactKz(Number(value.maxPrice))}`
-                : value.minPrice
-                  ? `Desde ${formatCompactKz(Number(value.minPrice))}`
-                  : "Sem limite"}
-            </span>
-          </button>
-
-          {/* BOTÃO PRINCIPAL */}
-          <div className="p-2 shrink-0">
-            <Button
-              type="button"
-              variant="primary"
-              size="lg"
-              onClick={() => handleSubmit()}
-              leftIcon={<Search size={18} aria-hidden="true" />}
-              aria-label="Pesquisar imóveis"
-              className="text-sm font-bold shadow-md hover:shadow-lg"
+            <PopoverTrigger
+              render={
+                <button
+                  type="button"
+                  className={cn(
+                    "focus-ring group relative flex-1 min-w-0 rounded-full px-6 py-3.5 text-left transition-colors duration-150 cursor-pointer",
+                    activeSegment === "location"
+                      ? "bg-white shadow-md z-20 ring-1 ring-ondjo-border"
+                      : "hover:bg-slate-100/80",
+                  )}
+                />
+              }
             >
-              {matchingCount > 0 ? `Ver ${matchingCount}` : "Pesquisar"}
-            </Button>
-          </div>
-        </div>
-
-        {/* POPOVERS INTEGRADOS DESKTOP */}
-        <AnimatePresence>
-          {activeSegment === "location" && (
-            <m.div
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 4 }}
-              transition={{ duration: reduceMotion ? 0 : 0.1, ease: "easeOut" }}
-              className="absolute left-0 top-full mt-3 w-96 rounded-3xl ondjo-border-surface bg-white p-5 shadow-[0_20px_50px_rgba(16,42,67,0.22)] z-50"
+              <span className="block text-[11px] font-bold uppercase tracking-wider text-ondjo-muted">
+                Onde
+              </span>
+              <span className="mt-0.5 block truncate text-sm font-semibold text-ondjo-ink">
+                {searchText || "Explorar Luanda ou zonas"}
+              </span>
+            </PopoverTrigger>
+            <PopoverContent
+              align="start"
+              sideOffset={12}
+              className="w-96 rounded-3xl border-ondjo-border p-5"
             >
               <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                 <MapPin size={18} className="text-ondjo-blue shrink-0" />
-                <input
+                <Input
                   ref={locationInputRef}
                   id={locationId}
                   type="text"
@@ -578,23 +458,26 @@ export function SearchBar({
                     onChange({ ...value, location: "", query: e.target.value });
                   }}
                   placeholder="Pesquisar município ou bairro..."
-                  className="w-full bg-transparent text-sm font-semibold text-ondjo-ink outline-none placeholder:text-slate-400"
+                  className="h-9 border-0 bg-transparent px-1 shadow-none focus-visible:ring-0"
                 />
                 {searchText && (
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="icon-xs"
                     onClick={() =>
                       onChange({ ...value, location: "", query: "" })
                     }
-                    className="p-1 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer"
+                    aria-label="Limpar localização"
+                    className="rounded-full text-slate-400 hover:text-ondjo-ink"
                   >
-                    <X size={16} />
-                  </button>
+                    <X size={15} />
+                  </Button>
                 )}
               </div>
 
-              <div className="mt-3.5">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              <div className="mt-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-ondjo-muted">
                   {searchText
                     ? "Zonas correspondentes"
                     : "Zonas populares em Luanda"}
@@ -604,74 +487,141 @@ export function SearchBar({
                     ? filteredLocations
                     : POPULAR_LOCATIONS
                   ).map((loc) => (
-                    <button
+                    <Button
                       key={loc}
                       type="button"
+                      variant={value.location === loc ? "secondary" : "ghost"}
                       onClick={() => {
                         onChange({ ...value, location: loc, query: "" });
                         setActiveSegment("type");
                       }}
                       className={cn(
-                        "flex items-center gap-2 rounded-xl p-2.5 text-xs font-semibold text-left transition-colors duration-150 cursor-pointer",
+                        "h-9.5 justify-start gap-2 rounded-xl px-2.5 text-xs font-semibold",
                         value.location === loc
-                          ? "bg-ondjo-blue-soft text-ondjo-blue font-bold"
-                          : "text-slate-700 hover:bg-slate-50",
+                          ? "text-ondjo-blue font-bold"
+                          : "text-ondjo-ink hover:bg-slate-100",
                       )}
                     >
                       <MapPin size={14} className="text-slate-400 shrink-0" />
                       <span className="truncate">{loc}</span>
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
-            </m.div>
-          )}
+            </PopoverContent>
+          </Popover>
 
-          {activeSegment === "type" && (
-            <m.div
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 4 }}
-              transition={{ duration: reduceMotion ? 0 : 0.1, ease: "easeOut" }}
-              className="absolute left-1/4 top-full mt-3 w-80 rounded-3xl ondjo-border-surface bg-white p-4 shadow-[0_20px_50px_rgba(16,42,67,0.22)] z-50"
+          <div
+            className={cn(
+              "h-8 w-px bg-slate-200 shrink-0 transition-opacity duration-150",
+              activeSegment === "location" || activeSegment === "type"
+                ? "opacity-0"
+                : "opacity-100",
+            )}
+          />
+
+          {/* SEGMENTO 2: TIPO */}
+          <Popover
+            open={activeSegment === "type"}
+            onOpenChange={(open) => setActiveSegment(open ? "type" : null)}
+          >
+            <PopoverTrigger
+              render={
+                <button
+                  type="button"
+                  className={cn(
+                    "focus-ring group relative flex-1 min-w-0 rounded-full px-6 py-3.5 text-left transition-colors duration-150 cursor-pointer",
+                    activeSegment === "type"
+                      ? "bg-white shadow-md z-20 ring-1 ring-ondjo-border"
+                      : "hover:bg-slate-100/80",
+                  )}
+                />
+              }
             >
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2 px-1">
+              <span className="block text-[11px] font-bold uppercase tracking-wider text-ondjo-muted">
+                Tipo de Imóvel
+              </span>
+              <span className="mt-0.5 block truncate text-sm font-semibold text-ondjo-ink">
+                {value.type || "Todos os tipos"}
+              </span>
+            </PopoverTrigger>
+            <PopoverContent
+              align="start"
+              sideOffset={12}
+              className="w-72 rounded-3xl border-ondjo-border p-3.5"
+            >
+              <span className="text-[11px] font-bold uppercase tracking-wider text-ondjo-muted block mb-1.5 px-1.5">
                 Selecione o tipo
               </span>
               <div className="space-y-1">
                 {PROPERTY_TYPES.map((t) => {
                   const isSelected = value.type === t.value;
                   return (
-                    <button
+                    <Button
                       key={t.value}
                       type="button"
+                      variant={isSelected ? "primary" : "ghost"}
                       onClick={() => {
                         set("type", t.value);
                         setActiveSegment("amenities");
                       }}
                       className={cn(
-                        "flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-colors duration-150 cursor-pointer",
-                        isSelected
-                          ? "bg-ondjo-blue text-white shadow-xs font-bold"
-                          : "text-slate-700 hover:bg-slate-50",
+                        "w-full justify-between rounded-xl px-3.5 py-2.5 text-sm font-semibold",
+                        !isSelected && "text-ondjo-ink hover:bg-slate-100",
                       )}
                     >
                       <span>{t.label}</span>
                       {isSelected && <Check size={16} />}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
-            </m.div>
-          )}
+            </PopoverContent>
+          </Popover>
 
-          {activeSegment === "amenities" && (
-            <m.div
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 4 }}
-              transition={{ duration: reduceMotion ? 0 : 0.1, ease: "easeOut" }}
-              className="absolute left-1/2 top-full mt-3 w-[25rem] sm:w-[29rem] max-w-[94vw] -translate-x-1/2 rounded-3xl ondjo-border-surface bg-white p-5 sm:p-6 shadow-[0_20px_50px_rgba(16,42,67,0.2)] z-50 max-h-[82vh] overflow-y-auto no-scrollbar"
+          <div
+            className={cn(
+              "h-8 w-px bg-slate-200 shrink-0 transition-opacity duration-150",
+              activeSegment === "type" || activeSegment === "amenities"
+                ? "opacity-0"
+                : "opacity-100",
+            )}
+          />
+
+          {/* SEGMENTO 3: COMODIDADES */}
+          <Popover
+            open={activeSegment === "amenities"}
+            onOpenChange={(open) => setActiveSegment(open ? "amenities" : null)}
+          >
+            <PopoverTrigger
+              render={
+                <button
+                  type="button"
+                  className={cn(
+                    "focus-ring group relative flex-1 min-w-0 rounded-full px-6 py-3.5 text-left transition-colors duration-150 cursor-pointer",
+                    activeSegment === "amenities"
+                      ? "bg-white shadow-md z-20 ring-1 ring-ondjo-border"
+                      : "hover:bg-slate-100/80",
+                  )}
+                />
+              }
+            >
+              <span className="block text-[11px] font-bold uppercase tracking-wider text-ondjo-muted">
+                Comodidades
+              </span>
+              <span className="mt-0.5 block truncate text-sm font-semibold text-ondjo-ink">
+                {getAmenitiesSummary(
+                  value.bedrooms,
+                  value.bathrooms,
+                  value.parking,
+                  selectedAmenities,
+                )}
+              </span>
+            </PopoverTrigger>
+            <PopoverContent
+              align="center"
+              sideOffset={12}
+              className="w-[26rem] sm:w-[29rem] max-w-[94vw] rounded-3xl border-ondjo-border p-5 sm:p-6 max-h-[82vh] overflow-y-auto no-scrollbar"
             >
               <div className="space-y-5">
                 <div className="divide-y divide-slate-100">
@@ -685,32 +635,34 @@ export function SearchBar({
                       </span>
                     </div>
                     <div className="flex items-center gap-2.5">
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
+                        size="icon-sm"
                         onClick={() => {
                           const cur = parseInt(value.bedrooms || "0", 10);
                           const next = Math.max(0, cur - 1);
                           set("bedrooms", next === 0 ? "" : String(next));
                         }}
-                        className="focus-ring grid size-8 place-items-center rounded-full ondjo-border-interactive bg-white text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue active:scale-90 cursor-pointer"
                         aria-label="Diminuir quartos"
                       >
                         <Minus size={14} strokeWidth={2.2} />
-                      </button>
+                      </Button>
                       <span className="w-14 text-center text-xs font-bold text-ondjo-navy tabular-nums">
                         {value.bedrooms ? `T${value.bedrooms}` : "Qualquer"}
                       </span>
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
+                        size="icon-sm"
                         onClick={() => {
                           const cur = parseInt(value.bedrooms || "0", 10);
                           set("bedrooms", String(cur + 1));
                         }}
-                        className="focus-ring grid size-8 place-items-center rounded-full ondjo-border-interactive bg-white text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue active:scale-90 cursor-pointer"
                         aria-label="Aumentar quartos"
                       >
                         <Plus size={14} strokeWidth={2.2} />
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
@@ -724,32 +676,34 @@ export function SearchBar({
                       </span>
                     </div>
                     <div className="flex items-center gap-2.5">
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
+                        size="icon-sm"
                         onClick={() => {
                           const cur = parseInt(value.bathrooms || "0", 10);
                           const next = Math.max(0, cur - 1);
                           set("bathrooms", next === 0 ? "" : String(next));
                         }}
-                        className="focus-ring grid size-8 place-items-center rounded-full ondjo-border-interactive bg-white text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue active:scale-90 cursor-pointer"
                         aria-label="Diminuir casas de banho"
                       >
                         <Minus size={14} strokeWidth={2.2} />
-                      </button>
+                      </Button>
                       <span className="w-14 text-center text-xs font-bold text-ondjo-navy tabular-nums">
                         {value.bathrooms ? `${value.bathrooms}+` : "Qualquer"}
                       </span>
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
+                        size="icon-sm"
                         onClick={() => {
                           const cur = parseInt(value.bathrooms || "0", 10);
                           set("bathrooms", String(cur + 1));
                         }}
-                        className="focus-ring grid size-8 place-items-center rounded-full ondjo-border-interactive bg-white text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue active:scale-90 cursor-pointer"
                         aria-label="Aumentar casas de banho"
                       >
                         <Plus size={14} strokeWidth={2.2} />
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
@@ -763,32 +717,34 @@ export function SearchBar({
                       </span>
                     </div>
                     <div className="flex items-center gap-2.5">
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
+                        size="icon-sm"
                         onClick={() => {
                           const cur = parseInt(value.parking || "0", 10);
                           const next = Math.max(0, cur - 1);
                           set("parking", next === 0 ? "" : String(next));
                         }}
-                        className="focus-ring grid size-8 place-items-center rounded-full ondjo-border-interactive bg-white text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue active:scale-90 cursor-pointer"
                         aria-label="Diminuir vagas"
                       >
                         <Minus size={14} strokeWidth={2.2} />
-                      </button>
+                      </Button>
                       <span className="w-14 text-center text-xs font-bold text-ondjo-navy tabular-nums">
                         {value.parking ? `${value.parking}+` : "Qualquer"}
                       </span>
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
+                        size="icon-sm"
                         onClick={() => {
                           const cur = parseInt(value.parking || "0", 10);
                           set("parking", String(cur + 1));
                         }}
-                        className="focus-ring grid size-8 place-items-center rounded-full ondjo-border-interactive bg-white text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue active:scale-90 cursor-pointer"
                         aria-label="Aumentar vagas"
                       >
                         <Plus size={14} strokeWidth={2.2} />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -856,16 +812,51 @@ export function SearchBar({
                   </Button>
                 </div>
               </div>
-            </m.div>
-          )}
+            </PopoverContent>
+          </Popover>
 
-          {activeSegment === "price" && (
-            <m.div
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 4 }}
-              transition={{ duration: reduceMotion ? 0 : 0.1, ease: "easeOut" }}
-              className="absolute right-0 top-full mt-3 w-[23rem] sm:w-[25rem] max-w-[92vw] rounded-3xl ondjo-border-surface bg-white p-5 sm:p-6 shadow-[0_20px_50px_rgba(16,42,67,0.2)] z-50"
+          <div
+            className={cn(
+              "h-8 w-px bg-slate-200 shrink-0 transition-opacity duration-150",
+              activeSegment === "amenities" || activeSegment === "price"
+                ? "opacity-0"
+                : "opacity-100",
+            )}
+          />
+
+          {/* SEGMENTO 4: ORÇAMENTO */}
+          <Popover
+            open={activeSegment === "price"}
+            onOpenChange={(open) => setActiveSegment(open ? "price" : null)}
+          >
+            <PopoverTrigger
+              render={
+                <button
+                  type="button"
+                  className={cn(
+                    "focus-ring group relative flex-1 min-w-0 rounded-full px-6 py-3.5 text-left transition-colors duration-150 cursor-pointer",
+                    activeSegment === "price"
+                      ? "bg-white shadow-md z-20 ring-1 ring-ondjo-border"
+                      : "hover:bg-slate-100/80",
+                  )}
+                />
+              }
+            >
+              <span className="block text-[11px] font-bold uppercase tracking-wider text-ondjo-muted">
+                Orçamento
+              </span>
+              <span className="mt-0.5 block truncate text-sm font-semibold text-ondjo-ink tabular-nums">
+                {value.maxPrice
+                  ? `Até ${formatCompactKz(Number(value.maxPrice))}`
+                  : value.minPrice
+                    ? `Desde ${formatCompactKz(Number(value.minPrice))}`
+                    : "Sem limite"}
+              </span>
+            </PopoverTrigger>
+            <PopoverContent
+              align="end"
+              sideOffset={12}
+              className="w-[23rem] sm:w-[25rem] max-w-[92vw] rounded-3xl border-ondjo-border p-5 sm:p-6"
             >
               <PriceDualRangeSlider
                 purpose={value.purpose}
@@ -880,14 +871,29 @@ export function SearchBar({
                 variant="primary"
                 fullWidth
                 onClick={() => handleSubmit()}
-                className="mt-5 h-11 rounded-xl text-xs font-bold"
+                className="mt-4 h-11 rounded-xl text-xs font-bold"
               >
                 Ver{" "}
                 {matchingCount > 0 ? `${matchingCount} imóveis` : "Resultados"}
               </Button>
-            </m.div>
-          )}
-        </AnimatePresence>
+            </PopoverContent>
+          </Popover>
+
+          {/* BOTÃO PRINCIPAL */}
+          <div className="p-2 shrink-0">
+            <Button
+              type="button"
+              variant="primary"
+              size="lg"
+              onClick={() => handleSubmit()}
+              leftIcon={<Search size={18} aria-hidden="true" />}
+              aria-label="Pesquisar imóveis"
+              className="text-sm font-bold shadow-md hover:shadow-lg"
+            >
+              {matchingCount > 0 ? `Ver ${matchingCount}` : "Pesquisar"}
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* ========================================================
@@ -1002,13 +1008,13 @@ export function SearchBar({
               >
                 <TabsList
                   aria-label="Modalidade do imóvel"
-                  className="grid w-full grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 h-auto"
+                  className="grid w-full grid-cols-2 rounded-xl border border-ondjo-border bg-slate-100 p-1"
                 >
                   {PURPOSE_OPTIONS.map((opt) => (
                     <TabsTrigger
                       key={opt.id}
                       value={opt.id}
-                      className="min-h-10 rounded-lg text-xs font-bold text-ondjo-muted data-active:bg-white data-active:text-ondjo-navy data-active:shadow-xs cursor-pointer"
+                      className="min-h-10 rounded-lg text-xs font-bold"
                     >
                       {opt.label}
                     </TabsTrigger>

@@ -27,8 +27,10 @@ import {
   X,
   Zap,
 } from "lucide-react";
+import { formatKz } from "../utils/format";
 import { properties } from "../data/properties";
 import type { Property } from "../types";
+import { cn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,12 +40,25 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
   Badge,
+  Button,
+  buttonVariants,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  Input,
   Separator,
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
+  Tabs,
+  TabsList,
+  TabsTrigger,
 } from "../components/ui";
 
 export type MessageStatus = "pending" | "sent" | "delivered" | "read";
@@ -220,11 +235,11 @@ const DEFAULT_CONVERSATIONS: Conversation[] = [
 ];
 
 const QUICK_QUESTIONS = [
-  "O imóvel ainda se encontra disponível?",
-  "Qual é a caução e adiantamento exigidos?",
-  "Gostaria de agendar uma visita presencial.",
-  "O edifício tem gerador autónomo e água da rede?",
-  "Qual a documentação necessária para fechar negócio?",
+  "Ainda está disponível?",
+  "Qual é a caução?",
+  "Agendar visita",
+  "Tem gerador e água?",
+  "Documentação necessária?",
 ];
 
 const LOCAL_STORAGE_KEY = "ondjo-chat-conversations-v3";
@@ -296,6 +311,7 @@ export function ChatPage() {
   const [notification, setNotification] = useState<InAppNotification | null>(null);
 
   const [confirmResetOpen, setConfirmResetOpen] = useState(false);
+  const [notifBannerDismissed, setNotifBannerDismissed] = useState(false);
   const [statusFeedback, setStatusFeedback] = useState<string | null>(null);
   const [isDesktop, setIsDesktop] = useState(() =>
     typeof window !== "undefined" ? window.matchMedia("(min-width: 1024px)").matches : true,
@@ -963,7 +979,7 @@ export function ChatPage() {
     }
   }
 
-  // Renderizar indicador de presença no avatar ou badge
+  // Renderizar indicador de presença no avatar
   function renderPresenceBadge(presence: PresenceState) {
     switch (presence) {
       case "online":
@@ -971,9 +987,7 @@ export function ChatPage() {
           <span
             title="Online agora"
             className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-white bg-ondjo-green"
-          >
-            <span className="absolute inset-0 size-full animate-ping rounded-full bg-ondjo-green opacity-40" />
-          </span>
+          />
         );
       case "away":
         return (
@@ -987,7 +1001,7 @@ export function ChatPage() {
         return (
           <span
             title="Offline"
-            className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-white bg-ondjo-muted/50"
+            className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-white bg-slate-400"
           />
         );
     }
@@ -996,53 +1010,67 @@ export function ChatPage() {
   if (!activeChat) return null;
 
   return (
-    <div className="flex h-[calc(100dvh-4rem)] min-h-0 flex-col overflow-hidden bg-ondjo-bg p-2 sm:p-5 lg:p-7">
+    <div className="flex flex-1 min-h-0 flex-col overflow-hidden bg-ondjo-bg p-0 sm:p-4 lg:p-6">
       {statusFeedback && (
         <div
           role="status"
-          className="mx-auto mb-3 flex w-full max-w-7xl items-center justify-between gap-3 rounded-2xl border border-ondjo-warning-border bg-ondjo-warning-soft px-4 py-2.5 text-xs font-semibold text-ondjo-warning shadow-xs"
+          className="mx-3 mt-2 sm:mx-auto sm:mt-0 mb-2 sm:mb-3 flex w-auto sm:w-full max-w-7xl items-center justify-between gap-3 rounded-xl border border-ondjo-warning-border bg-ondjo-warning-soft px-4 py-2 text-xs font-semibold text-ondjo-warning shadow-2xs"
         >
           <span>{statusFeedback}</span>
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-xs"
             onClick={() => setStatusFeedback(null)}
-            className="rounded-lg p-1 hover:bg-black/5 cursor-pointer"
             aria-label="Fechar aviso"
           >
             <X size={14} />
-          </button>
+          </Button>
         </div>
       )}
 
-      {/* Banner de Ativação de Notificações do Navegador */}
-      {isNotificationSupported && notificationPermission === "default" && (
-        <div className="mx-auto mb-3 max-w-7xl">
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-ondjo-blue/20 bg-ondjo-blue-soft/50 px-4 py-3 text-xs shadow-xs">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="grid size-8 shrink-0 place-items-center rounded-xl bg-ondjo-blue text-white">
-                <Bell size={16} />
+      {/* Banner compacto de notificações do navegador */}
+      {isNotificationSupported &&
+        notificationPermission === "default" &&
+        !notifBannerDismissed && (
+          <div className="mx-3 mt-2 sm:mx-auto sm:mt-0 mb-2 sm:mb-3 w-auto sm:w-full max-w-7xl shrink-0">
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-ondjo-border-accent bg-ondjo-blue-50 px-3.5 py-2.5 text-xs">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="grid size-8 shrink-0 place-items-center rounded-lg bg-ondjo-blue text-white">
+                  <Bell size={15} />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-ondjo-navy truncate">
+                    Ativar notificações de mensagens
+                  </p>
+                  <p className="hidden sm:block text-ondjo-muted truncate">
+                    Receba alertas quando os corretores responderem ou propuserem visitas.
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="font-bold text-ondjo-navy">
-                  Ativar notificações no navegador
-                </p>
-                <p className="text-ondjo-muted">
-                  Receba alertas em tempo real quando os corretores responderem ou propuserem visitas, mesmo noutra aba.
-                </p>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="xs"
+                  onClick={requestNotificationPermission}
+                  className="rounded-lg px-3"
+                >
+                  Ativar
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  onClick={() => setNotifBannerDismissed(true)}
+                  aria-label="Dispensar aviso de notificações"
+                >
+                  <X size={14} />
+                </Button>
               </div>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={requestNotificationPermission}
-                className="focus-ring rounded-xl bg-ondjo-blue px-3.5 py-1.5 font-bold text-white shadow-xs hover:bg-ondjo-blue-dark transition-colors cursor-pointer"
-              >
-                Permitir notificações
-              </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* Notificação In-App de Nova Mensagem em Tempo Real */}
       <AnimatePresence>
@@ -1052,88 +1080,103 @@ export function ChatPage() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -12, scale: 0.97 }}
             transition={{ duration: 0.14, ease: "easeOut" }}
-            className="fixed top-4 right-4 z-50 max-w-sm w-[calc(100%-2rem)] rounded-2xl border border-ondjo-blue/30 bg-ondjo-surface p-3.5 shadow-lg ring-1 ring-ondjo-navy/5"
+            className="fixed top-18 right-4 z-50 max-w-sm w-[calc(100%-2rem)] rounded-2xl border border-ondjo-blue/30 bg-white p-3.5 shadow-xl"
           >
             <div className="flex items-start gap-3">
               <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-ondjo-blue text-white shadow-xs">
-                <BellRing size={18} />
+                <BellRing size={17} />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-xs font-bold text-ondjo-navy truncate">
                     {notification.senderName}
                   </p>
-                  <span className="text-[10px] font-semibold text-ondjo-blue uppercase">Agora</span>
+                  <Badge variant="info" size="xs">
+                    Agora
+                  </Badge>
                 </div>
-                <p className="mt-0.5 text-xs text-ondjo-ink line-clamp-2">
+                <p className="mt-1 text-xs text-ondjo-ink line-clamp-2">
                   {notification.text}
                 </p>
-                <div className="mt-2 flex items-center gap-2">
-                  <button
+                <div className="mt-2.5 flex items-center gap-2">
+                  <Button
                     type="button"
+                    variant="primary"
+                    size="xs"
                     onClick={() => {
                       selectConversation(notification.conversationId);
                       setNotification(null);
                     }}
-                    className="focus-ring rounded-lg bg-ondjo-blue px-2.5 py-1 text-xs font-bold text-white hover:bg-ondjo-blue-dark transition-colors"
                   >
                     Abrir conversa
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="xs"
                     onClick={() => setNotification(null)}
-                    className="focus-ring text-xs text-ondjo-muted hover:text-ondjo-ink px-1.5 py-1"
                   >
                     Ignorar
-                  </button>
+                  </Button>
                 </div>
               </div>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon-xs"
                 onClick={() => setNotification(null)}
-                className="text-ondjo-muted hover:text-ondjo-ink p-1"
                 aria-label="Fechar notificação"
               >
                 <X size={14} />
-              </button>
+              </Button>
             </div>
           </m.div>
         )}
       </AnimatePresence>
 
-      {/* Janela principal de chat — altura fixa; scroll só nas listas de conversas e mensagens */}
-      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col overflow-hidden rounded-2xl ondjo-border-surface bg-ondjo-surface shadow-xs">
-        <header className="shrink-0 border-b border-ondjo-border/80 bg-ondjo-surface px-4 py-3 sm:px-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-ondjo-blue-soft text-ondjo-blue">
-                <MessageSquare size={20} aria-hidden="true" />
+      {/* Janela principal de chat */}
+      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col overflow-hidden bg-white sm:rounded-2xl sm:border sm:border-ondjo-border sm:shadow-xs">
+        <header className="shrink-0 border-b border-ondjo-border bg-white px-3.5 py-2.5 sm:px-5 sm:py-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+              <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-ondjo-blue-50 text-ondjo-blue">
+                <MessageSquare size={18} aria-hidden="true" />
               </div>
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-base font-black tracking-tight text-ondjo-navy sm:text-lg">
+              <div className="min-w-0 flex-1">
+                <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
+                  <h1 className="truncate text-base font-black tracking-tight text-ondjo-navy sm:text-lg">
                     Mensagens
                   </h1>
                   {totalUnreadCount > 0 && (
-                    <span className="rounded-full bg-ondjo-blue px-2 py-0.5 text-[11px] font-bold text-white">
-                      {totalUnreadCount} não lida{totalUnreadCount > 1 ? "s" : ""}
-                    </span>
+                    <Badge
+                      variant="info"
+                      size="xs"
+                      className="shrink-0 border-transparent bg-ondjo-blue text-white"
+                      aria-label={`${totalUnreadCount} não lida${totalUnreadCount > 1 ? "s" : ""}`}
+                    >
+                      <span>{totalUnreadCount}</span>
+                      <span className="hidden sm:inline">
+                        não lida{totalUnreadCount > 1 ? "s" : ""}
+                      </span>
+                    </Badge>
                   )}
                 </div>
-                <p className="text-xs text-ondjo-muted">
-                  Corretores verificados, proprietários e assistente ONDJO — Luanda
+                <p className="hidden sm:block text-xs text-ondjo-muted truncate">
+                  Corretores verificados, proprietários e assistente ONDJO
                 </p>
               </div>
             </div>
 
             <div
-              className="flex flex-wrap items-center gap-1.5"
+              className="flex items-center gap-1.5 shrink-0"
               role="toolbar"
               aria-label="Preferências do chat"
             >
               {isNotificationSupported && (
-                <button
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={requestNotificationPermission}
                   aria-label={
                     notificationPermission === "granted"
@@ -1142,72 +1185,75 @@ export function ChatPage() {
                         ? "Notificações bloqueadas no navegador"
                         : "Ativar notificações no navegador"
                   }
-                  className={[
-                    "focus-ring inline-flex size-10 items-center justify-center rounded-xl border transition-colors sm:w-auto sm:gap-1.5 sm:px-2.5 sm:py-1.5 sm:text-xs sm:font-semibold",
+                  className={cn(
+                    "h-9 rounded-xl px-2.5",
                     notificationPermission === "granted"
-                      ? "border-ondjo-success-border bg-ondjo-green-soft text-ondjo-green"
+                      ? "border-ondjo-success-border bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
                       : notificationPermission === "denied"
-                        ? "border-ondjo-danger-border bg-ondjo-danger-soft text-ondjo-danger"
-                        : "border-ondjo-border bg-ondjo-bg text-ondjo-muted hover:border-ondjo-blue hover:text-ondjo-blue",
-                  ].join(" ")}
+                        ? "border-ondjo-danger-border bg-rose-50 text-rose-700 hover:bg-rose-100"
+                        : "border-ondjo-border bg-white text-ondjo-muted hover:text-ondjo-blue",
+                  )}
                 >
                   {notificationPermission === "granted" ? (
-                    <BellRing size={16} className="shrink-0" aria-hidden="true" />
+                    <BellRing size={15} aria-hidden="true" />
                   ) : notificationPermission === "denied" ? (
-                    <BellOff size={16} className="shrink-0" aria-hidden="true" />
+                    <BellOff size={15} aria-hidden="true" />
                   ) : (
-                    <Bell size={16} className="shrink-0" aria-hidden="true" />
+                    <Bell size={15} aria-hidden="true" />
                   )}
                   <span className="hidden sm:inline">
-                    {notificationPermission === "granted"
-                      ? "Alertas"
-                      : notificationPermission === "denied"
-                        ? "Bloqueadas"
-                        : "Alertas"}
+                    {notificationPermission === "denied" ? "Bloqueadas" : "Alertas"}
                   </span>
-                </button>
+                </Button>
               )}
 
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
                 onClick={() => setSoundEnabled(!soundEnabled)}
                 aria-pressed={soundEnabled}
-                aria-label={soundEnabled ? "Desativar som de novas mensagens" : "Ativar som de novas mensagens"}
-                className="focus-ring inline-flex size-10 items-center justify-center rounded-xl border border-ondjo-border text-ondjo-muted transition-colors hover:bg-ondjo-bg hover:text-ondjo-ink sm:w-auto sm:gap-1 sm:px-2.5 sm:py-1.5 sm:text-xs sm:font-semibold"
+                aria-label={
+                  soundEnabled
+                    ? "Desativar som de novas mensagens"
+                    : "Ativar som de novas mensagens"
+                }
+                className="h-9 rounded-xl border-ondjo-border bg-white px-2.5 text-ondjo-muted hover:text-ondjo-ink"
               >
                 {soundEnabled ? (
-                  <Volume2 size={16} className="text-ondjo-blue" aria-hidden="true" />
+                  <Volume2 size={15} className="text-ondjo-blue" aria-hidden="true" />
                 ) : (
-                  <VolumeX size={16} aria-hidden="true" />
+                  <VolumeX size={15} aria-hidden="true" />
                 )}
                 <span className="hidden md:inline">{soundEnabled ? "Som" : "Mudo"}</span>
-              </button>
+              </Button>
 
-              <details className="relative">
-                <summary className="focus-ring flex cursor-pointer list-none items-center justify-center gap-1 rounded-xl border border-ondjo-border bg-ondjo-bg px-2.5 py-2 text-xs font-semibold text-ondjo-muted marker:content-none hover:text-ondjo-ink [&::-webkit-details-marker]:hidden sm:min-h-10">
-                  <Sparkles size={14} aria-hidden="true" />
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-9 rounded-xl border-ondjo-border bg-slate-50 px-2.5 text-xs font-semibold text-ondjo-ink"
+                    />
+                  }
+                >
+                  <Sparkles size={14} className="text-ondjo-blue" aria-hidden="true" />
                   <span>Demo</span>
                   <ChevronDown size={14} className="opacity-60" aria-hidden="true" />
-                </summary>
-                <div className="absolute right-0 z-30 mt-1.5 flex w-52 flex-col gap-1 rounded-xl border border-ondjo-border bg-ondjo-surface p-1.5 shadow-lg">
-                  <button
-                    type="button"
-                    onClick={handleTriggerIncomingSimulation}
-                    className="focus-ring flex items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs font-semibold text-ondjo-ink hover:bg-ondjo-bg"
-                  >
-                    <Zap size={14} className="text-ondjo-blue shrink-0" aria-hidden="true" />
-                    Simular mensagem recebida
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleResetConversations}
-                    className="focus-ring flex items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs font-semibold text-ondjo-muted hover:bg-ondjo-bg hover:text-ondjo-ink"
-                  >
-                    <RotateCcw size={14} className="shrink-0" aria-hidden="true" />
-                    Restaurar conversas demo
-                  </button>
-                </div>
-              </details>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" sideOffset={6} className="w-56">
+                  <DropdownMenuItem onClick={handleTriggerIncomingSimulation}>
+                    <Zap size={14} className="text-ondjo-blue" aria-hidden="true" />
+                    <span>Simular mensagem recebida</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleResetConversations}>
+                    <RotateCcw size={14} className="text-ondjo-muted" aria-hidden="true" />
+                    <span>Restaurar conversas demo</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </header>
@@ -1218,66 +1264,84 @@ export function ChatPage() {
           {/* ========================================================= */}
           <aside
             aria-label="Lista de conversas"
-            className={[
-              "flex min-h-0 flex-col border-r border-ondjo-border/80 bg-ondjo-surface lg:col-span-4 xl:col-span-4",
+            className={cn(
+              "flex min-h-0 flex-col border-r border-ondjo-border bg-white lg:col-span-4 xl:col-span-4",
               mobileView === "chat" ? "hidden lg:flex" : "flex",
-            ].join(" ")}
+            )}
           >
-            <div className="shrink-0 border-b border-ondjo-border/60 p-3">
+            <div className="shrink-0 border-b border-ondjo-border/80 p-3 space-y-2.5">
               <label htmlFor={conversationSearchId} className="sr-only">
                 Pesquisar conversas por nome ou imóvel
               </label>
-              <div className="relative">
+              <div className="relative flex items-center">
                 <Search
                   size={15}
-                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ondjo-muted"
+                  className="pointer-events-none absolute left-3 text-ondjo-muted"
                   aria-hidden="true"
                 />
-                <input
+                <Input
                   id={conversationSearchId}
                   type="search"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Pesquisar conversas..."
-                  className="focus-ring w-full rounded-xl border border-ondjo-border bg-ondjo-bg py-2.5 pl-9 pr-3 text-sm font-medium text-ondjo-ink placeholder:text-ondjo-muted"
+                  className="h-10 rounded-xl border-ondjo-border bg-slate-50 pl-9 pr-8 text-sm"
                 />
+                {searchQuery && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
+                    onClick={() => setSearchQuery("")}
+                    aria-label="Limpar pesquisa"
+                    className="absolute right-1.5 rounded-full text-ondjo-muted"
+                  >
+                    <X size={14} />
+                  </Button>
+                )}
               </div>
 
-              <div
-                className="mt-2.5 flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-subtle"
-                role="tablist"
-                aria-label="Filtrar conversas"
+              <Tabs
+                value={activeTab}
+                onValueChange={(val) =>
+                  setActiveTab(
+                    String(val) as "all" | "agent" | "owner" | "assistant" | "unread",
+                  )
+                }
               >
-                {(
-                  [
-                    { id: "all", label: "Todas" },
-                    { id: "agent", label: "Corretores" },
-                    { id: "owner", label: "Proprietários" },
-                    { id: "assistant", label: "Assistente" },
-                    { id: "unread", label: "Não lidas" },
-                  ] as const
-                ).map((tab) => (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={activeTab === tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={[
-                      "focus-ring whitespace-nowrap rounded-full px-3 py-1.5 text-[11px] font-bold transition-colors",
-                      activeTab === tab.id
-                        ? "bg-ondjo-blue text-white shadow-xs"
-                        : "bg-ondjo-bg text-ondjo-muted hover:bg-ondjo-blue-soft/40 hover:text-ondjo-ink",
-                    ].join(" ")}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
+                <TabsList
+                  variant="pill"
+                  aria-label="Filtrar conversas"
+                  className="h-auto w-full flex-wrap justify-start gap-1 rounded-2xl border border-ondjo-border bg-slate-100 p-1"
+                >
+                  {(
+                    [
+                      { id: "all", label: "Todas" },
+                      { id: "agent", label: "Corretores" },
+                      { id: "owner", label: "Proprietários" },
+                      { id: "assistant", label: "Assistente" },
+                      { id: "unread", label: "Não lidas" },
+                    ] as const
+                  ).map((tab) => (
+                    <TabsTrigger
+                      key={tab.id}
+                      value={tab.id}
+                      className="min-h-7.5 flex-none rounded-full px-2.5 text-[11px] font-bold data-active:bg-ondjo-navy data-active:text-white"
+                    >
+                      {tab.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
             </div>
 
             {/* Lista com scroll das conversas */}
-            <div className="min-h-0 flex-1 overflow-y-auto divide-y divide-ondjo-border/40 scrollbar-subtle">
+            <div
+              ref={conversationListRef}
+              role="listbox"
+              aria-label="Conversas disponíveis"
+              className="min-h-0 flex-1 overflow-y-auto p-2 space-y-1 scrollbar-subtle"
+            >
               {filteredConversations.length === 0 ? (
                 <div className="p-8 text-center">
                   <MessageSquare size={32} className="mx-auto text-ondjo-muted/60" />
@@ -1305,29 +1369,28 @@ export function ChatPage() {
                       tabIndex={isCurrent ? 0 : -1}
                       onKeyDown={(e) => handleConversationKeyDown(e, index)}
                       onClick={() => selectConversation(conv.id)}
-                      className={[
-                        "w-full text-left p-3.5 transition-colors focus-ring flex items-start gap-3 relative",
+                      className={cn(
+                        "focus-ring w-full text-left rounded-xl p-3 transition-colors flex items-start gap-3 relative cursor-pointer",
                         isCurrent
-                          ? "bg-ondjo-blue-soft/40 border-l-4 border-l-ondjo-blue"
-                          : "hover:bg-ondjo-bg/70 border-l-4 border-l-transparent",
-                      ].join(" ")}
+                          ? "bg-ondjo-blue-50 ring-1 ring-inset ring-ondjo-blue/25"
+                          : "hover:bg-slate-50",
+                      )}
                     >
-                      {/* Avatar e Indicador de Presença */}
+                      {/* Avatar shadcn e Indicador de Presença */}
                       <div className="relative shrink-0">
                         {conv.category === "assistant" ? (
-                          <div className="grid size-11 place-items-center rounded-xl bg-linear-to-br from-ondjo-navy to-ondjo-blue text-white shadow-xs">
-                            <Sparkles size={19} />
+                          <div className="grid size-11 place-items-center rounded-full bg-linear-to-br from-ondjo-navy to-ondjo-blue text-white shadow-2xs">
+                            <Sparkles size={18} />
                           </div>
-                        ) : conv.avatarUrl ? (
-                          <img
-                            src={conv.avatarUrl}
-                            alt={conv.contactName}
-                            className="size-11 rounded-xl object-cover ring-1 ring-ondjo-border/80"
-                          />
                         ) : (
-                          <div className="grid size-11 place-items-center rounded-xl bg-ondjo-blue-soft text-ondjo-blue font-bold text-sm">
-                            {conv.contactName.charAt(0)}
-                          </div>
+                          <Avatar className="size-11 ring-1 ring-ondjo-border">
+                            {conv.avatarUrl && (
+                              <AvatarImage src={conv.avatarUrl} alt={conv.contactName} />
+                            )}
+                            <AvatarFallback className="bg-ondjo-blue-soft text-ondjo-blue font-bold text-sm">
+                              {conv.contactName.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
                         )}
 
                         {renderPresenceBadge(conv.presence)}
@@ -1335,9 +1398,9 @@ export function ChatPage() {
 
                       {/* Informações da conversa */}
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-1">
+                        <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-1.5 truncate">
-                            <span className="truncate text-xs font-bold text-ondjo-navy">
+                            <span className="truncate text-xs sm:text-sm font-bold text-ondjo-navy">
                               {conv.contactName}
                             </span>
                             {conv.verified && (
@@ -1346,24 +1409,22 @@ export function ChatPage() {
                               </span>
                             )}
                           </div>
-                          <span className="shrink-0 text-[10px] font-medium text-ondjo-muted">
+                          <span className="shrink-0 text-[11px] font-medium text-ondjo-muted tabular-nums">
                             {lastMessage ? lastMessage.timestamp : conv.lastActive}
                           </span>
                         </div>
 
-                        {/* Imóvel de referência */}
                         {linkedProp && (
-                          <div className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-ondjo-blue truncate">
+                          <div className="mt-0.5 flex items-center gap-1 text-[11px] font-semibold text-ondjo-blue truncate">
                             <Building2 size={11} className="shrink-0" />
                             <span className="truncate">{linkedProp.title}</span>
                           </div>
                         )}
 
-                        {/* Última Mensagem com indicador de leitura */}
                         <div className="mt-1 flex items-center justify-between gap-2">
                           <div className="flex items-center gap-1 min-w-0 truncate text-xs text-ondjo-muted">
                             {conv.isTyping ? (
-                              <span className="text-ondjo-blue font-semibold animate-pulse">
+                              <span className="text-ondjo-blue font-semibold">
                                 A escrever...
                               </span>
                             ) : (
@@ -1389,9 +1450,13 @@ export function ChatPage() {
                           </div>
 
                           {conv.unreadCount > 0 && (
-                            <span className="grid h-5 min-w-5 place-items-center rounded-full bg-ondjo-blue px-1.5 text-[10px] font-bold text-white shadow-xs">
+                            <Badge
+                              variant="info"
+                              size="xs"
+                              className="h-5 min-w-5 justify-center bg-ondjo-blue text-white border-transparent px-1.5"
+                            >
                               {conv.unreadCount}
-                            </span>
+                            </Badge>
                           )}
                         </div>
                       </div>
@@ -1401,12 +1466,12 @@ export function ChatPage() {
               )}
             </div>
 
-            {/* Rodapé da lista com dica ONDJO */}
-            <div className="shrink-0 border-t border-ondjo-border/60 p-3 bg-ondjo-bg/40">
-              <div className="flex items-center gap-2 rounded-xl border border-ondjo-border/80 bg-ondjo-surface p-2.5 text-[11px] text-ondjo-muted">
+            {/* Rodapé da lista */}
+            <div className="hidden sm:block shrink-0 border-t border-ondjo-border/80 p-3 bg-slate-50/70">
+              <div className="flex items-center gap-2 rounded-xl border border-ondjo-border bg-white p-2.5 text-[11px] text-ondjo-muted">
                 <ShieldCheck size={15} className="shrink-0 text-ondjo-green" />
                 <span>
-                  <strong>Garantia ONDJO:</strong> Histórico e propostas protegidos na plataforma.
+                  <strong className="text-ondjo-navy">Garantia ONDJO:</strong> Histórico e propostas protegidos na plataforma.
                 </span>
               </div>
             </div>
@@ -1417,74 +1482,69 @@ export function ChatPage() {
           {/* ========================================================= */}
           <main
             aria-label="Diálogo ativo"
-            className={[
-              "flex min-h-0 flex-col bg-ondjo-surface overflow-hidden",
+            className={cn(
+              "flex min-h-0 flex-col bg-white overflow-hidden",
               propertyDrawerOpen
                 ? "lg:col-span-5 xl:col-span-5"
                 : "lg:col-span-8 xl:col-span-8",
               mobileView === "list" ? "hidden lg:flex" : "flex",
-            ].join(" ")}
+            )}
           >
             {/* Topbar da Janela Ativa */}
-            <div className="shrink-0 flex items-center justify-between gap-2 sm:gap-3 border-b border-ondjo-border/80 px-3.5 py-2.5 sm:px-5 sm:py-3 bg-ondjo-surface shadow-xs">
+            <div className="shrink-0 flex items-center justify-between gap-2 sm:gap-3 border-b border-ondjo-border px-3.5 py-2.5 sm:px-5 sm:py-3 bg-white">
               <div className="flex items-center gap-2.5 min-w-0">
-                {/* Botão de Voltar Mobile: com badge de outras não lidas se houver */}
-                <button
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={() => setMobileView("list")}
-                  className="focus-ring flex items-center gap-1.5 rounded-xl border border-ondjo-border bg-ondjo-bg px-2.5 py-1.5 text-xs font-bold text-ondjo-navy hover:bg-ondjo-blue-soft/40 lg:hidden"
+                  className="h-9 rounded-xl border-ondjo-border bg-slate-50 px-2.5 text-xs font-bold text-ondjo-navy lg:hidden"
                   aria-label="Voltar para a lista de conversas"
                 >
-                  <ArrowLeft size={16} />
+                  <ArrowLeft size={15} />
                   <span>Chats</span>
                   {otherUnreadCount > 0 && (
-                    <span className="grid size-4 place-items-center rounded-full bg-ondjo-blue text-[9px] font-black text-white">
+                    <Badge variant="info" size="xs" className="bg-ondjo-blue text-white border-transparent px-1.5">
                       {otherUnreadCount}
-                    </span>
+                    </Badge>
                   )}
-                </button>
+                </Button>
 
-                {/* Avatar do Interlocutor */}
                 <div className="relative shrink-0">
                   {activeChat.category === "assistant" ? (
-                    <div className="grid size-9 sm:size-10 place-items-center rounded-xl bg-linear-to-br from-ondjo-navy to-ondjo-blue text-white shadow-xs">
+                    <div className="grid size-9 sm:size-10 place-items-center rounded-full bg-linear-to-br from-ondjo-navy to-ondjo-blue text-white shadow-2xs">
                       <Bot size={18} />
                     </div>
-                  ) : activeChat.avatarUrl ? (
-                    <img
-                      src={activeChat.avatarUrl}
-                      alt={activeChat.contactName}
-                      className="size-9 sm:size-10 rounded-xl object-cover ring-1 ring-ondjo-border"
-                    />
                   ) : (
-                    <div className="grid size-9 sm:size-10 place-items-center rounded-xl bg-ondjo-blue-soft text-ondjo-blue font-bold">
-                      {activeChat.contactName.charAt(0)}
-                    </div>
+                    <Avatar className="size-9 sm:size-10 ring-1 ring-ondjo-border">
+                      {activeChat.avatarUrl && (
+                        <AvatarImage src={activeChat.avatarUrl} alt={activeChat.contactName} />
+                      )}
+                      <AvatarFallback className="bg-ondjo-blue-soft text-ondjo-blue font-bold">
+                        {activeChat.contactName.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
                   )}
 
                   {renderPresenceBadge(activeChat.presence)}
                 </div>
 
-                {/* Nome, Cargo e Indicador de Presença em tempo real */}
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
                     <h2 className="truncate text-xs sm:text-sm font-bold text-ondjo-navy">
                       {activeChat.contactName}
                     </h2>
                     {activeChat.verified && (
-                      <span className="inline-flex items-center gap-0.5 rounded-full border border-ondjo-success-border bg-ondjo-green-soft px-1.5 py-0.2 text-[9px] sm:text-[10px] font-bold text-ondjo-green">
-                        <ShieldCheck size={11} />
+                      <Badge variant="verified" size="xs" className="hidden sm:inline-flex">
                         Verificado
-                      </span>
+                      </Badge>
                     )}
                   </div>
-                  <p className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-ondjo-muted truncate">
+                  <p className="flex items-center gap-1.5 text-[11px] text-ondjo-muted truncate">
                     <span className="truncate">{activeChat.role}</span>
                     <span className="text-ondjo-border">•</span>
                     {activeChat.isTyping ? (
-                      <span className="text-ondjo-blue font-bold animate-pulse">
-                        A escrever...
-                      </span>
+                      <span className="text-ondjo-blue font-bold">A escrever...</span>
                     ) : activeChat.presence === "online" ? (
                       <span className="text-ondjo-green font-medium">Online agora</span>
                     ) : activeChat.presence === "away" ? (
@@ -1496,25 +1556,26 @@ export function ChatPage() {
                 </div>
               </div>
 
-              {/* Botões de Ação na Topbar */}
               <div className="flex items-center gap-1.5 shrink-0">
                 {activeProperty && (
-                  <button
+                  <Button
                     type="button"
+                    variant={propertyDrawerOpen ? "secondary" : "outline"}
+                    size="sm"
                     onClick={() => setPropertyDrawerOpen(!propertyDrawerOpen)}
-                    className="focus-ring inline-flex items-center gap-1 rounded-xl border border-ondjo-border bg-ondjo-bg px-2.5 py-1.5 text-xs font-semibold text-ondjo-navy hover:bg-ondjo-blue-soft/50 hover:text-ondjo-blue transition-colors"
+                    className="h-9 rounded-xl px-2.5 text-xs font-semibold"
                     title="Detalhes do imóvel associado"
                   >
                     <Info size={15} />
                     <span className="hidden sm:inline">Imóvel</span>
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
 
-            {/* Faixa / Card de Contexto do Imóvel no topo da conversa ativa */}
+            {/* Faixa de Contexto do Imóvel */}
             {activeProperty && (
-              <div className="shrink-0 flex items-center justify-between gap-3 border-b border-ondjo-border/60 bg-ondjo-bg/60 px-3.5 py-2 sm:px-5">
+              <div className="shrink-0 flex items-center justify-between gap-3 border-b border-ondjo-border/80 bg-slate-50 px-3.5 py-2 sm:px-5">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <img
                     src={activeProperty.images[0]}
@@ -1525,11 +1586,13 @@ export function ChatPage() {
                     <p className="truncate text-xs font-bold text-ondjo-navy">
                       {activeProperty.title}
                     </p>
-                    <p className="text-[11px] font-semibold text-ondjo-ink">
-                      {new Intl.NumberFormat("pt-AO").format(activeProperty.price)} Kz
+                    <p className="text-[11px] font-semibold text-ondjo-ink truncate">
+                      {formatKz(activeProperty.price, {
+                        perMonth: activeProperty.purpose === "arrendamento",
+                      })}
                       <span className="font-normal text-ondjo-muted">
                         {" "}
-                        / mês • {activeProperty.neighborhood}, {activeProperty.city}
+                        • {activeProperty.neighborhood}, {activeProperty.city}
                       </span>
                     </p>
                   </div>
@@ -1537,7 +1600,10 @@ export function ChatPage() {
 
                 <a
                   href={`#/imovel/${activeProperty.id}`}
-                  className="focus-ring shrink-0 inline-flex items-center gap-1 text-xs font-bold text-ondjo-blue hover:text-ondjo-blue-dark"
+                  className={cn(
+                    buttonVariants({ variant: "outline", size: "xs" }),
+                    "shrink-0 rounded-lg border-ondjo-border bg-white font-bold text-ondjo-blue",
+                  )}
                 >
                   <span>Anúncio</span>
                   <ExternalLink size={12} />
@@ -1548,19 +1614,21 @@ export function ChatPage() {
             {/* Histórico de Mensagens com scroll */}
             <div
               ref={messagesScrollRef}
-              className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain p-3 sm:p-5 lg:p-6 space-y-3.5 bg-linear-to-b from-ondjo-bg/25 to-ondjo-surface scrollbar-subtle"
+              className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain p-3.5 sm:p-5 lg:p-6 space-y-3 bg-slate-50/50 scrollbar-subtle"
             >
-              {/* Divisor do Histórico Seguro */}
-              <div className="relative my-2 flex items-center justify-center">
+              <div className="relative my-1.5 flex items-center justify-center">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-ondjo-border/70" />
                 </div>
-                <span className="relative rounded-full border border-ondjo-border bg-ondjo-surface px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ondjo-muted shadow-2xs">
+                <Badge
+                  variant="neutral"
+                  size="xs"
+                  className="relative border-ondjo-border bg-white px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ondjo-muted"
+                >
                   Canal seguro ONDJO Angola
-                </span>
+                </Badge>
               </div>
 
-              {/* Bolhas de Mensagem */}
               {activeChat.messages.map((message) => {
                 const isUser = message.sender === "user";
 
@@ -1570,19 +1638,17 @@ export function ChatPage() {
                     className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}
                   >
                     <div
-                      className={[
-                        "max-w-[88%] sm:max-w-[78%] rounded-2xl p-3 sm:p-3.5 shadow-2xs text-xs sm:text-sm leading-relaxed transition-all",
+                      className={cn(
+                        "max-w-[88%] sm:max-w-[78%] rounded-2xl p-3 sm:p-3.5 text-xs sm:text-sm leading-relaxed shadow-2xs",
                         isUser
                           ? "bg-ondjo-blue text-white rounded-br-xs"
-                          : "bg-ondjo-surface border border-ondjo-border text-ondjo-ink rounded-bl-xs",
-                      ].join(" ")}
+                          : "bg-white border border-ondjo-border text-ondjo-ink rounded-bl-xs",
+                      )}
                     >
-                      {/* Texto */}
                       <p className="whitespace-pre-line">{message.text}</p>
 
-                      {/* Card interativo de Proposta de Visita ao Imóvel */}
                       {message.visitProposal && (
-                        <div className="mt-3 rounded-xl border border-ondjo-blue/20 bg-ondjo-blue-soft/50 p-3 text-ondjo-navy">
+                        <div className="mt-3 rounded-xl border border-ondjo-border-accent bg-ondjo-blue-50 p-3 text-ondjo-navy">
                           <div className="flex items-center gap-2 text-xs font-bold text-ondjo-blue">
                             <CalendarDays size={16} />
                             <span>Proposta de Visita ao Imóvel</span>
@@ -1591,7 +1657,9 @@ export function ChatPage() {
                           <div className="mt-2 space-y-1 text-xs text-ondjo-ink">
                             <div className="flex items-center gap-1.5">
                               <Clock size={13} className="text-ondjo-muted shrink-0" />
-                              <span>{message.visitProposal.date} às {message.visitProposal.time}</span>
+                              <span>
+                                {message.visitProposal.date} às {message.visitProposal.time}
+                              </span>
                             </div>
                             <div className="flex items-center gap-1.5">
                               <MapPin size={13} className="text-ondjo-muted shrink-0" />
@@ -1599,8 +1667,7 @@ export function ChatPage() {
                             </div>
                           </div>
 
-                          {/* Ações da Proposta */}
-                          <div className="mt-3 pt-2.5 border-t border-ondjo-border/60 flex flex-wrap items-center gap-2">
+                          <div className="mt-3 pt-2.5 border-t border-ondjo-border/70 flex flex-wrap items-center gap-2">
                             {message.visitProposal.confirmed ? (
                               <div className="flex items-center gap-1.5 text-xs font-bold text-ondjo-green">
                                 <CalendarCheck size={15} />
@@ -1608,37 +1675,40 @@ export function ChatPage() {
                               </div>
                             ) : (
                               <>
-                                <button
+                                <Button
                                   type="button"
+                                  variant="primary"
+                                  size="xs"
                                   onClick={() => handleConfirmVisit(message.id)}
-                                  className="focus-ring inline-flex items-center gap-1 rounded-lg bg-ondjo-blue px-3 py-1.5 text-xs font-bold text-white hover:bg-ondjo-blue-dark transition-colors"
+                                  leftIcon={<Check size={13} />}
+                                  className="h-8 rounded-lg px-3 font-bold"
                                 >
-                                  <Check size={14} />
                                   Confirmar visita
-                                </button>
-                                <button
+                                </Button>
+                                <Button
                                   type="button"
+                                  variant="outline"
+                                  size="xs"
                                   onClick={() =>
                                     handleSendMessage(
-                                      "Gostaria de propor um horário alternativo para a visita. Seria possível no período da tarde?"
+                                      "Gostaria de propor um horário alternativo para a visita. Seria possível no período da tarde?",
                                     )
                                   }
-                                  className="focus-ring inline-flex items-center gap-1 rounded-lg border border-ondjo-border bg-ondjo-surface px-2.5 py-1.5 text-xs font-semibold text-ondjo-ink hover:bg-ondjo-bg transition-colors"
+                                  className="h-8 rounded-lg border-ondjo-border bg-white px-2.5 font-semibold text-ondjo-ink"
                                 >
                                   Propor outro horário
-                                </button>
+                                </Button>
                               </>
                             )}
                           </div>
                         </div>
                       )}
 
-                      {/* Metadados: Hora e Estado de Leitura */}
                       <div
-                        className={[
+                        className={cn(
                           "mt-1.5 flex items-center justify-end gap-1 text-[10px]",
                           isUser ? "text-white/80" : "text-ondjo-muted",
-                        ].join(" ")}
+                        )}
                       >
                         <span>{message.timestamp}</span>
                         {isUser && renderMessageStatusIcon(message.status)}
@@ -1648,7 +1718,6 @@ export function ChatPage() {
                 );
               })}
 
-              {/* Indicador de Digitação do Corretor */}
               <AnimatePresence>
                 {activeChat.isTyping && (
                   <m.div
@@ -1656,15 +1725,10 @@ export function ChatPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 4 }}
                     transition={{ duration: 0.12 }}
-                    className="flex items-center gap-2 rounded-2xl border border-ondjo-border bg-ondjo-surface px-3.5 py-2 shadow-2xs w-fit"
+                    className="flex items-center gap-2 rounded-2xl border border-ondjo-border bg-white px-3.5 py-2 shadow-2xs w-fit"
                   >
                     <span className="text-xs font-semibold text-ondjo-muted">
-                      {activeChat.contactName} está a escrever
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <span className="size-1.5 animate-bounce rounded-full bg-ondjo-blue" style={{ animationDelay: "0ms" }} />
-                      <span className="size-1.5 animate-bounce rounded-full bg-ondjo-blue" style={{ animationDelay: "150ms" }} />
-                      <span className="size-1.5 animate-bounce rounded-full bg-ondjo-blue" style={{ animationDelay: "300ms" }} />
+                      {activeChat.contactName} está a escrever...
                     </span>
                   </m.div>
                 )}
@@ -1673,28 +1737,30 @@ export function ChatPage() {
               <div className="h-px shrink-0" aria-hidden="true" />
             </div>
 
-            {/* Chips de Perguntas Rápidas */}
-            <div className="shrink-0 border-t border-ondjo-border/60 bg-ondjo-bg/30 px-3 py-2 sm:px-4">
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-subtle">
+            {/* Cápsulas de Perguntas Rápidas */}
+            <div className="shrink-0 border-t border-ondjo-border/80 bg-slate-50 px-3 py-2 sm:px-4">
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
                 <span className="shrink-0 text-[11px] font-bold text-ondjo-muted flex items-center gap-1 mr-1">
                   <Sparkles size={12} className="text-ondjo-blue" />
-                  Perguntas rápidas:
+                  Sugestões:
                 </span>
                 {QUICK_QUESTIONS.map((question, idx) => (
-                  <button
+                  <Button
                     key={idx}
                     type="button"
+                    variant="outline"
+                    size="xs"
                     onClick={() => handleSendMessage(question)}
-                    className="focus-ring shrink-0 rounded-full border border-ondjo-border bg-ondjo-surface px-3 py-1 text-xs font-medium text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue hover:bg-ondjo-blue-soft/30 transition-colors shadow-2xs"
+                    className="shrink-0 h-8 rounded-full border-ondjo-border bg-white px-3 text-xs font-semibold text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue hover:bg-ondjo-blue-50"
                   >
                     {question}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
 
             {/* Barra de Composição e Envio */}
-            <div className="shrink-0 border-t border-ondjo-border/80 p-2.5 sm:p-4 bg-ondjo-surface">
+            <div className="shrink-0 border-t border-ondjo-border p-2.5 sm:p-3.5 bg-white">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -1702,26 +1768,25 @@ export function ChatPage() {
                 }}
                 className="flex items-center gap-2"
               >
-                <div className="relative flex-1">
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
-                    placeholder={`Escreva uma mensagem para ${activeChat.contactName}...`}
-                    className="focus-ring w-full rounded-xl border border-ondjo-border bg-ondjo-bg px-3.5 py-2.5 sm:px-4 sm:py-2.5 text-xs sm:text-sm text-ondjo-ink placeholder:text-ondjo-muted"
-                  />
-                </div>
+                <Input
+                  ref={inputRef}
+                  type="text"
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  placeholder={`Escreva uma mensagem para ${activeChat.contactName}...`}
+                  className="h-11 flex-1 rounded-xl border-ondjo-border bg-slate-50 px-3.5 text-xs sm:text-sm"
+                />
 
-                <button
+                <Button
                   type="submit"
+                  variant="primary"
                   disabled={!inputText.trim()}
-                  className="focus-ring inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-xl bg-ondjo-blue px-4 text-xs sm:text-sm font-bold text-white shadow-xs transition-colors hover:bg-ondjo-blue-dark active:bg-ondjo-navy disabled:opacity-40 disabled:pointer-events-none"
+                  className="h-11 min-w-11 rounded-xl px-4 text-xs sm:text-sm font-bold"
                   aria-label="Enviar mensagem"
                 >
                   <Send size={16} />
                   <span className="hidden sm:inline">Enviar</span>
-                </button>
+                </Button>
               </form>
             </div>
           </main>
@@ -1732,25 +1797,25 @@ export function ChatPage() {
           {activeProperty && propertyDrawerOpen && (
             <aside
               aria-label="Ficha do imóvel em negociação"
-              className="hidden lg:block border-l border-ondjo-border/80 bg-ondjo-bg/40 p-4 lg:col-span-3 xl:col-span-3 overflow-y-auto scrollbar-subtle"
+              className="hidden lg:block border-l border-ondjo-border bg-slate-50/70 p-4 lg:col-span-3 xl:col-span-3 overflow-y-auto scrollbar-subtle"
             >
-              <div className="ondjo-border-surface rounded-2xl bg-ondjo-surface p-4 shadow-xs">
-                <div className="flex items-center justify-between pb-3 border-b border-ondjo-border/60">
+              <div className="rounded-2xl border border-ondjo-border bg-white p-4 shadow-2xs">
+                <div className="flex items-center justify-between pb-3 border-b border-ondjo-border/70">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-ondjo-navy">
                     Imóvel em negociação
                   </h3>
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="icon-xs"
                     onClick={() => setPropertyDrawerOpen(false)}
-                    className="focus-ring text-ondjo-muted hover:text-ondjo-ink p-1 rounded-lg cursor-pointer"
                     aria-label="Fechar painel do imóvel"
                   >
                     <X size={15} />
-                  </button>
+                  </Button>
                 </div>
 
-                {/* Imagem */}
-                <div className="ondjo-border-hairline mt-3 overflow-hidden rounded-xl">
+                <div className="mt-3 overflow-hidden rounded-xl border border-ondjo-border/80">
                   <img
                     src={activeProperty.images[0]}
                     alt={activeProperty.title}
@@ -1758,23 +1823,24 @@ export function ChatPage() {
                   />
                 </div>
 
-                {/* Preço e Localização */}
                 <div className="mt-3">
                   <p className="text-lg font-black text-ondjo-navy">
-                    {new Intl.NumberFormat("pt-AO").format(activeProperty.price)} Kz
-                    <span className="text-xs font-normal text-ondjo-muted"> / mês</span>
+                    {formatKz(activeProperty.price, {
+                      perMonth: activeProperty.purpose === "arrendamento",
+                    })}
                   </p>
                   <h4 className="mt-1 text-sm font-bold text-ondjo-ink line-clamp-2">
                     {activeProperty.title}
                   </h4>
                   <p className="mt-1 flex items-center gap-1 text-xs text-ondjo-muted">
                     <MapPin size={13} className="shrink-0 text-ondjo-blue" />
-                    <span>{activeProperty.neighborhood}, {activeProperty.city}</span>
+                    <span>
+                      {activeProperty.neighborhood}, {activeProperty.city}
+                    </span>
                   </p>
                 </div>
 
-                {/* Especificações */}
-                <div className="ondjo-border-hairline mt-4 grid grid-cols-2 gap-2 rounded-xl bg-ondjo-bg p-3 text-xs">
+                <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl border border-ondjo-border/80 bg-slate-50 p-3 text-xs">
                   <div>
                     <span className="text-ondjo-muted block text-[10px] uppercase font-bold">Tipo</span>
                     <span className="font-bold text-ondjo-navy">{activeProperty.type}</span>
@@ -1793,25 +1859,26 @@ export function ChatPage() {
                   </div>
                 </div>
 
-                {/* Comodidades */}
                 <div className="mt-4">
                   <p className="text-xs font-bold text-ondjo-navy mb-2">
                     Comodidades do condomínio
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {activeProperty.features.map((feat) => (
-                      <Badge key={feat} variant="outline" className="ondjo-border-hairline bg-ondjo-bg text-[11px]">
+                      <Badge key={feat} variant="neutral" size="xs">
                         {feat}
                       </Badge>
                     ))}
                   </div>
                 </div>
 
-                {/* Link Externo */}
-                <div className="mt-5 pt-3 border-t border-ondjo-border/60">
+                <div className="mt-5 pt-3 border-t border-ondjo-border/70">
                   <a
                     href={`#/imovel/${activeProperty.id}`}
-                    className="focus-ring flex w-full items-center justify-center gap-2 rounded-xl bg-ondjo-blue px-3 py-2.5 text-xs font-bold text-white hover:bg-ondjo-blue-dark transition-colors shadow-xs"
+                    className={cn(
+                      buttonVariants({ variant: "primary", size: "default" }),
+                      "w-full rounded-xl text-xs font-bold",
+                    )}
                   >
                     <span>Ver anúncio completo</span>
                     <ExternalLink size={14} />
@@ -1843,28 +1910,31 @@ export function ChatPage() {
                 </div>
               </SheetHeader>
 
-              <Separator className="bg-ondjo-border-hairline" />
+              <Separator className="bg-ondjo-border" />
 
               <div className="overflow-y-auto p-5">
                 <img
                   src={activeProperty.images[0]}
                   alt={activeProperty.title}
-                  className="ondjo-border-hairline aspect-video w-full rounded-2xl object-cover"
+                  className="aspect-video w-full rounded-2xl border border-ondjo-border object-cover"
                 />
 
                 <div className="mt-3">
                   <p className="text-lg font-black text-ondjo-navy">
-                    {new Intl.NumberFormat("pt-AO").format(activeProperty.price)} Kz
-                    <span className="text-xs font-normal text-ondjo-muted"> / mês</span>
+                    {formatKz(activeProperty.price, {
+                      perMonth: activeProperty.purpose === "arrendamento",
+                    })}
                   </p>
                   <h4 className="text-sm font-bold text-ondjo-ink">{activeProperty.title}</h4>
                   <p className="mt-1 flex items-center gap-1 text-xs text-ondjo-muted">
                     <MapPin size={13} className="text-ondjo-blue shrink-0" />
-                    <span>{activeProperty.neighborhood}, {activeProperty.city}</span>
+                    <span>
+                      {activeProperty.neighborhood}, {activeProperty.city}
+                    </span>
                   </p>
                 </div>
 
-                <div className="ondjo-border-hairline mt-4 grid grid-cols-2 gap-2 rounded-xl bg-ondjo-bg p-3 text-xs">
+                <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl border border-ondjo-border bg-slate-50 p-3 text-xs">
                   <div>
                     <span className="text-ondjo-muted block text-[10px] uppercase font-bold">Tipo</span>
                     <span className="font-bold text-ondjo-navy">{activeProperty.type}</span>
@@ -1886,7 +1956,10 @@ export function ChatPage() {
                 <div className="mt-5">
                   <a
                     href={`#/imovel/${activeProperty.id}`}
-                    className="focus-ring flex w-full items-center justify-center gap-2 rounded-xl bg-ondjo-blue py-3 text-sm font-bold text-white shadow-xs hover:bg-ondjo-blue-dark"
+                    className={cn(
+                      buttonVariants({ variant: "primary", size: "md" }),
+                      "w-full rounded-xl text-sm font-bold",
+                    )}
                   >
                     <span>Ver anúncio completo</span>
                     <ExternalLink size={16} />

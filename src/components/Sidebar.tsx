@@ -162,7 +162,7 @@ export default function Sidebar({
         <div
           role="presentation"
           onClick={() => setMobileOpen(false)}
-          className="fixed inset-0 z-50 bg-ondjo-navy/60 backdrop-blur-xs transition-opacity lg:hidden"
+          className="fixed inset-0 z-50 bg-ondjo-navy/50 transition-opacity lg:hidden"
           aria-hidden="true"
         />
       )}
@@ -171,7 +171,7 @@ export default function Sidebar({
       <aside
         aria-label="Navegação lateral ONDJO"
         className={[
-          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-ondjo-border/80 bg-white shadow-xs",
+          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-ondjo-border bg-white shadow-xs",
           "transition-transform duration-150 ease-out lg:transition-none motion-reduce:transition-none",
           expanded ? "lg:w-64" : "lg:w-20",
           "w-72 max-w-[85vw]",
@@ -183,7 +183,7 @@ export default function Sidebar({
         {/* Topo: Logótipo & Ícone de Expandir no Hover (Compacto) ou Fechar (Mobile) */}
         <div
           className={[
-            "flex h-16 sm:h-20 shrink-0 items-center border-b border-ondjo-border/60 px-3",
+            "flex h-14 lg:h-16 shrink-0 items-center border-b border-ondjo-border/80 px-3",
             sidebarExpanded ? "justify-between px-4" : "justify-center",
           ].join(" ")}
         >

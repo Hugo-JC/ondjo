@@ -8,6 +8,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { m, useReducedMotion } from "framer-motion";
+import { Badge } from "./ui";
 
 interface Pillar {
   icon: LucideIcon;
@@ -85,27 +86,16 @@ export function TrustStrip() {
       aria-labelledby="trust-strip-title"
       className="relative overflow-hidden rounded-3xl sm:rounded-[28px] border border-ondjo-border bg-white p-5 shadow-[0_16px_50px_rgba(16,24,40,0.05)] sm:p-8 lg:p-10"
     >
-      {/* Detalhe de fundo subtil */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-24 -top-24 size-80 rounded-full bg-blue-50/70 blur-3xl"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -bottom-24 -left-24 size-80 rounded-full bg-emerald-50/60 blur-3xl"
-      />
-
       {/* Cabeçalho da secção */}
       <div className="relative flex flex-col justify-between gap-4 border-b border-slate-100 pb-6 sm:flex-row sm:items-end sm:pb-8">
         <div className="max-w-2xl">
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-200/80 bg-blue-50/80 px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-ondjo-blue">
-            <Sparkles
-              size={15}
-              className="text-ondjo-blue"
-              aria-hidden="true"
-            />
+          <Badge
+            variant="info"
+            icon={<Sparkles size={13} aria-hidden="true" />}
+            className="uppercase tracking-wider font-extrabold"
+          >
             Porquê escolher a ONDJO
-          </div>
+          </Badge>
 
           <h2
             id="trust-strip-title"
@@ -170,11 +160,18 @@ export function TrustStrip() {
                     <Icon size={20} strokeWidth={2} />
                   </span>
 
-                  <span
-                    className={`rounded-full border px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide ${style.badge}`}
+                  <Badge
+                    variant={
+                      pillar.accent === "green"
+                        ? "verified"
+                        : pillar.accent === "blue"
+                          ? "info"
+                          : "secondary"
+                    }
+                    className="px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide"
                   >
                     {pillar.badge}
-                  </span>
+                  </Badge>
                 </div>
 
                 <h3 className="mt-3.5 text-base font-black tracking-tight text-ondjo-ink">
