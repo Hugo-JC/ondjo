@@ -61,10 +61,10 @@ function getFeatureIcon(featureName: string) {
     lower.includes("luz") ||
     lower.includes("pt")
   ) {
-    return <Zap className="size-4.5 text-amber-500" aria-hidden="true" />;
+    return <Zap size={16} className="text-amber-500" aria-hidden="true" />;
   }
   if (lower.includes("piscina")) {
-    return <Waves className="size-4.5 text-cyan-600" aria-hidden="true" />;
+    return <Waves size={16} className="text-cyan-600" aria-hidden="true" />;
   }
   if (
     lower.includes("água") ||
@@ -73,7 +73,7 @@ function getFeatureIcon(featureName: string) {
     lower.includes("electrobomba") ||
     lower.includes("cisterna")
   ) {
-    return <Droplets className="size-4.5 text-sky-500" aria-hidden="true" />;
+    return <Droplets size={16} className="text-sky-500" aria-hidden="true" />;
   }
   if (
     lower.includes("ar condicionado") ||
@@ -82,17 +82,17 @@ function getFeatureIcon(featureName: string) {
     lower.includes("climatiz") ||
     lower.includes("split")
   ) {
-    return <Wind className="size-4.5 text-teal-600" aria-hidden="true" />;
+    return <Wind size={16} className="text-teal-600" aria-hidden="true" />;
   }
   if (lower.includes("cozinha")) {
-    return <UtensilsCrossed className="size-4.5 text-orange-500" aria-hidden="true" />;
+    return <UtensilsCrossed size={16} className="text-orange-500" aria-hidden="true" />;
   }
   if (
     lower.includes("lavar") ||
     lower.includes("máquina") ||
     lower.includes("lavandaria")
   ) {
-    return <Shirt className="size-4.5 text-blue-500" aria-hidden="true" />;
+    return <Shirt size={16} className="text-blue-500" aria-hidden="true" />;
   }
   if (
     lower.includes("segurança") ||
@@ -103,7 +103,7 @@ function getFeatureIcon(featureName: string) {
     lower.includes("cctv") ||
     lower.includes("vigilância")
   ) {
-    return <ShieldCheck className="size-4.5 text-emerald-600" aria-hidden="true" />;
+    return <ShieldCheck size={16} className="text-emerald-600" aria-hidden="true" />;
   }
   if (
     lower.includes("garagem") ||
@@ -111,7 +111,7 @@ function getFeatureIcon(featureName: string) {
     lower.includes("vaga") ||
     lower.includes("parqueamento")
   ) {
-    return <CarFront className="size-4.5 text-blue-600" aria-hidden="true" />;
+    return <CarFront size={16} className="text-blue-600" aria-hidden="true" />;
   }
   if (
     lower.includes("wi-fi") ||
@@ -119,35 +119,35 @@ function getFeatureIcon(featureName: string) {
     lower.includes("internet") ||
     lower.includes("fibra")
   ) {
-    return <Wifi className="size-4.5 text-indigo-600" aria-hidden="true" />;
+    return <Wifi size={16} className="text-indigo-600" aria-hidden="true" />;
   }
   if (lower.includes("varanda") || lower.includes("terraço")) {
-    return <Maximize2 className="size-4.5 text-rose-500" aria-hidden="true" />;
+    return <Maximize2 size={16} className="text-rose-500" aria-hidden="true" />;
   }
   if (
     lower.includes("mobil") ||
     lower.includes("mobiliado") ||
     lower.includes("mobilado")
   ) {
-    return <Armchair className="size-4.5 text-amber-700" aria-hidden="true" />;
+    return <Armchair size={16} className="text-amber-700" aria-hidden="true" />;
   }
   if (lower.includes("elevador")) {
-    return <ArrowUpDown className="size-4.5 text-slate-600" aria-hidden="true" />;
+    return <ArrowUpDown size={16} className="text-slate-600" aria-hidden="true" />;
   }
   if (
     lower.includes("ginásio") ||
     lower.includes("ginasio") ||
     lower.includes("fitness")
   ) {
-    return <Dumbbell className="size-4.5 text-red-500" aria-hidden="true" />;
+    return <Dumbbell size={16} className="text-red-500" aria-hidden="true" />;
   }
   if (lower.includes("quintal") || lower.includes("jardim")) {
-    return <Trees className="size-4.5 text-emerald-600" aria-hidden="true" />;
+    return <Trees size={16} className="text-emerald-600" aria-hidden="true" />;
   }
   if (lower.includes("gás") || lower.includes("fogão") || lower.includes("aquec")) {
-    return <Flame className="size-4.5 text-orange-500" aria-hidden="true" />;
+    return <Flame size={16} className="text-orange-500" aria-hidden="true" />;
   }
-  return <Check className="size-4.5 text-ondjo-green" aria-hidden="true" />;
+  return <Check size={16} className="text-ondjo-green" aria-hidden="true" />;
 }
 
 
@@ -178,7 +178,7 @@ function SafeGalleryImage({
     >
       {!loaded && !error && (
         <div
-          className="absolute inset-0 z-10 animate-pulse bg-slate-200/90"
+          className="absolute inset-0 z-10 ondjo-skeleton"
           aria-hidden="true"
         />
       )}
@@ -803,42 +803,46 @@ export function PropertyPage({ id }: { id: string }) {
               </div>
             </section>
 
-            {/* 3. O que este imóvel oferece (Comodidades em 2 colunas com ícones locais) */}
+            {/* 3. O que este imóvel oferece (Comodidades compactas e responsivas) */}
             <section
               aria-labelledby="section-amenities-title"
-              className="rounded-3xl border border-ondjo-border/80 bg-white p-6 sm:p-7 shadow-2xs"
+              className="rounded-3xl border border-ondjo-border/80 bg-white p-5 sm:p-6 shadow-2xs"
             >
-              <h2
-                id="section-amenities-title"
-                className="text-lg sm:text-xl font-black text-ondjo-navy"
-              >
-                O que este imóvel oferece
-              </h2>
-              <p className="mt-1 text-xs text-ondjo-muted">
-                Comodidades essenciais e infraestrutura confirmada para Luanda.
-              </p>
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <div>
+                  <h2
+                    id="section-amenities-title"
+                    className="text-lg sm:text-xl font-black text-ondjo-navy"
+                  >
+                    O que este imóvel oferece
+                  </h2>
+                  <p className="mt-0.5 text-xs text-ondjo-muted">
+                    Infraestrutura e comodidades confirmadas para Luanda
+                  </p>
+                </div>
+              </div>
 
-              <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-2.5">
                 {property.features.map((feature) => (
                   <div
                     key={feature}
-                    className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/60 p-3.5 text-sm font-semibold text-ondjo-ink"
+                    className="flex items-center gap-2.5 rounded-xl border border-slate-200/75 bg-slate-50/70 px-3 py-2.5 text-xs sm:text-[13px] font-semibold text-ondjo-ink"
                   >
-                    <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white shadow-2xs border border-slate-100">
-                      {getFeatureIcon(feature)}
-                    </span>
-                    <span>{feature}</span>
+                    <span className="shrink-0">{getFeatureIcon(feature)}</span>
+                    <span className="leading-snug">{feature}</span>
                   </div>
                 ))}
 
                 {property.parking > 0 && (
-                  <div className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/60 p-3.5 text-sm font-semibold text-ondjo-ink">
-                    <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white shadow-2xs border border-slate-100">
-                      <CarFront className="size-4.5 text-blue-600" aria-hidden="true" />
-                    </span>
-                    <span>
+                  <div className="flex items-center gap-2.5 rounded-xl border border-slate-200/75 bg-slate-50/70 px-3 py-2.5 text-xs sm:text-[13px] font-semibold text-ondjo-ink">
+                    <CarFront
+                      size={16}
+                      className="shrink-0 text-blue-600"
+                      aria-hidden="true"
+                    />
+                    <span className="leading-snug">
                       {property.parking}{" "}
-                      {property.parking === 1 ? "vaga reservada" : "vagas reservadas"} de estacionamento
+                      {property.parking === 1 ? "vaga privativa" : "vagas privativas"}
                     </span>
                   </div>
                 )}

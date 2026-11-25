@@ -30,6 +30,12 @@ import {
   ORIGIN_OPTIONS,
   PriceDualRangeSlider,
 } from "../components/SearchBar";
+import {
+  AmenitiesSelector,
+  OriginSelector,
+  formatCompactKz,
+  type SearchOrigin,
+} from "../components/FilterControls";
 import { navigate } from "../hooks/useHashRoute";
 import { useFavorites } from "../hooks/useFavorites";
 import { useSavedSearches } from "../hooks/useSavedSearches";
@@ -223,11 +229,17 @@ export function SearchPage() {
       });
     }
     if (filters.minPrice || filters.maxPrice) {
-      const minText = filters.minPrice ? `≥ ${formatKz(Number(filters.minPrice))}` : "";
-      const maxText = filters.maxPrice ? `≤ ${formatKz(Number(filters.maxPrice))}` : "";
+      const minNum = filters.minPrice ? Number(filters.minPrice) : 0;
+      const maxNum = filters.maxPrice ? Number(filters.maxPrice) : 0;
+      const label =
+        minNum > 0 && maxNum > 0
+          ? `${formatCompactKz(minNum).replace(" Kz", "")} – ${formatCompactKz(maxNum)}`
+          : minNum > 0
+            ? `Desde ${formatCompactKz(minNum)}`
+            : `Até ${formatCompactKz(maxNum)}`;
       list.push({
         id: "price",
-        label: [minText, maxText].filter(Boolean).join(" · "),
+        label,
         onRemove: () => {
           const next = { ...filters, minPrice: "", maxPrice: "" };
           handleFilterChange(next);
@@ -259,9 +271,12 @@ export function SearchPage() {
 
     if (filters.amenities && filters.amenities.length > 0) {
       filters.amenities.forEach((amenity) => {
+        const matched = AMENITY_OPTIONS.find(
+          (opt) => opt.id === amenity || opt.label === amenity,
+        );
         list.push({
           id: `amenity-${amenity}`,
-          label: amenity,
+          label: matched ? matched.shortLabel || matched.label : amenity,
           onRemove: () => {
             const next = {
               ...filters,
@@ -470,7 +485,13 @@ export function SearchPage() {
                 aria-haspopup="true"
               >
                 <span>
-                  {filters.minPrice || filters.maxPrice ? "Preço definido" : "Preço"}
+                  {filters.minPrice && filters.maxPrice
+                    ? `${formatCompactKz(Number(filters.minPrice)).replace(" Kz", "")} – ${formatCompactKz(Number(filters.maxPrice))}`
+                    : filters.minPrice
+                      ? `Desde ${formatCompactKz(Number(filters.minPrice))}`
+                      : filters.maxPrice
+                        ? `Até ${formatCompactKz(Number(filters.maxPrice))}`
+                        : "Preço"}
                 </span>
                 <ChevronDown
                   size={14}
@@ -482,25 +503,7 @@ export function SearchPage() {
 
               {/* Popover de Preço com Dual Range Slider & Presets */}
               {activePopover === "price" && (
-                <div className="absolute left-0 top-full mt-2 z-60 w-80 sm:w-96 rounded-2xl shadow-2xl border border-slate-100 bg-white p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-black uppercase tracking-wider text-ondjo-navy">
-                      Faixa de Preço (Kz)
-                    </span>
-                    {(filters.minPrice || filters.maxPrice) && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const next = { ...filters, minPrice: "", maxPrice: "" };
-                          handleFilterChange(next);
-                        }}
-                        className="text-[11px] font-bold text-ondjo-blue hover:underline cursor-pointer"
-                      >
-                        Redefinir
-                      </button>
-                    )}
-                  </div>
-
+                <div className="absolute left-0 top-full mt-2 z-60 w-[22rem] sm:w-[25rem] max-w-[92vw] rounded-3xl shadow-2xl border border-slate-200/70 bg-white p-5">
                   <PriceDualRangeSlider
                     purpose={filters.purpose}
                     minPrice={filters.minPrice}
@@ -872,23 +875,26 @@ export function SearchPage() {
                 >
                   {/* Pega no mobile */}
                   <div className="pt-3 pb-1 flex justify-center shrink-0 lg:hidden">
-                    <div className="h-1.5 w-12 rounded-full bg-slate-300" />
+                    <div className="h-1 w-10 rounded-full bg-slate-300" />
                   </div>
 
                   {/* Topo: Título + Botão Fechar */}
-                  <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 shrink-0">
+                  <div className="flex items-center justify-between border-b border-slate-100 px-5 sm:px-6 py-3.5 shrink-0">
                     <div>
-                      <h2 className="text-base sm:text-lg font-black text-ondjo-navy">
-                        Filtros de Pesquisa
+                      <h2 className="text-base font-bold tracking-tight text-ondjo-navy">
+                        Filtrar pesquisa
                       </h2>
-                      <p className="text-xs text-ondjo-muted">
-                        Personalize a sua procura de imóveis em Angola
+                      <p className="text-xs text-ondjo-muted tabular-nums">
+                        {results.length}{" "}
+                        {results.length === 1
+                          ? "imóvel disponível"
+                          : "imóveis disponíveis"}
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => setMobileModalOpen(false)}
-                      className="focus-ring grid size-9.5 place-items-center rounded-full bg-slate-100/80 text-slate-600 hover:bg-slate-200/80 active:scale-95 transition-colors cursor-pointer"
+                      className="focus-ring grid size-9.5 place-items-center rounded-full bg-slate-100 text-ondjo-ink hover:bg-slate-200 active:scale-95 transition-colors cursor-pointer"
                       aria-label="Fechar filtros (Esc)"
                     >
                       <X size={18} />
@@ -896,17 +902,22 @@ export function SearchPage() {
                   </div>
 
                   {/* Corpo Rolável */}
-                  <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6 overscroll-contain">
+                  <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-5 space-y-6 overscroll-contain">
                     {/* 1. Modalidade */}
                     <div>
-                      <span className="block text-xs font-bold text-ondjo-ink uppercase tracking-wider mb-2">
-                        Finalidade
+                      <span className="block text-xs font-bold text-ondjo-navy mb-2">
+                        Modalidade
                       </span>
-                      <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-slate-100/90">
+                      <div
+                        role="group"
+                        aria-label="Modalidade do imóvel"
+                        className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1"
+                      >
                         <button
                           type="button"
+                          aria-pressed={!isArrendamento}
                           onClick={() => setFilterField("purpose", "comprar")}
-                          className={`min-h-10 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          className={`focus-ring flex min-h-10 items-center justify-center rounded-lg text-xs font-bold transition-colors duration-150 cursor-pointer ${
                             !isArrendamento
                               ? "bg-white text-ondjo-navy shadow-xs"
                               : "text-ondjo-muted hover:text-ondjo-ink"
@@ -916,8 +927,9 @@ export function SearchPage() {
                         </button>
                         <button
                           type="button"
+                          aria-pressed={isArrendamento}
                           onClick={() => setFilterField("purpose", "arrendar")}
-                          className={`min-h-10 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          className={`focus-ring flex min-h-10 items-center justify-center rounded-lg text-xs font-bold transition-colors duration-150 cursor-pointer ${
                             isArrendamento
                               ? "bg-white text-ondjo-navy shadow-xs"
                               : "text-ondjo-muted hover:text-ondjo-ink"
@@ -929,48 +941,62 @@ export function SearchPage() {
                     </div>
 
                     {/* 2. Localização & Bairros Populares */}
-                    <div>
+                    <div className="border-t border-slate-100 pt-5">
                       <label className="block">
-                        <span className="block text-xs font-bold text-ondjo-ink uppercase tracking-wider mb-2">
+                        <span className="block text-xs font-bold text-ondjo-navy mb-2">
                           Localização em Luanda
                         </span>
-                        <div className="relative">
+                        <div className="relative flex items-center">
                           <MapPin
                             size={16}
-                            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                            className="pointer-events-none absolute left-3.5 text-slate-400"
                           />
                           <input
                             value={filters.location}
                             onChange={(e) => setFilterField("location", e.target.value)}
                             placeholder="Ex.: Talatona, Maianga, Kilamba..."
-                            className="h-11 w-full rounded-2xl bg-slate-100/80 pl-10 pr-3 text-sm font-semibold text-ondjo-ink outline-none transition-all focus:bg-white focus:ring-2 focus:ring-ondjo-blue/20"
+                            className="filter-input pl-10 pr-9"
                           />
+                          {filters.location && (
+                            <button
+                              type="button"
+                              onClick={() => setFilterField("location", "")}
+                              aria-label="Limpar localização"
+                              className="absolute right-2.5 p-1 rounded-full text-slate-400 hover:text-ondjo-ink cursor-pointer"
+                            >
+                              <X size={15} />
+                            </button>
+                          )}
                         </div>
                       </label>
 
-                      {/* Chips rápidos de bairros */}
                       <div className="mt-2.5 flex flex-wrap gap-1.5">
-                        {POPULAR_NEIGHBORHOODS.map((neigh) => (
-                          <button
-                            key={neigh}
-                            type="button"
-                            onClick={() => setFilterField("location", neigh)}
-                            className={`rounded-full px-3.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
-                              filters.location === neigh
-                                ? "bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
-                                : "bg-slate-100/80 text-slate-600 hover:bg-slate-200/70"
-                            }`}
-                          >
-                            {neigh}
-                          </button>
-                        ))}
+                        {POPULAR_NEIGHBORHOODS.map((neigh) => {
+                          const isSel = filters.location === neigh;
+                          return (
+                            <button
+                              key={neigh}
+                              type="button"
+                              onClick={() =>
+                                setFilterField("location", isSel ? "" : neigh)
+                              }
+                              className={`focus-ring min-h-8.5 rounded-full border px-3 py-1 text-xs font-semibold transition-colors duration-150 cursor-pointer ${
+                                isSel
+                                  ? "border-ondjo-navy bg-ondjo-navy text-white"
+                                  : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50"
+                              }`}
+                            >
+                              {neigh}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
 
                     {/* 3. Tipo de Imóvel */}
-                    <div>
-                      <span className="block text-xs font-bold text-ondjo-ink uppercase tracking-wider mb-2">
-                        Tipo de Imóvel
+                    <div className="border-t border-slate-100 pt-5">
+                      <span className="block text-xs font-bold text-ondjo-navy mb-2">
+                        Tipo de imóvel
                       </span>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         {PROPERTY_TYPES.map((pt) => {
@@ -979,11 +1005,12 @@ export function SearchPage() {
                             <button
                               key={pt.value}
                               type="button"
+                              aria-pressed={isSelected}
                               onClick={() => setFilterField("type", pt.value)}
-                              className={`min-h-10 rounded-xl px-3 text-xs font-semibold transition-all cursor-pointer text-center ${
+                              className={`focus-ring flex min-h-10.5 items-center justify-center rounded-xl border px-3 py-2 text-xs font-semibold transition-colors duration-150 cursor-pointer ${
                                 isSelected
-                                  ? "bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
-                                  : "bg-slate-100/80 text-slate-700 hover:bg-slate-200/60"
+                                  ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold ring-1 ring-ondjo-blue/20"
+                                  : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50"
                               }`}
                             >
                               {pt.label}
@@ -993,148 +1020,119 @@ export function SearchPage() {
                       </div>
                     </div>
 
-                    {/* 4. Tipologia (Quartos) */}
-                    <div>
-                      <span className="block text-xs font-bold text-ondjo-ink uppercase tracking-wider mb-2">
-                        Quartos (Tipologia)
+                    {/* 4. Origem do Anúncio (Unificada e Simples) */}
+                    <div className="border-t border-slate-100 pt-5">
+                      <span className="block text-xs font-bold text-ondjo-navy mb-2">
+                        Origem do anúncio
                       </span>
-                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                        {BEDROOM_OPTIONS.map((bed) => {
-                          const isSelected = filters.bedrooms === bed.value;
-                          return (
-                            <button
-                              key={bed.value}
-                              type="button"
-                              onClick={() => setFilterField("bedrooms", bed.value)}
-                              className={`min-h-10 rounded-xl px-2 text-xs font-semibold transition-all cursor-pointer ${
-                                isSelected
-                                  ? "bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
-                                  : "bg-slate-100/80 text-slate-700 hover:bg-slate-200/60"
-                              }`}
-                            >
-                              {bed.label}
-                            </button>
-                          );
-                        })}
-                      </div>
+                      <OriginSelector
+                        value={filters.origin || "todos"}
+                        onChange={(orig: SearchOrigin) => setFilterField("origin", orig)}
+                      />
                     </div>
 
-                    {/* 5. Faixa de Preço (Dual Range Slider integrado) */}
-                    <div>
-                      <span className="block text-xs font-bold text-ondjo-ink uppercase tracking-wider mb-2">
-                        Faixa de Preço (Kz)
-                      </span>
-                      <div className="rounded-2xl bg-slate-50/80 p-3.5">
-                        <PriceDualRangeSlider
-                          purpose={filters.purpose}
-                          minPrice={filters.minPrice}
-                          maxPrice={filters.maxPrice}
-                          onChangeMin={(val) => setFilterField("minPrice", val)}
-                          onChangeMax={(val) => setFilterField("maxPrice", val)}
-                        />
-                      </div>
+                    {/* 5. Preço em Kwanzas (Kz) */}
+                    <div className="border-t border-slate-100 pt-5">
+                      <PriceDualRangeSlider
+                        purpose={filters.purpose}
+                        minPrice={filters.minPrice}
+                        maxPrice={filters.maxPrice}
+                        onChangeMin={(val) => setFilterField("minPrice", val)}
+                        onChangeMax={(val) => setFilterField("maxPrice", val)}
+                      />
                     </div>
 
-                    {/* 6. Casas de Banho & Estacionamento */}
-                    <div className="grid grid-cols-2 gap-4">
+                    {/* 6. Quartos, Casas de Banho & Estacionamento */}
+                    <div className="border-t border-slate-100 pt-5 space-y-4">
                       <div>
-                        <span className="block text-xs font-bold text-ondjo-ink uppercase tracking-wider mb-2">
-                          Casas de Banho
+                        <span className="block text-xs font-bold text-ondjo-navy mb-2">
+                          Quartos (Tipologia)
                         </span>
-                        <div className="flex gap-1.5">
-                          {["", "1", "2", "3"].map((val) => {
-                            const isSelected = filters.bathrooms === val;
+                        <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
+                          {BEDROOM_OPTIONS.map((bed) => {
+                            const isSelected = filters.bedrooms === bed.value;
                             return (
                               <button
-                                key={val}
+                                key={bed.value}
                                 type="button"
-                                onClick={() => setFilterField("bathrooms", val)}
-                                className={`flex-1 min-h-10 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                                aria-pressed={isSelected}
+                                onClick={() => setFilterField("bedrooms", bed.value)}
+                                className={`focus-ring min-h-10 rounded-xl border px-2 text-xs font-semibold transition-colors duration-150 cursor-pointer ${
                                   isSelected
-                                    ? "bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
-                                    : "bg-slate-100/80 text-slate-700 hover:bg-slate-200/60"
+                                    ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold ring-1 ring-ondjo-blue/20"
+                                    : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50"
                                 }`}
                               >
-                                {val ? `${val}+` : "Todas"}
+                                {bed.label}
                               </button>
                             );
                           })}
                         </div>
                       </div>
 
-                      <div>
-                        <span className="block text-xs font-bold text-ondjo-ink uppercase tracking-wider mb-2">
-                          Estacionamento
-                        </span>
-                        <div className="flex gap-1.5">
-                          {["", "1", "2"].map((val) => {
-                            const isSelected = filters.parking === val;
-                            return (
-                              <button
-                                key={val}
-                                type="button"
-                                onClick={() => setFilterField("parking", val)}
-                                className={`flex-1 min-h-10 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                                  isSelected
-                                    ? "bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
-                                    : "bg-slate-100/80 text-slate-700 hover:bg-slate-200/60"
-                                }`}
-                              >
-                                {val ? `${val}+` : "Todas"}
-                              </button>
-                            );
-                          })}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <span className="block text-xs font-bold text-ondjo-navy mb-2">
+                            Casas de banho
+                          </span>
+                          <div className="grid grid-cols-4 gap-1.5">
+                            {["", "1", "2", "3"].map((val) => {
+                              const isSelected = filters.bathrooms === val;
+                              return (
+                                <button
+                                  key={val}
+                                  type="button"
+                                  aria-pressed={isSelected}
+                                  onClick={() => setFilterField("bathrooms", val)}
+                                  className={`focus-ring min-h-10 rounded-xl border text-xs font-semibold transition-colors duration-150 cursor-pointer ${
+                                    isSelected
+                                      ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold ring-1 ring-ondjo-blue/20"
+                                      : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50"
+                                  }`}
+                                >
+                                  {val ? `${val}+` : "Todas"}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        <div>
+                          <span className="block text-xs font-bold text-ondjo-navy mb-2">
+                            Estacionamento
+                          </span>
+                          <div className="grid grid-cols-3 gap-1.5">
+                            {["", "1", "2"].map((val) => {
+                              const isSelected = filters.parking === val;
+                              return (
+                                <button
+                                  key={val}
+                                  type="button"
+                                  aria-pressed={isSelected}
+                                  onClick={() => setFilterField("parking", val)}
+                                  className={`focus-ring min-h-10 rounded-xl border text-xs font-semibold transition-colors duration-150 cursor-pointer ${
+                                    isSelected
+                                      ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold ring-1 ring-ondjo-blue/20"
+                                      : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50"
+                                  }`}
+                                >
+                                  {val ? `${val}+` : "Todas"}
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* 7. Origem / Verificação */}
-                    <div>
-                      <span className="block text-xs font-bold text-ondjo-ink uppercase tracking-wider mb-2">
-                        Origem & Auditoria
-                      </span>
-                      <div className="grid grid-cols-2 gap-2">
-                        {ORIGIN_OPTIONS.map((orig) => {
-                          const isSel = (filters.origin || "todos") === orig.id;
-                          const Icon = orig.icon;
-                          return (
-                            <button
-                              key={orig.id}
-                              type="button"
-                              onClick={() => setFilterField("origin", orig.id)}
-                              className={`min-h-11 rounded-xl px-3 text-xs font-semibold transition-all cursor-pointer flex items-center justify-between gap-1.5 ${
-                                isSel
-                                  ? orig.id === "verificados"
-                                    ? "bg-emerald-50 text-emerald-900 font-bold shadow-2xs border border-emerald-200/50"
-                                    : "bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
-                                  : "bg-slate-100/80 text-slate-700 hover:bg-slate-200/60"
-                              }`}
-                            >
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                <Icon
-                                  size={14}
-                                  className={
-                                    isSel
-                                      ? orig.id === "verificados"
-                                        ? "text-emerald-700"
-                                        : "text-ondjo-blue"
-                                      : "text-slate-400"
-                                  }
-                                />
-                                <span className="truncate">{orig.shortLabel}</span>
-                              </div>
-                              {isSel && <Check size={13} className="shrink-0" />}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* 8. Comodidades & Preferências */}
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="block text-xs font-bold text-ondjo-ink uppercase tracking-wider">
-                          Comodidades & Preferências {filters.amenities && filters.amenities.length > 0 ? `(${filters.amenities.length})` : ""}
+                    {/* 7. Comodidades Compactas */}
+                    <div className="border-t border-slate-100 pt-5">
+                      <div className="flex items-center justify-between mb-2.5">
+                        <span className="text-xs font-bold text-ondjo-navy">
+                          Comodidades
+                          {filters.amenities && filters.amenities.length > 0
+                            ? ` (${filters.amenities.length})`
+                            : ""}
                         </span>
                         {filters.amenities && filters.amenities.length > 0 && (
                           <button
@@ -1146,63 +1144,31 @@ export function SearchPage() {
                           </button>
                         )}
                       </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        {AMENITY_OPTIONS.map((item) => {
-                          const isSelected = filters.amenities?.includes(item.id) || filters.amenities?.includes(item.label);
-                          const Icon = item.icon;
-                          return (
-                            <button
-                              key={item.id}
-                              type="button"
-                              onClick={() => {
-                                const cur = filters.amenities || [];
-                                const next = isSelected
-                                  ? cur.filter((a) => a !== item.id && a !== item.label)
-                                  : [...cur, item.id];
-                                setFilterField("amenities", next);
-                              }}
-                              className={`focus-ring group relative flex flex-col items-center justify-center rounded-xl p-2 transition-all cursor-pointer select-none min-h-14.5 ${
-                                isSelected
-                                  ? "bg-ondjo-navy text-white shadow-xs scale-[1.02]"
-                                  : "bg-slate-100/80 hover:bg-slate-200/60 text-slate-700"
-                              }`}
-                            >
-                              {isSelected && (
-                                <span className="absolute top-1 right-1 grid size-3.5 place-items-center rounded-full bg-white text-ondjo-navy text-[9px] shadow-2xs">
-                                  <Check size={9} strokeWidth={3} />
-                                </span>
-                              )}
-
-                              <span
-                                className={`grid size-6 place-items-center rounded-lg transition-transform mb-1 shrink-0 ${
-                                  isSelected
-                                    ? "bg-white/20 text-white"
-                                    : `${item.bgSoftClass} ${item.colorClass} group-hover:scale-105`
-                                }`}
-                              >
-                                <Icon size={13} strokeWidth={2.2} />
-                              </span>
-
-                              <span
-                                className={`text-[10px] font-semibold text-center leading-tight tracking-tight line-clamp-2 px-0.5 ${
-                                  isSelected ? "text-white" : "text-slate-700"
-                                }`}
-                              >
-                                {item.shortLabel || item.label}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
+                      <AmenitiesSelector
+                        selected={filters.amenities || []}
+                        onToggle={(amenityId) => {
+                          const cur = filters.amenities || [];
+                          const matched = AMENITY_OPTIONS.find((a) => a.id === amenityId);
+                          const isSelected =
+                            cur.includes(amenityId) ||
+                            (matched ? cur.includes(matched.label) : false);
+                          const next = isSelected
+                            ? cur.filter(
+                                (a) => a !== amenityId && (!matched || a !== matched.label),
+                              )
+                            : [...cur, amenityId];
+                          setFilterField("amenities", next);
+                        }}
+                      />
                     </div>
                   </div>
 
                   {/* Rodapé Fixo do Modal */}
-                  <div className="border-t border-slate-100 bg-slate-50/90 px-6 py-4 flex items-center justify-between gap-3 shrink-0">
+                  <div className="shrink-0 border-t border-slate-100 bg-white px-5 sm:px-6 py-4 flex items-center justify-between gap-3">
                     <button
                       type="button"
                       onClick={clearAllFilters}
-                      className="text-xs font-bold text-ondjo-muted hover:text-ondjo-ink hover:underline cursor-pointer"
+                      className="focus-ring min-h-11 px-3 rounded-xl text-xs font-bold text-ondjo-muted hover:text-ondjo-navy active:scale-95 transition-colors cursor-pointer"
                     >
                       Limpar tudo
                     </button>
@@ -1210,9 +1176,10 @@ export function SearchPage() {
                     <button
                       type="button"
                       onClick={() => setMobileModalOpen(false)}
-                      className="focus-ring flex min-h-11 items-center justify-center rounded-xl bg-ondjo-navy px-6 py-2.5 text-xs font-extrabold text-white shadow-sm hover:bg-slate-800 active:scale-98 transition-[background-color,transform] duration-150 cursor-pointer"
+                      className="focus-ring flex-1 min-h-11 rounded-xl bg-ondjo-blue px-5 text-center text-sm font-bold text-white shadow-sm hover:bg-ondjo-blue-dark active:scale-98 transition-colors cursor-pointer tabular-nums"
                     >
-                      Ver {results.length} {results.length === 1 ? "imóvel" : "imóveis"}
+                      Mostrar {results.length}{" "}
+                      {results.length === 1 ? "imóvel" : "imóveis"}
                     </button>
                   </div>
                 </m.div>

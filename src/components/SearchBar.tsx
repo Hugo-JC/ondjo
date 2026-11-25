@@ -1,21 +1,22 @@
 import {
   MapPin,
   Search,
-  ShieldCheck,
   SlidersHorizontal,
   X,
   Check,
   Minus,
   Plus,
-  BedDouble,
-  Bath,
-  Car,
-  UserCheck,
-  Building2,
-  Sparkles,
-  type LucideIcon,
 } from "lucide-react";
 import { AMENITY_OPTIONS, type AmenityDefinition } from "../data/amenities";
+import {
+  AmenitiesSelector,
+  ORIGIN_OPTIONS,
+  OriginSelector,
+  PriceDualRangeSlider,
+  formatCompactKz,
+  type OriginOption,
+  type SearchOrigin,
+} from "./FilterControls";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
@@ -23,13 +24,8 @@ import { locations, properties } from "../data/properties";
 import { filterProperties } from "../utils/filterProperties";
 
 export type SearchPurpose = "comprar" | "arrendar";
-
-export type SearchOrigin =
-  | "todos"
-  | "verificados"
-  | "proprietario"
-  | "agentes"
-  | "particulares";
+export type { SearchOrigin, OriginOption };
+export { ORIGIN_OPTIONS, PriceDualRangeSlider };
 
 export interface SearchFilters {
   query: string;
@@ -68,49 +64,6 @@ const emptyFilters: SearchFilters = {
 export const PURPOSE_OPTIONS: { id: SearchPurpose; label: string }[] = [
   { id: "comprar", label: "Comprar" },
   { id: "arrendar", label: "Arrendar" },
-];
-
-export interface OriginOption {
-  id: SearchOrigin;
-  label: string;
-  shortLabel: string;
-  description: string;
-  icon: LucideIcon;
-  badge?: string;
-}
-
-export const ORIGIN_OPTIONS: OriginOption[] = [
-  {
-    id: "todos",
-    label: "Todos os anúncios",
-    shortLabel: "Todos",
-    description: "Todos os imóveis disponíveis em Luanda",
-    icon: Sparkles,
-  },
-  {
-    id: "verificados",
-    label: "Verificados ONDJO",
-    shortLabel: "Verificados",
-    description: "Documentação e titularidade auditadas",
-    icon: ShieldCheck,
-    badge: "Auditado",
-  },
-  {
-    id: "proprietario",
-    label: "Direto com Proprietário",
-    shortLabel: "Proprietário",
-    description: "Sem taxa de agência ou intermediários",
-    icon: UserCheck,
-    badge: "Direto",
-  },
-  {
-    id: "agentes",
-    label: "Agências & Corretores",
-    shortLabel: "Agências",
-    description: "Imobiliárias e corretores credenciados",
-    icon: Building2,
-    badge: "Profissional",
-  },
 ];
 
 export type AmenityOption = AmenityDefinition;
@@ -167,214 +120,6 @@ export function defaultSearchFilters(): SearchFilters {
 }
 
 type ActiveSegment = "location" | "type" | "amenities" | "price" | null;
-
-interface PriceDualRangeSliderProps {
-  purpose?: string;
-  minPrice: string;
-  maxPrice: string;
-  onChangeMin: (val: string) => void;
-  onChangeMax: (val: string) => void;
-}
-
-export function PriceDualRangeSlider({
-  purpose = "comprar",
-  minPrice,
-  maxPrice,
-  onChangeMin,
-  onChangeMax,
-}: PriceDualRangeSliderProps) {
-  const isRental = purpose === "arrendar";
-  const ceiling = isRental ? 5_000_000 : 250_000_000;
-  const step = isRental ? 50_000 : 2_500_000;
-
-  const minVal = minPrice ? Math.max(0, Math.min(Number(minPrice), ceiling)) : 0;
-  const maxVal = maxPrice ? Math.max(0, Math.min(Number(maxPrice), ceiling)) : ceiling;
-
-  const [activeThumb, setActiveThumb] = useState<"min" | "max">("max");
-
-  const minPercent = Math.min(100, Math.max(0, (minVal / ceiling) * 100));
-  const maxPercent = Math.min(100, Math.max(0, (maxVal / ceiling) * 100));
-
-  const presets = isRental
-    ? [
-        { label: "Até 300 mil", min: "", max: "300000" },
-        { label: "300k - 800k", min: "300000", max: "800000" },
-        { label: "800k - 2 M", min: "800000", max: "2000000" },
-        { label: "2 M - 5 M", min: "2000000", max: "5000000" },
-        { label: "Todos", min: "", max: "" },
-      ]
-    : [
-        { label: "Até 30 M", min: "", max: "30000000" },
-        { label: "30 M - 80 M", min: "30000000", max: "80000000" },
-        { label: "80 M - 150 M", min: "80000000", max: "150000000" },
-        { label: "150 M+", min: "150000000", max: "" },
-        { label: "Todos", min: "", max: "" },
-      ];
-
-  const handleMinChange = (val: number) => {
-    setActiveThumb("min");
-    const clamped = Math.min(val, Math.max(0, maxVal - step));
-    onChangeMin(clamped <= 0 ? "" : String(clamped));
-  };
-
-  const handleMaxChange = (val: number) => {
-    setActiveThumb("max");
-    const clamped = Math.max(val, minVal + step);
-    onChangeMax(clamped >= ceiling ? "" : String(clamped));
-  };
-
-  const isPresetActive = (pMin: string, pMax: string) => {
-    const curMin = minPrice || "";
-    const curMax = maxPrice || "";
-    return curMin === pMin && curMax === pMax;
-  };
-
-  return (
-    <div className="w-full select-none">
-      {/* Indicadores de Mínimo e Máximo em Tempo Real */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex flex-col">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-            Mínimo
-          </span>
-          <span className="text-xs font-bold text-ondjo-ink">
-            {minVal === 0 ? "0 Kz" : `${minVal.toLocaleString("pt-AO")} Kz`}
-          </span>
-        </div>
-
-        <div className="rounded-full bg-ondjo-blue-soft/80 px-2.5 py-0.5 text-[11px] font-bold text-ondjo-blue">
-          {minVal === 0 && (!maxPrice || maxVal >= ceiling)
-            ? "Qualquer valor"
-            : minVal === 0
-            ? `Até ${maxVal.toLocaleString("pt-AO")} Kz`
-            : !maxPrice || maxVal >= ceiling
-            ? `A partir de ${minVal.toLocaleString("pt-AO")} Kz`
-            : `${minVal.toLocaleString("pt-AO")} – ${maxVal.toLocaleString("pt-AO")} Kz`}
-        </div>
-
-        <div className="flex flex-col items-end">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-            Máximo
-          </span>
-          <span className="text-xs font-bold text-ondjo-blue">
-            {!maxPrice || maxVal >= ceiling
-              ? "Sem limite"
-              : `${maxVal.toLocaleString("pt-AO")} Kz`}
-          </span>
-        </div>
-      </div>
-
-      {/* Track duplo com 2 ponteiros interativos sobrepostos */}
-      <div className="relative w-full h-8 flex items-center">
-        {/* Trilho de fundo */}
-        <div className="absolute w-full h-2 rounded-full bg-slate-100 border border-slate-200/90" />
-
-        {/* Faixa selecionada ativa */}
-        <div
-          className="absolute h-2 rounded-full bg-ondjo-blue shadow-xs"
-          style={{
-            left: `${minPercent}%`,
-            width: `${Math.max(0, maxPercent - minPercent)}%`,
-          }}
-        />
-
-        {/* Slider Mínimo */}
-        <input
-          type="range"
-          min={0}
-          max={ceiling}
-          step={step}
-          value={minVal}
-          onMouseDown={() => setActiveThumb("min")}
-          onTouchStart={() => setActiveThumb("min")}
-          onChange={(e) => handleMinChange(Number(e.target.value))}
-          aria-label="Preço mínimo em Kwanzas"
-          className={`absolute inset-0 w-full h-full appearance-none bg-transparent pointer-events-none cursor-pointer ${
-            activeThumb === "min" ? "z-30" : "z-20"
-          } [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:size-5.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2.5 [&::-webkit-slider-thumb]:border-ondjo-blue [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:hover:scale-115 [&::-webkit-slider-thumb]:active:scale-125 [&::-webkit-slider-thumb]:transition-transform [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:size-5.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2.5 [&::-moz-range-thumb]:border-ondjo-blue [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:hover:scale-115 [&::-moz-range-thumb]:active:scale-125 [&::-moz-range-thumb]:transition-transform`}
-        />
-
-        {/* Slider Máximo */}
-        <input
-          type="range"
-          min={0}
-          max={ceiling}
-          step={step}
-          value={maxVal}
-          onMouseDown={() => setActiveThumb("max")}
-          onTouchStart={() => setActiveThumb("max")}
-          onChange={(e) => handleMaxChange(Number(e.target.value))}
-          aria-label="Preço máximo em Kwanzas"
-          className={`absolute inset-0 w-full h-full appearance-none bg-transparent pointer-events-none cursor-pointer ${
-            activeThumb === "max" ? "z-30" : "z-20"
-          } [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:size-5.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2.5 [&::-webkit-slider-thumb]:border-ondjo-blue [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:hover:scale-115 [&::-webkit-slider-thumb]:active:scale-125 [&::-webkit-slider-thumb]:transition-transform [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:size-5.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2.5 [&::-moz-range-thumb]:border-ondjo-blue [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:hover:scale-115 [&::-moz-range-thumb]:active:scale-125 [&::-moz-range-thumb]:transition-transform`}
-        />
-      </div>
-
-      {/* Escala com extremos */}
-      <div className="flex justify-between text-[10px] text-slate-400 font-medium px-0.5 mt-0.5">
-        <span>0 Kz</span>
-        <span>{isRental ? "2,5 M Kz" : "125 M Kz"}</span>
-        <span>{isRental ? "5 M+ Kz" : "250 M+ Kz"}</span>
-      </div>
-
-      {/* Atalhos com faixas de valores rápidas */}
-      <div className="flex flex-wrap gap-1.5 mt-3 mb-3">
-        {presets.map((preset) => {
-          const active = isPresetActive(preset.min, preset.max);
-          return (
-            <button
-              key={preset.label}
-              type="button"
-              onClick={() => {
-                onChangeMin(preset.min);
-                onChangeMax(preset.max);
-              }}
-              className={[
-                "rounded-full px-2.5 py-1 text-[10px] font-bold transition-colors duration-150 cursor-pointer",
-                active
-                  ? "bg-ondjo-blue text-white shadow-2xs"
-                  : "bg-slate-100 hover:bg-slate-200/90 text-slate-600",
-              ].join(" ")}
-            >
-              {preset.label}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Campos numéricos manuais sincronizados */}
-      <div className="grid grid-cols-2 gap-2.5 pt-2.5 border-t border-slate-100">
-        <div>
-          <label className="text-[10px] font-bold text-slate-500 uppercase">
-            Mínimo
-          </label>
-          <input
-            type="text"
-            inputMode="numeric"
-            placeholder="Sem mín."
-            value={minPrice}
-            onChange={(e) => onChangeMin(e.target.value.replace(/\D/g, ""))}
-            className="mt-1 h-10 w-full rounded-xl border border-slate-200 px-3 text-xs font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue bg-white"
-          />
-        </div>
-        <div>
-          <label className="text-[10px] font-bold text-slate-500 uppercase">
-            Máximo
-          </label>
-          <input
-            type="text"
-            inputMode="numeric"
-            placeholder="Sem máx."
-            value={maxPrice}
-            onChange={(e) => onChangeMax(e.target.value.replace(/\D/g, ""))}
-            className="mt-1 h-10 w-full rounded-xl border border-slate-200 px-3 text-xs font-semibold text-ondjo-ink outline-none focus:border-ondjo-blue bg-white"
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export function SearchBar({
   value,
@@ -802,8 +547,12 @@ export function SearchBar({
             <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">
               Orçamento
             </span>
-            <span className="mt-0.5 block truncate text-sm font-semibold text-ondjo-ink">
-              {value.maxPrice ? `Até ${value.maxPrice} Kz` : "Sem limite"}
+            <span className="mt-0.5 block truncate text-sm font-semibold text-ondjo-ink tabular-nums">
+              {value.maxPrice
+                ? `Até ${formatCompactKz(Number(value.maxPrice))}`
+                : value.minPrice
+                  ? `Desde ${formatCompactKz(Number(value.minPrice))}`
+                  : "Sem limite"}
             </span>
           </button>
 
@@ -946,154 +695,136 @@ export function SearchBar({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 4 }}
               transition={{ duration: reduceMotion ? 0 : 0.1, ease: "easeOut" }}
-              className="absolute left-1/2 top-full mt-3 w-105 sm:w-115 max-w-[94vw] -translate-x-1/2 rounded-3xl border border-slate-200/90 bg-white p-5 shadow-[0_20px_50px_rgba(16,42,67,0.22)] z-50 max-h-[82vh] overflow-y-auto no-scrollbar"
+              className="absolute left-1/2 top-full mt-3 w-[25rem] sm:w-[29rem] max-w-[94vw] -translate-x-1/2 rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-[0_20px_50px_rgba(16,42,67,0.2)] z-50 max-h-[82vh] overflow-y-auto no-scrollbar"
             >
-              <div className="space-y-4">
-                {/* Linha 1: Quartos */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="grid size-8 place-items-center rounded-xl bg-blue-50 text-blue-600">
-                      <BedDouble size={16} strokeWidth={2.2} />
-                    </span>
+              <div className="space-y-5">
+                {/* Tipologia & Espaços limpos */}
+                <div className="divide-y divide-slate-100">
+                  <div className="flex items-center justify-between pb-3">
                     <div>
-                      <span className="block text-sm font-bold text-ondjo-navy leading-tight">
+                      <span className="block text-sm font-semibold text-ondjo-navy">
                         Quartos
                       </span>
-                      <span className="text-[11px] text-slate-400">
-                        Tipologia (T0 a T5+)
+                      <span className="text-xs text-ondjo-muted">
+                        Tipologia (T1 a T5+)
                       </span>
                     </div>
+                    <div className="flex items-center gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const cur = parseInt(value.bedrooms || "0", 10);
+                          const next = Math.max(0, cur - 1);
+                          set("bedrooms", next === 0 ? "" : String(next));
+                        }}
+                        className="focus-ring grid size-8 place-items-center rounded-full border border-ondjo-border bg-white text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue transition-colors active:scale-90 cursor-pointer"
+                        aria-label="Diminuir quartos"
+                      >
+                        <Minus size={14} strokeWidth={2.2} />
+                      </button>
+                      <span className="w-14 text-center text-xs font-bold text-ondjo-navy tabular-nums">
+                        {value.bedrooms ? `T${value.bedrooms}` : "Qualquer"}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const cur = parseInt(value.bedrooms || "0", 10);
+                          set("bedrooms", String(cur + 1));
+                        }}
+                        className="focus-ring grid size-8 place-items-center rounded-full border border-ondjo-border bg-white text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue transition-colors active:scale-90 cursor-pointer"
+                        aria-label="Aumentar quartos"
+                      >
+                        <Plus size={14} strokeWidth={2.2} />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2.5">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const cur = parseInt(value.bedrooms || "0", 10);
-                        const next = Math.max(0, cur - 1);
-                        set("bedrooms", next === 0 ? "" : String(next));
-                      }}
-                      className="grid size-8 place-items-center rounded-full border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 transition active:scale-90 cursor-pointer disabled:opacity-40"
-                      aria-label="Diminuir quartos"
-                    >
-                      <Minus size={14} strokeWidth={2.5} />
-                    </button>
-                    <span className="w-6 text-center text-sm font-bold text-ondjo-navy">
-                      {value.bedrooms ? `T${value.bedrooms}` : "0"}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const cur = parseInt(value.bedrooms || "0", 10);
-                        set("bedrooms", String(cur + 1));
-                      }}
-                      className="grid size-8 place-items-center rounded-full bg-ondjo-blue hover:bg-ondjo-blue-dark text-white font-bold transition active:scale-90 cursor-pointer shadow-xs"
-                      aria-label="Aumentar quartos"
-                    >
-                      <Plus size={14} strokeWidth={2.5} />
-                    </button>
-                  </div>
-                </div>
 
-                {/* Linha 2: Banheiros */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="grid size-8 place-items-center rounded-xl bg-sky-50 text-sky-600">
-                      <Bath size={16} strokeWidth={2.2} />
-                    </span>
+                  <div className="flex items-center justify-between py-3">
                     <div>
-                      <span className="block text-sm font-bold text-ondjo-navy leading-tight">
-                        Banheiros
+                      <span className="block text-sm font-semibold text-ondjo-navy">
+                        Casas de banho
                       </span>
-                      <span className="text-[11px] text-slate-400">
-                        Casas de banho / WC
+                      <span className="text-xs text-ondjo-muted">
+                        Mínimo de WC
                       </span>
                     </div>
+                    <div className="flex items-center gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const cur = parseInt(value.bathrooms || "0", 10);
+                          const next = Math.max(0, cur - 1);
+                          set("bathrooms", next === 0 ? "" : String(next));
+                        }}
+                        className="focus-ring grid size-8 place-items-center rounded-full border border-ondjo-border bg-white text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue transition-colors active:scale-90 cursor-pointer"
+                        aria-label="Diminuir casas de banho"
+                      >
+                        <Minus size={14} strokeWidth={2.2} />
+                      </button>
+                      <span className="w-14 text-center text-xs font-bold text-ondjo-navy tabular-nums">
+                        {value.bathrooms ? `${value.bathrooms}+` : "Qualquer"}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const cur = parseInt(value.bathrooms || "0", 10);
+                          set("bathrooms", String(cur + 1));
+                        }}
+                        className="focus-ring grid size-8 place-items-center rounded-full border border-ondjo-border bg-white text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue transition-colors active:scale-90 cursor-pointer"
+                        aria-label="Aumentar casas de banho"
+                      >
+                        <Plus size={14} strokeWidth={2.2} />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2.5">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const cur = parseInt(value.bathrooms || "0", 10);
-                        const next = Math.max(0, cur - 1);
-                        set("bathrooms", next === 0 ? "" : String(next));
-                      }}
-                      className="grid size-8 place-items-center rounded-full border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 transition active:scale-90 cursor-pointer"
-                      aria-label="Diminuir banheiros"
-                    >
-                      <Minus size={14} strokeWidth={2.5} />
-                    </button>
-                    <span className="w-6 text-center text-sm font-bold text-ondjo-navy">
-                      {value.bathrooms || "0"}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const cur = parseInt(value.bathrooms || "0", 10);
-                        set("bathrooms", String(cur + 1));
-                      }}
-                      className="grid size-8 place-items-center rounded-full bg-ondjo-blue hover:bg-ondjo-blue-dark text-white font-bold transition active:scale-90 cursor-pointer shadow-xs"
-                      aria-label="Aumentar banheiros"
-                    >
-                      <Plus size={14} strokeWidth={2.5} />
-                    </button>
-                  </div>
-                </div>
 
-                {/* Linha 3: Vagas de Garagem */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="grid size-8 place-items-center rounded-xl bg-amber-50 text-amber-600">
-                      <Car size={16} strokeWidth={2.2} />
-                    </span>
+                  <div className="flex items-center justify-between pt-3">
                     <div>
-                      <span className="block text-sm font-bold text-ondjo-navy leading-tight">
-                        Vagas de Garagem
+                      <span className="block text-sm font-semibold text-ondjo-navy">
+                        Estacionamento
                       </span>
-                      <span className="text-[11px] text-slate-400">
-                        Estacionamento privativo
+                      <span className="text-xs text-ondjo-muted">
+                        Vagas privativas
                       </span>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2.5">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const cur = parseInt(value.parking || "0", 10);
-                        const next = Math.max(0, cur - 1);
-                        set("parking", next === 0 ? "" : String(next));
-                      }}
-                      className="grid size-8 place-items-center rounded-full border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 transition active:scale-90 cursor-pointer"
-                      aria-label="Diminuir vagas"
-                    >
-                      <Minus size={14} strokeWidth={2.5} />
-                    </button>
-                    <span className="w-6 text-center text-sm font-bold text-ondjo-navy">
-                      {value.parking || "0"}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const cur = parseInt(value.parking || "0", 10);
-                        set("parking", String(cur + 1));
-                      }}
-                      className="grid size-8 place-items-center rounded-full bg-ondjo-blue hover:bg-ondjo-blue-dark text-white font-bold transition active:scale-90 cursor-pointer shadow-xs"
-                      aria-label="Aumentar vagas"
-                    >
-                      <Plus size={14} strokeWidth={2.5} />
-                    </button>
+                    <div className="flex items-center gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const cur = parseInt(value.parking || "0", 10);
+                          const next = Math.max(0, cur - 1);
+                          set("parking", next === 0 ? "" : String(next));
+                        }}
+                        className="focus-ring grid size-8 place-items-center rounded-full border border-ondjo-border bg-white text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue transition-colors active:scale-90 cursor-pointer"
+                        aria-label="Diminuir vagas"
+                      >
+                        <Minus size={14} strokeWidth={2.2} />
+                      </button>
+                      <span className="w-14 text-center text-xs font-bold text-ondjo-navy tabular-nums">
+                        {value.parking ? `${value.parking}+` : "Qualquer"}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const cur = parseInt(value.parking || "0", 10);
+                          set("parking", String(cur + 1));
+                        }}
+                        className="focus-ring grid size-8 place-items-center rounded-full border border-ondjo-border bg-white text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue transition-colors active:scale-90 cursor-pointer"
+                        aria-label="Aumentar vagas"
+                      >
+                        <Plus size={14} strokeWidth={2.2} />
+                      </button>
+                    </div>
                   </div>
                 </div>
 
-                {/* Linha separadora */}
-                <div className="my-2 h-px bg-slate-100" />
-
-                {/* Grelha de Comodidades */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                      Comodidades & Preferências{" "}
+                {/* Grelha compacta de Comodidades */}
+                <div className="border-t border-slate-100 pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold text-ondjo-navy">
+                      Comodidades
                       {selectedAmenities.length > 0 &&
-                        `(${selectedAmenities.length})`}
+                        ` (${selectedAmenities.length})`}
                     </span>
                     {selectedAmenities.length > 0 && (
                       <button
@@ -1102,56 +833,21 @@ export function SearchBar({
                           setSelectedAmenities([]);
                           onChange({ ...value, amenities: [] });
                         }}
-                        className="text-[11px] font-bold text-ondjo-blue hover:underline cursor-pointer"
+                        className="text-xs font-semibold text-ondjo-blue hover:underline cursor-pointer"
                       >
                         Limpar
                       </button>
                     )}
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {AMENITY_OPTIONS.map((item) => {
-                      const isSelected =
-                        selectedAmenities.includes(item.id) ||
-                        selectedAmenities.includes(item.label);
-                      const Icon = item.icon;
-                      return (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => toggleAmenity(item.id)}
-                          aria-pressed={isSelected}
-                          className={[
-                            "focus-ring group relative flex flex-col items-center justify-center rounded-2xl p-2.5 transition-colors duration-150 cursor-pointer select-none border min-h-18",
-                            isSelected
-                              ? "bg-ondjo-blue/8 border-2 border-ondjo-blue shadow-xs"
-                              : "bg-white hover:bg-ondjo-blue-50/20 border-slate-200/90 hover:border-ondjo-blue/40 shadow-2xs",
-                          ].join(" ")}
-                        >
-                          {isSelected && (
-                            <span className="absolute top-1.5 right-1.5 grid size-4 place-items-center rounded-full bg-ondjo-blue text-white shadow-2xs">
-                              <Check size={10} strokeWidth={3} />
-                            </span>
-                          )}
-                          <span className={[
-                            "grid size-8 place-items-center rounded-xl mb-1.5 shrink-0 transition-transform group-hover:scale-105",
-                            isSelected ? "bg-ondjo-blue text-white shadow-xs" : `${item.bgSoftClass} ${item.colorClass}`,
-                          ].join(" ")}>
-                            <Icon size={15} strokeWidth={2.2} />
-                          </span>
-                          <span className={[
-                            "text-xs font-semibold text-center leading-tight tracking-tight line-clamp-1 px-0.5",
-                            isSelected ? "text-ondjo-navy font-bold" : "text-slate-700 group-hover:text-ondjo-navy",
-                          ].join(" ")}>
-                            {item.shortLabel || item.label}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
+
+                  <AmenitiesSelector
+                    selected={selectedAmenities}
+                    onToggle={toggleAmenity}
+                  />
                 </div>
 
-                {/* Rodapé com Ações */}
-                <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+                {/* Rodapé */}
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
                   <button
                     type="button"
                     onClick={() => {
@@ -1164,14 +860,14 @@ export function SearchBar({
                         amenities: [],
                       });
                     }}
-                    className="text-xs font-semibold text-slate-500 hover:text-ondjo-blue transition-colors duration-150 cursor-pointer"
+                    className="text-xs font-semibold text-ondjo-muted hover:text-ondjo-navy transition-colors cursor-pointer"
                   >
                     Limpar tudo
                   </button>
                   <button
                     type="button"
                     onClick={() => setActiveSegment(null)}
-                    className="rounded-full bg-ondjo-navy hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 transition-[background-color,transform] duration-150 active:scale-95 cursor-pointer shadow-xs"
+                    className="rounded-xl bg-ondjo-navy hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 transition-colors active:scale-95 cursor-pointer"
                   >
                     Concluído
                   </button>
@@ -1186,12 +882,8 @@ export function SearchBar({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 4 }}
               transition={{ duration: reduceMotion ? 0 : 0.1, ease: "easeOut" }}
-              className="absolute right-0 top-full mt-3 w-88 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-[0_20px_50px_rgba(16,42,67,0.22)] z-50"
+              className="absolute right-0 top-full mt-3 w-[23rem] sm:w-[25rem] max-w-[92vw] rounded-3xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-[0_20px_50px_rgba(16,42,67,0.2)] z-50"
             >
-              {/* <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-3">
-                Faixa de preço (Kz)
-              </span> */}
-
               <PriceDualRangeSlider
                 purpose={value.purpose}
                 minPrice={value.minPrice}
@@ -1203,7 +895,7 @@ export function SearchBar({
               <button
                 type="button"
                 onClick={() => handleSubmit()}
-                className="mt-4 flex h-10 w-full items-center justify-center rounded-xl bg-ondjo-blue font-bold text-xs text-white hover:bg-ondjo-blue-dark transition cursor-pointer"
+                className="mt-5 flex h-11 w-full items-center justify-center rounded-xl bg-ondjo-blue font-bold text-xs text-white hover:bg-ondjo-blue-dark transition-colors cursor-pointer"
               >
                 Ver{" "}
                 {matchingCount > 0 ? `${matchingCount} imóveis` : "Resultados"}
@@ -1254,7 +946,7 @@ export function SearchBar({
                 <>
                   <span>·</span>
                   <span className="font-bold text-ondjo-navy">
-                    Até {Number(value.maxPrice).toLocaleString("pt-AO")} Kz
+                    Até {formatCompactKz(Number(value.maxPrice))}
                   </span>
                 </>
               )}
@@ -1296,7 +988,7 @@ export function SearchBar({
                   aria-hidden="true"
                 />
 
-                {/* Sheet que desliza de baixo para cima */}
+                {/* Sheet limpo e simplificado no estilo ONDJO */}
                 <m.div
                   initial={{ y: 36, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
@@ -1305,20 +997,20 @@ export function SearchBar({
                     duration: reduceMotion ? 0 : 0.16,
                     ease: [0.22, 1, 0.36, 1],
                   }}
-                  className="relative z-10 flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-t-[28px] bg-white shadow-2xl pb-safe"
+                  className="relative z-10 flex max-h-[90dvh] w-full max-w-xl mx-auto flex-col overflow-hidden rounded-t-[28px] bg-white shadow-2xl pb-safe"
                 >
                   {/* Traço indicador de arrasto */}
                   <div className="pt-3 pb-1 flex justify-center shrink-0">
-                    <div className="h-1.5 w-12 rounded-full bg-slate-300" />
+                    <div className="h-1 w-10 rounded-full bg-slate-300" />
                   </div>
 
                   {/* Cabeçalho Fixo do Sheet */}
-                  <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3 shrink-0">
+                  <div className="flex items-center justify-between border-b border-slate-100 px-5 sm:px-6 py-3.5 shrink-0">
                     <div>
-                      <h3 className="text-base font-extrabold text-ondjo-navy">
-                        Filtrar Pesquisa
+                      <h3 className="text-base font-bold tracking-tight text-ondjo-navy">
+                        Filtrar pesquisa
                       </h3>
-                      <p className="text-[11px] text-slate-500 font-medium">
+                      <p className="text-xs text-ondjo-muted tabular-nums">
                         {matchingCount}{" "}
                         {matchingCount === 1
                           ? "imóvel disponível"
@@ -1330,32 +1022,37 @@ export function SearchBar({
                       type="button"
                       onClick={() => setMobileModalOpen(false)}
                       aria-label="Fechar filtros"
-                      className="focus-ring grid size-11 place-items-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 active:scale-95 cursor-pointer"
+                      className="focus-ring grid size-10 place-items-center rounded-full bg-slate-100 text-ondjo-ink hover:bg-slate-200 active:scale-95 transition-colors cursor-pointer"
                     >
-                      <X size={20} />
+                      <X size={18} />
                     </button>
                   </div>
 
-                  {/* Conteúdo com Scroll Interno Fluído */}
-                  <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5 overscroll-contain">
-                    {/* 1. Modalidade de Negócio */}
+                  {/* Conteúdo com Espaço para Respirar */}
+                  <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-5 space-y-6 overscroll-contain">
+                    {/* 1. Modalidade (Segmented Control limpo) */}
                     <div>
-                      <label className="text-xs font-bold text-slate-700 block mb-1.5 uppercase tracking-wider">
+                      <span className="block text-xs font-bold text-ondjo-navy mb-2">
                         Modalidade
-                      </label>
-                      <div className="grid grid-cols-2 gap-2">
+                      </span>
+                      <div
+                        role="group"
+                        aria-label="Modalidade do imóvel"
+                        className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1"
+                      >
                         {PURPOSE_OPTIONS.map((opt) => {
                           const isSelected = currentPurpose === opt.id;
                           return (
                             <button
                               key={opt.id}
                               type="button"
+                              aria-pressed={isSelected}
                               onClick={() => set("purpose", opt.id)}
                               className={[
-                                "flex min-h-11 items-center justify-center rounded-xl text-xs font-bold border transition-colors duration-150 cursor-pointer",
+                                "focus-ring flex min-h-10 items-center justify-center rounded-lg text-xs font-bold transition-colors duration-150 cursor-pointer",
                                 isSelected
-                                  ? "border-ondjo-blue bg-ondjo-blue-soft text-ondjo-blue font-black shadow-2xs"
-                                  : "border-slate-200 text-slate-700 hover:bg-slate-50",
+                                  ? "bg-white text-ondjo-navy shadow-xs"
+                                  : "text-ondjo-muted hover:text-ondjo-ink",
                               ].join(" ")}
                             >
                               {opt.label}
@@ -1365,95 +1062,15 @@ export function SearchBar({
                       </div>
                     </div>
 
-                    {/* 2. Origem & Auditoria do Anúncio (ORIGIN_OPTIONS Completo) */}
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                          Origem do Anúncio
-                        </label>
-                        <span className="text-[11px] text-slate-400">
-                          Auditoria e intermediação
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {ORIGIN_OPTIONS.map((opt) => {
-                          const isSelected = currentOrigin === opt.id;
-                          const Icon = opt.icon;
-
-                          return (
-                            <button
-                              key={opt.id}
-                              type="button"
-                              onClick={() => set("origin", opt.id)}
-                              className={[
-                                "relative flex items-center justify-between rounded-2xl border p-3 text-left transition-colors duration-150 cursor-pointer min-h-18 active:scale-[0.99]",
-                                isSelected
-                                  ? "border-ondjo-blue bg-ondjo-blue-soft/50 ring-2 ring-ondjo-blue/20 shadow-xs"
-                                  : "border-slate-200/90 bg-white hover:bg-slate-50",
-                              ].join(" ")}
-                            >
-                              <div className="flex items-center gap-3 min-w-0 pr-2">
-                                <span
-                                  className={[
-                                    "grid size-9 place-items-center rounded-xl shrink-0 transition-colors",
-                                    isSelected
-                                      ? "bg-ondjo-blue text-white"
-                                      : "bg-slate-100 text-slate-600",
-                                  ].join(" ")}
-                                >
-                                  <Icon size={17} strokeWidth={2.2} />
-                                </span>
-                                <div className="min-w-0">
-                                  <div className="flex items-center gap-1.5">
-                                    <span
-                                      className={[
-                                        "text-xs font-bold truncate",
-                                        isSelected
-                                          ? "text-ondjo-navy"
-                                          : "text-slate-800",
-                                      ].join(" ")}
-                                    >
-                                      {opt.label}
-                                    </span>
-                                    {opt.badge && (
-                                      <span className="rounded-full bg-slate-100 px-1.5 py-0.2 text-[9px] font-bold text-slate-600">
-                                        {opt.badge}
-                                      </span>
-                                    )}
-                                  </div>
-                                  <p className="text-[11px] text-slate-500 truncate mt-0.5">
-                                    {opt.description}
-                                  </p>
-                                </div>
-                              </div>
-
-                              <span
-                                className={[
-                                  "grid size-5 place-items-center rounded-full border shrink-0 transition-colors",
-                                  isSelected
-                                    ? "border-ondjo-blue bg-ondjo-blue text-white"
-                                    : "border-slate-300 bg-white",
-                                ].join(" ")}
-                              >
-                                {isSelected && (
-                                  <Check size={12} strokeWidth={3} />
-                                )}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* 3. Localização com Auto-sugestões */}
-                    <div>
-                      <label className="text-xs font-bold text-slate-700 block mb-1.5 uppercase tracking-wider">
+                    {/* 2. Localização */}
+                    <div className="border-t border-slate-100 pt-5">
+                      <label className="block text-xs font-bold text-ondjo-navy mb-2">
                         Localização em Luanda
                       </label>
-                      <div className="flex items-center gap-2.5 rounded-xl border border-slate-200 px-3 py-2.5 bg-slate-50/70 focus-within:border-ondjo-blue focus-within:bg-white transition-colors">
+                      <div className="relative flex items-center">
                         <MapPin
-                          size={18}
-                          className="text-ondjo-blue shrink-0"
+                          size={16}
+                          className="pointer-events-none absolute left-3.5 text-slate-400"
                         />
                         <input
                           type="text"
@@ -1465,8 +1082,8 @@ export function SearchBar({
                               query: e.target.value,
                             })
                           }
-                          placeholder="Ex: Talatona, Maianga, Kilamba..."
-                          className="w-full bg-transparent text-base font-semibold outline-none text-ondjo-ink placeholder:text-slate-400"
+                          placeholder="Ex.: Talatona, Maianga, Kilamba..."
+                          className="filter-input pl-10 pr-9"
                         />
                         {searchText && (
                           <button
@@ -1474,14 +1091,14 @@ export function SearchBar({
                             onClick={() =>
                               onChange({ ...value, location: "", query: "" })
                             }
-                            className="p-1 rounded-full text-slate-400 hover:text-slate-600 cursor-pointer"
+                            aria-label="Limpar localização"
+                            className="absolute right-2.5 p-1 rounded-full text-slate-400 hover:text-ondjo-ink cursor-pointer"
                           >
-                            <X size={16} />
+                            <X size={15} />
                           </button>
                         )}
                       </div>
 
-                      {/* Chips de Zonas Populares */}
                       <div className="mt-2.5 flex flex-wrap gap-1.5">
                         {[
                           "Talatona",
@@ -1506,10 +1123,10 @@ export function SearchBar({
                                 })
                               }
                               className={[
-                                "min-h-8 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors duration-150 cursor-pointer",
+                                "focus-ring min-h-8.5 rounded-full border px-3 py-1 text-xs font-semibold transition-colors duration-150 cursor-pointer",
                                 isSel
-                                  ? "border-ondjo-blue bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
-                                  : "border-slate-200 text-slate-600 hover:bg-slate-100",
+                                  ? "border-ondjo-navy bg-ondjo-navy text-white"
+                                  : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50",
                               ].join(" ")}
                             >
                               {loc}
@@ -1519,230 +1136,47 @@ export function SearchBar({
                       </div>
                     </div>
 
-                    {/* 4. Tipo de Imóvel */}
-                    <div>
-                      <label className="text-xs font-bold text-slate-700 block mb-1.5 uppercase tracking-wider">
-                        Tipo de Imóvel
-                      </label>
-                      <div className="grid grid-cols-2 gap-2">
+                    {/* 3. Tipo de Imóvel */}
+                    <div className="border-t border-slate-100 pt-5">
+                      <span className="block text-xs font-bold text-ondjo-navy mb-2">
+                        Tipo de imóvel
+                      </span>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         {PROPERTY_TYPES.map((t) => {
                           const isSelected = value.type === t.value;
                           return (
                             <button
                               key={t.value}
                               type="button"
+                              aria-pressed={isSelected}
                               onClick={() => set("type", t.value)}
                               className={[
-                                "flex min-h-11 items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold border transition text-left cursor-pointer",
+                                "focus-ring flex min-h-10.5 items-center justify-center rounded-xl border px-3 py-2 text-xs font-semibold transition-colors duration-150 cursor-pointer",
                                 isSelected
-                                  ? "border-ondjo-blue bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
-                                  : "border-slate-200 text-slate-700 hover:bg-slate-50",
+                                  ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold ring-1 ring-ondjo-blue/20"
+                                  : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50",
                               ].join(" ")}
                             >
-                              <span>{t.label}</span>
-                              {isSelected && <Check size={14} />}
+                              {t.label}
                             </button>
                           );
                         })}
                       </div>
                     </div>
 
-                    {/* 5. Quartos, Banheiros e Garagem */}
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 space-y-3">
-                      <label className="text-xs font-bold text-slate-700 block mb-1 uppercase tracking-wider">
-                        Dimensões & Espaços
-                      </label>
-
-                      {/* Quartos */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="grid size-7 place-items-center rounded-lg bg-blue-50 text-blue-600">
-                            <BedDouble size={14} strokeWidth={2.2} />
-                          </span>
-                          <span className="text-xs sm:text-sm font-semibold text-ondjo-navy">
-                            Quartos (T0 a T5+)
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2.5">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const cur = parseInt(value.bedrooms || "0", 10);
-                              const next = Math.max(0, cur - 1);
-                              set("bedrooms", next === 0 ? "" : String(next));
-                            }}
-                            className="grid size-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 active:scale-90"
-                          >
-                            <Minus size={13} strokeWidth={2.5} />
-                          </button>
-                          <span className="w-6 text-center text-xs sm:text-sm font-bold text-ondjo-navy">
-                            {value.bedrooms ? `T${value.bedrooms}` : "0"}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const cur = parseInt(value.bedrooms || "0", 10);
-                              set("bedrooms", String(cur + 1));
-                            }}
-                            className="grid size-8 place-items-center rounded-full bg-ondjo-blue text-white font-bold active:scale-90 shadow-2xs"
-                          >
-                            <Plus size={13} strokeWidth={2.5} />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Banheiros */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="grid size-7 place-items-center rounded-lg bg-sky-50 text-sky-600">
-                            <Bath size={14} strokeWidth={2.2} />
-                          </span>
-                          <span className="text-xs sm:text-sm font-semibold text-ondjo-navy">
-                            Banheiros (WC)
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2.5">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const cur = parseInt(value.bathrooms || "0", 10);
-                              const next = Math.max(0, cur - 1);
-                              set("bathrooms", next === 0 ? "" : String(next));
-                            }}
-                            className="grid size-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 active:scale-90"
-                          >
-                            <Minus size={13} strokeWidth={2.5} />
-                          </button>
-                          <span className="w-6 text-center text-xs sm:text-sm font-bold text-ondjo-navy">
-                            {value.bathrooms || "0"}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const cur = parseInt(value.bathrooms || "0", 10);
-                              set("bathrooms", String(cur + 1));
-                            }}
-                            className="grid size-8 place-items-center rounded-full bg-ondjo-blue text-white font-bold active:scale-90 shadow-2xs"
-                          >
-                            <Plus size={13} strokeWidth={2.5} />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Vagas */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="grid size-7 place-items-center rounded-lg bg-amber-50 text-amber-600">
-                            <Car size={14} strokeWidth={2.2} />
-                          </span>
-                          <span className="text-xs sm:text-sm font-semibold text-ondjo-navy">
-                            Vagas de Garagem
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2.5">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const cur = parseInt(value.parking || "0", 10);
-                              const next = Math.max(0, cur - 1);
-                              set("parking", next === 0 ? "" : String(next));
-                            }}
-                            className="grid size-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 active:scale-90"
-                          >
-                            <Minus size={13} strokeWidth={2.5} />
-                          </button>
-                          <span className="w-6 text-center text-xs sm:text-sm font-bold text-ondjo-navy">
-                            {value.parking || "0"}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const cur = parseInt(value.parking || "0", 10);
-                              set("parking", String(cur + 1));
-                            }}
-                            className="grid size-8 place-items-center rounded-full bg-ondjo-blue text-white font-bold active:scale-90 shadow-2xs"
-                          >
-                            <Plus size={13} strokeWidth={2.5} />
-                          </button>
-                        </div>
-                      </div>
+                    {/* 4. Origem do Anúncio (Unificada e Simples) */}
+                    <div className="border-t border-slate-100 pt-5">
+                      <span className="block text-xs font-bold text-ondjo-navy mb-2">
+                        Origem do anúncio
+                      </span>
+                      <OriginSelector
+                        value={currentOrigin}
+                        onChange={(orig) => set("origin", orig)}
+                      />
                     </div>
 
-                    {/* 6. Comodidades & Preferências (15 comodidades oficiais) */}
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
-                      <div className="flex items-center justify-between mb-2.5">
-                        <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                          Comodidades{" "}
-                          {selectedAmenities.length > 0 &&
-                            `(${selectedAmenities.length})`}
-                        </span>
-                        {selectedAmenities.length > 0 && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedAmenities([]);
-                              onChange({ ...value, amenities: [] });
-                            }}
-                            className="text-[11px] font-bold text-ondjo-blue hover:underline cursor-pointer"
-                          >
-                            Limpar
-                          </button>
-                        )}
-                      </div>
-
-                      <div
-                        aria-label="Opções de comodidades"
-                        className="max-h-56 overflow-y-auto pr-1 scrollbar-subtle overscroll-contain"
-                      >
-                        <div className="grid grid-cols-3 gap-2">
-                          {AMENITY_OPTIONS.map((item) => {
-                            const isSelected =
-                              selectedAmenities.includes(item.id) ||
-                              selectedAmenities.includes(item.label);
-                            const Icon = item.icon;
-                            return (
-                              <button
-                                key={item.id}
-                                type="button"
-                                onClick={() => toggleAmenity(item.id)}
-                                aria-label={item.label}
-                                aria-pressed={isSelected}
-                                className={[
-                                  "group relative flex flex-col items-center justify-center rounded-2xl p-2 text-center border transition-colors duration-150 cursor-pointer select-none min-h-18 active:scale-97",
-                                  isSelected
-                                    ? "bg-ondjo-blue/8 border-2 border-ondjo-blue shadow-xs"
-                                    : "bg-white border-slate-200/90 text-slate-700 hover:bg-slate-50 shadow-2xs",
-                                ].join(" ")}
-                              >
-                                {isSelected && (
-                                  <span className="absolute top-1.5 right-1.5 grid size-4 place-items-center rounded-full bg-ondjo-blue text-white shadow-2xs">
-                                    <Check size={10} strokeWidth={3} />
-                                  </span>
-                                )}
-                                <span className={[
-                                  "grid size-7.5 place-items-center rounded-xl mb-1 shrink-0",
-                                  isSelected ? "bg-ondjo-blue text-white shadow-xs" : `${item.bgSoftClass} ${item.colorClass}`,
-                                ].join(" ")}>
-                                  <Icon size={14} strokeWidth={2.2} />
-                                </span>
-                                <span className={[
-                                  "text-[10px] font-semibold text-center leading-tight tracking-tight line-clamp-1 px-0.5",
-                                  isSelected ? "text-ondjo-navy font-bold" : "text-slate-700",
-                                ].join(" ")}>
-                                  {item.shortLabel || item.label}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 7. Faixa de Preço em Kz */}
-                    <div>
-                      <label className="text-xs font-bold text-slate-700 block mb-1.5 uppercase tracking-wider">
-                        Preço em Kwanzas (Kz)
-                      </label>
+                    {/* 5. Preço em Kwanzas (Kz) */}
+                    <div className="border-t border-slate-100 pt-5">
                       <PriceDualRangeSlider
                         purpose={value.purpose}
                         minPrice={value.minPrice}
@@ -1751,24 +1185,163 @@ export function SearchBar({
                         onChangeMax={(max) => set("maxPrice", max)}
                       />
                     </div>
+
+                    {/* 6. Divisões & Espaços */}
+                    <div className="border-t border-slate-100 pt-5">
+                      <span className="block text-xs font-bold text-ondjo-navy mb-2">
+                        Divisões e vagas
+                      </span>
+
+                      <div className="divide-y divide-slate-100">
+                        <div className="flex items-center justify-between py-2.5">
+                          <span className="text-xs sm:text-sm font-medium text-ondjo-ink">
+                            Quartos
+                          </span>
+                          <div className="flex items-center gap-2.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const cur = parseInt(value.bedrooms || "0", 10);
+                                const next = Math.max(0, cur - 1);
+                                set("bedrooms", next === 0 ? "" : String(next));
+                              }}
+                              aria-label="Diminuir quartos"
+                              className="focus-ring grid size-8.5 place-items-center rounded-full border border-ondjo-border bg-white text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue active:scale-90 transition-colors cursor-pointer"
+                            >
+                              <Minus size={14} strokeWidth={2.2} />
+                            </button>
+                            <span className="w-14 text-center text-xs font-bold text-ondjo-navy tabular-nums">
+                              {value.bedrooms ? `T${value.bedrooms}` : "Qualquer"}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const cur = parseInt(value.bedrooms || "0", 10);
+                                set("bedrooms", String(cur + 1));
+                              }}
+                              aria-label="Aumentar quartos"
+                              className="focus-ring grid size-8.5 place-items-center rounded-full border border-ondjo-border bg-white text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue active:scale-90 transition-colors cursor-pointer"
+                            >
+                              <Plus size={14} strokeWidth={2.2} />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between py-2.5">
+                          <span className="text-xs sm:text-sm font-medium text-ondjo-ink">
+                            Casas de banho
+                          </span>
+                          <div className="flex items-center gap-2.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const cur = parseInt(value.bathrooms || "0", 10);
+                                const next = Math.max(0, cur - 1);
+                                set("bathrooms", next === 0 ? "" : String(next));
+                              }}
+                              aria-label="Diminuir casas de banho"
+                              className="focus-ring grid size-8.5 place-items-center rounded-full border border-ondjo-border bg-white text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue active:scale-90 transition-colors cursor-pointer"
+                            >
+                              <Minus size={14} strokeWidth={2.2} />
+                            </button>
+                            <span className="w-14 text-center text-xs font-bold text-ondjo-navy tabular-nums">
+                              {value.bathrooms ? `${value.bathrooms}+` : "Qualquer"}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const cur = parseInt(value.bathrooms || "0", 10);
+                                set("bathrooms", String(cur + 1));
+                              }}
+                              aria-label="Aumentar casas de banho"
+                              className="focus-ring grid size-8.5 place-items-center rounded-full border border-ondjo-border bg-white text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue active:scale-90 transition-colors cursor-pointer"
+                            >
+                              <Plus size={14} strokeWidth={2.2} />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between py-2.5">
+                          <span className="text-xs sm:text-sm font-medium text-ondjo-ink">
+                            Estacionamento
+                          </span>
+                          <div className="flex items-center gap-2.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const cur = parseInt(value.parking || "0", 10);
+                                const next = Math.max(0, cur - 1);
+                                set("parking", next === 0 ? "" : String(next));
+                              }}
+                              aria-label="Diminuir vagas"
+                              className="focus-ring grid size-8.5 place-items-center rounded-full border border-ondjo-border bg-white text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue active:scale-90 transition-colors cursor-pointer"
+                            >
+                              <Minus size={14} strokeWidth={2.2} />
+                            </button>
+                            <span className="w-14 text-center text-xs font-bold text-ondjo-navy tabular-nums">
+                              {value.parking ? `${value.parking}+` : "Qualquer"}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const cur = parseInt(value.parking || "0", 10);
+                                set("parking", String(cur + 1));
+                              }}
+                              aria-label="Aumentar vagas"
+                              className="focus-ring grid size-8.5 place-items-center rounded-full border border-ondjo-border bg-white text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue active:scale-90 transition-colors cursor-pointer"
+                            >
+                              <Plus size={14} strokeWidth={2.2} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 7. Comodidades Compactas */}
+                    <div className="border-t border-slate-100 pt-5">
+                      <div className="flex items-center justify-between mb-2.5">
+                        <span className="text-xs font-bold text-ondjo-navy">
+                          Comodidades
+                          {selectedAmenities.length > 0 &&
+                            ` (${selectedAmenities.length})`}
+                        </span>
+                        {selectedAmenities.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedAmenities([]);
+                              onChange({ ...value, amenities: [] });
+                            }}
+                            className="text-xs font-semibold text-ondjo-blue hover:underline cursor-pointer"
+                          >
+                            Limpar
+                          </button>
+                        )}
+                      </div>
+
+                      <AmenitiesSelector
+                        selected={selectedAmenities}
+                        onToggle={toggleAmenity}
+                      />
+                    </div>
                   </div>
 
                   {/* Rodapé Fixo do Sheet */}
-                  <div className="shrink-0 border-t border-slate-100 bg-white p-4 flex items-center justify-between gap-3">
+                  <div className="shrink-0 border-t border-slate-100 bg-white px-5 sm:px-6 py-4 flex items-center justify-between gap-3">
                     <button
                       type="button"
                       onClick={clearAllFilters}
-                      className="min-h-12 px-3 text-xs font-bold text-slate-600 hover:text-ondjo-blue active:scale-95 cursor-pointer"
+                      className="focus-ring min-h-11 px-3 rounded-xl text-xs font-bold text-ondjo-muted hover:text-ondjo-navy active:scale-95 transition-colors cursor-pointer"
                     >
                       Limpar tudo
                     </button>
                     <button
                       type="button"
                       onClick={() => handleSubmit()}
-                      className="flex-1 min-h-12 rounded-xl bg-ondjo-blue px-4 py-3 text-center text-sm font-bold text-white shadow-md active:scale-98 cursor-pointer hover:bg-ondjo-blue-dark transition"
+                      className="focus-ring flex-1 min-h-11 rounded-xl bg-ondjo-blue px-5 text-center text-sm font-bold text-white shadow-sm active:scale-98 cursor-pointer hover:bg-ondjo-blue-dark transition-colors tabular-nums"
                     >
                       {matchingCount > 0
-                        ? `Ver ${matchingCount} imóveis`
+                        ? `Mostrar ${matchingCount} ${matchingCount === 1 ? "imóvel" : "imóveis"}`
                         : "Pesquisar imóveis"}
                     </button>
                   </div>
