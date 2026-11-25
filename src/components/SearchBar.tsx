@@ -18,7 +18,7 @@ import {
 import { AMENITY_OPTIONS, type AmenityDefinition } from "../data/amenities";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import { locations, properties } from "../data/properties";
 import { filterProperties } from "../utils/filterProperties";
 
@@ -331,7 +331,7 @@ export function PriceDualRangeSlider({
                 onChangeMax(preset.max);
               }}
               className={[
-                "rounded-full px-2.5 py-1 text-[10px] font-bold transition-all cursor-pointer",
+                "rounded-full px-2.5 py-1 text-[10px] font-bold transition-colors duration-150 cursor-pointer",
                 active
                   ? "bg-ondjo-blue text-white shadow-2xs"
                   : "bg-slate-100 hover:bg-slate-200/90 text-slate-600",
@@ -510,7 +510,7 @@ export function SearchBar({
         <div
           role="tablist"
           aria-label="Modalidade de negócio"
-          className="grid grid-cols-2 w-full rounded-2xl bg-slate-100/90 p-1 backdrop-blur-xs border border-ondjo-border/80 shadow-2xs"
+          className="grid grid-cols-2 w-full rounded-2xl bg-slate-100 p-1 border border-ondjo-border/80 shadow-2xs"
         >
           {PURPOSE_OPTIONS.map((opt) => {
             const isSelected = currentPurpose === opt.id;
@@ -522,7 +522,7 @@ export function SearchBar({
                 aria-selected={isSelected}
                 onClick={() => set("purpose", opt.id)}
                 className={[
-                  "flex min-h-11 items-center justify-center rounded-xl text-xs font-bold transition-all cursor-pointer",
+                  "flex min-h-11 items-center justify-center rounded-xl text-xs font-bold transition-colors duration-150 cursor-pointer",
                   isSelected
                     ? "bg-white text-ondjo-navy shadow-xs font-black"
                     : "text-slate-600 hover:text-ondjo-ink",
@@ -546,7 +546,7 @@ export function SearchBar({
                 type="button"
                 onClick={() => set("origin", opt.id)}
                 className={[
-                  "inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-all cursor-pointer active:scale-95",
+                  "inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors duration-150 cursor-pointer active:scale-95",
                   isSelected
                     ? opt.id === "verificados"
                       ? "border-emerald-500/50 bg-emerald-50 text-emerald-900 font-bold shadow-2xs"
@@ -608,7 +608,7 @@ export function SearchBar({
         <div
           role="tablist"
           aria-label="Modalidade de negócio"
-          className="inline-flex items-center gap-1.5 rounded-full bg-slate-100/90 p-1 backdrop-blur-xs border border-slate-200/60 shadow-xs"
+          className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 p-1 border border-slate-200/60 shadow-xs"
         >
           {PURPOSE_OPTIONS.map((opt) => {
             const isSelected = currentPurpose === opt.id;
@@ -620,7 +620,7 @@ export function SearchBar({
                 aria-selected={isSelected}
                 onClick={() => set("purpose", opt.id)}
                 className={[
-                  "relative flex min-h-8.5 items-center gap-1.5 rounded-full px-4 text-xs font-bold transition-all cursor-pointer",
+                  "relative flex min-h-8.5 items-center gap-1.5 rounded-full px-4 text-xs font-bold transition-colors duration-150 cursor-pointer",
                   isSelected
                     ? "bg-white text-ondjo-navy shadow-sm"
                     : "text-slate-600 hover:text-ondjo-ink",
@@ -644,7 +644,7 @@ export function SearchBar({
                 type="button"
                 onClick={() => set("origin", orig.id)}
                 className={[
-                  "inline-flex min-h-8.5 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-all cursor-pointer",
+                  "inline-flex min-h-8.5 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors duration-150 cursor-pointer",
                   isSelected
                     ? orig.id === "verificados"
                       ? "border-emerald-500/40 bg-emerald-50 text-emerald-900 font-bold shadow-xs"
@@ -684,7 +684,7 @@ export function SearchBar({
       <div className="hidden md:block">
         <div
           className={[
-            "relative z-30 flex items-center rounded-full bg-white transition-all duration-300",
+            "relative z-30 flex items-center rounded-full bg-white transition-[background-color,box-shadow] duration-150",
             "border border-slate-200/80 shadow-[0_16px_40px_rgba(16,42,67,0.08)] hover:shadow-[0_20px_50px_rgba(16,42,67,0.14)]",
             activeSegment ? "bg-slate-50/50" : "",
           ].join(" ")}
@@ -696,10 +696,10 @@ export function SearchBar({
               setActiveSegment(
                 activeSegment === "location" ? null : "location",
               );
-              setTimeout(() => locationInputRef.current?.focus(), 50);
+              requestAnimationFrame(() => locationInputRef.current?.focus());
             }}
             className={[
-              "group relative flex-1 rounded-full px-6 py-3.5 text-left transition-all cursor-pointer",
+              "group relative flex-1 rounded-full px-6 py-3.5 text-left transition-[background-color,box-shadow] duration-150 cursor-pointer",
               activeSegment === "location"
                 ? "bg-white shadow-[0_8px_24px_rgba(16,42,67,0.12)] z-20 ring-1 ring-slate-200"
                 : "hover:bg-slate-100/70",
@@ -714,7 +714,7 @@ export function SearchBar({
           </button>
 
           <div
-            className={`h-8 w-px bg-slate-200/80 shrink-0 transition-opacity ${
+            className={`h-8 w-px bg-slate-200/80 shrink-0 transition-opacity duration-150 ${
               activeSegment === "location" || activeSegment === "type"
                 ? "opacity-0"
                 : "opacity-100"
@@ -728,7 +728,7 @@ export function SearchBar({
               setActiveSegment(activeSegment === "type" ? null : "type")
             }
             className={[
-              "group relative flex-1 rounded-full px-6 py-3.5 text-left transition-all cursor-pointer",
+              "group relative flex-1 rounded-full px-6 py-3.5 text-left transition-[background-color,box-shadow] duration-150 cursor-pointer",
               activeSegment === "type"
                 ? "bg-white shadow-[0_8px_24px_rgba(16,42,67,0.12)] z-20 ring-1 ring-slate-200"
                 : "hover:bg-slate-100/70",
@@ -743,7 +743,7 @@ export function SearchBar({
           </button>
 
           <div
-            className={`h-8 w-px bg-slate-200/80 shrink-0 transition-opacity ${
+            className={`h-8 w-px bg-slate-200/80 shrink-0 transition-opacity duration-150 ${
               activeSegment === "type" || activeSegment === "amenities"
                 ? "opacity-0"
                 : "opacity-100"
@@ -759,7 +759,7 @@ export function SearchBar({
               )
             }
             className={[
-              "group relative flex-1 rounded-full px-6 py-3.5 text-left transition-all cursor-pointer",
+              "group relative flex-1 rounded-full px-6 py-3.5 text-left transition-[background-color,box-shadow] duration-150 cursor-pointer",
               activeSegment === "amenities"
                 ? "bg-white shadow-[0_8px_24px_rgba(16,42,67,0.12)] z-20 ring-1 ring-slate-200"
                 : "hover:bg-slate-100/70",
@@ -779,7 +779,7 @@ export function SearchBar({
           </button>
 
           <div
-            className={`h-8 w-px bg-slate-200/80 shrink-0 transition-opacity ${
+            className={`h-8 w-px bg-slate-200/80 shrink-0 transition-opacity duration-150 ${
               activeSegment === "amenities" || activeSegment === "price"
                 ? "opacity-0"
                 : "opacity-100"
@@ -793,7 +793,7 @@ export function SearchBar({
               setActiveSegment(activeSegment === "price" ? null : "price")
             }
             className={[
-              "group relative flex-1 rounded-full px-6 py-3.5 text-left transition-all cursor-pointer",
+              "group relative flex-1 rounded-full px-6 py-3.5 text-left transition-[background-color,box-shadow] duration-150 cursor-pointer",
               activeSegment === "price"
                 ? "bg-white shadow-[0_8px_24px_rgba(16,42,67,0.12)] z-20 ring-1 ring-slate-200"
                 : "hover:bg-slate-100/70",
@@ -812,7 +812,7 @@ export function SearchBar({
             <button
               type="button"
               onClick={() => handleSubmit()}
-              className="flex min-h-12 items-center gap-2 rounded-full bg-ondjo-blue hover:bg-ondjo-blue-dark active:scale-95 px-6 py-3 font-bold text-white shadow-md transition-all cursor-pointer hover:shadow-lg"
+              className="flex min-h-12 items-center gap-2 rounded-full bg-ondjo-blue hover:bg-ondjo-blue-dark active:scale-95 px-6 py-3 font-bold text-white shadow-md transition-[background-color,box-shadow,transform] duration-150 cursor-pointer hover:shadow-lg"
               aria-label="Pesquisar imóveis"
             >
               <Search size={18} aria-hidden="true" className="shrink-0" />
@@ -826,11 +826,11 @@ export function SearchBar({
         {/* POPOVERS DESKTOP */}
         <AnimatePresence>
           {activeSegment === "location" && (
-            <motion.div
-              initial={{ opacity: 0, y: 10, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 8, scale: 0.98 }}
-              transition={{ duration: reduceMotion ? 0 : 0.16 }}
+            <m.div
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 4 }}
+              transition={{ duration: reduceMotion ? 0 : 0.1, ease: "easeOut" }}
               className="absolute left-0 top-full mt-3 w-96 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-[0_20px_50px_rgba(16,42,67,0.22)] z-50"
             >
               <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
@@ -887,7 +887,7 @@ export function SearchBar({
                         setActiveSegment("type");
                       }}
                       className={[
-                        "flex items-center gap-2 rounded-xl p-2.5 text-xs font-semibold text-left transition-all cursor-pointer",
+                        "flex items-center gap-2 rounded-xl p-2.5 text-xs font-semibold text-left transition-colors duration-150 cursor-pointer",
                         value.location === loc
                           ? "bg-ondjo-blue-soft text-ondjo-blue font-bold"
                           : "text-slate-700 hover:bg-slate-50",
@@ -899,15 +899,15 @@ export function SearchBar({
                   ))}
                 </div>
               </div>
-            </motion.div>
+            </m.div>
           )}
 
           {activeSegment === "type" && (
-            <motion.div
-              initial={{ opacity: 0, y: 10, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 8, scale: 0.98 }}
-              transition={{ duration: reduceMotion ? 0 : 0.16 }}
+            <m.div
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 4 }}
+              transition={{ duration: reduceMotion ? 0 : 0.1, ease: "easeOut" }}
               className="absolute left-1/4 top-full mt-3 w-80 rounded-3xl border border-slate-200/80 bg-white p-4 shadow-[0_20px_50px_rgba(16,42,67,0.22)] z-50"
             >
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2 px-1">
@@ -925,7 +925,7 @@ export function SearchBar({
                         setActiveSegment("amenities");
                       }}
                       className={[
-                        "flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all cursor-pointer",
+                        "flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-colors duration-150 cursor-pointer",
                         isSelected
                           ? "bg-ondjo-blue text-white shadow-xs font-bold"
                           : "text-slate-700 hover:bg-slate-50",
@@ -937,15 +937,15 @@ export function SearchBar({
                   );
                 })}
               </div>
-            </motion.div>
+            </m.div>
           )}
 
           {activeSegment === "amenities" && (
-            <motion.div
-              initial={{ opacity: 0, y: 10, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 8, scale: 0.98 }}
-              transition={{ duration: reduceMotion ? 0 : 0.16 }}
+            <m.div
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 4 }}
+              transition={{ duration: reduceMotion ? 0 : 0.1, ease: "easeOut" }}
               className="absolute left-1/2 top-full mt-3 w-105 sm:w-115 max-w-[94vw] -translate-x-1/2 rounded-3xl border border-slate-200/90 bg-white p-5 shadow-[0_20px_50px_rgba(16,42,67,0.22)] z-50 max-h-[82vh] overflow-y-auto no-scrollbar"
             >
               <div className="space-y-4">
@@ -1121,7 +1121,7 @@ export function SearchBar({
                           onClick={() => toggleAmenity(item.id)}
                           aria-pressed={isSelected}
                           className={[
-                            "focus-ring group relative flex flex-col items-center justify-center rounded-2xl p-2.5 transition-all duration-150 cursor-pointer select-none border min-h-18",
+                            "focus-ring group relative flex flex-col items-center justify-center rounded-2xl p-2.5 transition-colors duration-150 cursor-pointer select-none border min-h-18",
                             isSelected
                               ? "bg-ondjo-blue/8 border-2 border-ondjo-blue shadow-xs"
                               : "bg-white hover:bg-ondjo-blue-50/20 border-slate-200/90 hover:border-ondjo-blue/40 shadow-2xs",
@@ -1164,28 +1164,28 @@ export function SearchBar({
                         amenities: [],
                       });
                     }}
-                    className="text-xs font-semibold text-slate-500 hover:text-ondjo-blue transition cursor-pointer"
+                    className="text-xs font-semibold text-slate-500 hover:text-ondjo-blue transition-colors duration-150 cursor-pointer"
                   >
                     Limpar tudo
                   </button>
                   <button
                     type="button"
                     onClick={() => setActiveSegment(null)}
-                    className="rounded-full bg-ondjo-navy hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 transition active:scale-95 cursor-pointer shadow-xs"
+                    className="rounded-full bg-ondjo-navy hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 transition-[background-color,transform] duration-150 active:scale-95 cursor-pointer shadow-xs"
                   >
                     Concluído
                   </button>
                 </div>
               </div>
-            </motion.div>
+            </m.div>
           )}
 
           {activeSegment === "price" && (
-            <motion.div
-              initial={{ opacity: 0, y: 10, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 8, scale: 0.98 }}
-              transition={{ duration: reduceMotion ? 0 : 0.16 }}
+            <m.div
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 4 }}
+              transition={{ duration: reduceMotion ? 0 : 0.1, ease: "easeOut" }}
               className="absolute right-0 top-full mt-3 w-88 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-[0_20px_50px_rgba(16,42,67,0.22)] z-50"
             >
               {/* <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-3">
@@ -1208,7 +1208,7 @@ export function SearchBar({
                 Ver{" "}
                 {matchingCount > 0 ? `${matchingCount} imóveis` : "Resultados"}
               </button>
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
       </div>
@@ -1220,7 +1220,7 @@ export function SearchBar({
         <button
           type="button"
           onClick={() => setMobileModalOpen(true)}
-          className="flex min-h-14 w-full items-center gap-3 rounded-2xl border border-ondjo-border/90 bg-white p-2.5 shadow-[0_8px_24px_rgba(16,42,67,0.08)] active:scale-[0.99] transition-all cursor-pointer text-left"
+          className="flex min-h-14 w-full items-center gap-3 rounded-2xl border border-ondjo-border/90 bg-white p-2.5 shadow-[0_8px_24px_rgba(16,42,67,0.08)] active:scale-[0.99] transition-[transform,box-shadow] duration-150 cursor-pointer text-left"
           aria-label="Abrir filtros de pesquisa de imóveis"
         >
           <div className="flex size-10.5 items-center justify-center rounded-xl bg-ondjo-blue text-white shadow-xs shrink-0">
@@ -1283,28 +1283,27 @@ export function SearchBar({
                 role="dialog"
                 aria-modal="true"
                 aria-label="Filtros de pesquisa"
-                className="fixed inset-0 z-100 flex flex-col justify-end bg-black/60 backdrop-blur-xs"
+                className="fixed inset-0 z-100 flex flex-col justify-end bg-black/55"
               >
                 {/* Backdrop clicável */}
-                <motion.div
+                <m.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: reduceMotion ? 0 : 0.2 }}
+                  transition={{ duration: reduceMotion ? 0 : 0.14 }}
                   onClick={() => setMobileModalOpen(false)}
                   className="fixed inset-0 cursor-pointer"
                   aria-hidden="true"
                 />
 
                 {/* Sheet que desliza de baixo para cima */}
-                <motion.div
-                  initial={{ y: "100%" }}
-                  animate={{ y: 0 }}
-                  exit={{ y: "100%" }}
+                <m.div
+                  initial={{ y: 36, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: 24, opacity: 0 }}
                   transition={{
-                    type: "spring",
-                    damping: 32,
-                    stiffness: 320,
+                    duration: reduceMotion ? 0 : 0.16,
+                    ease: [0.22, 1, 0.36, 1],
                   }}
                   className="relative z-10 flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-t-[28px] bg-white shadow-2xl pb-safe"
                 >
@@ -1353,7 +1352,7 @@ export function SearchBar({
                               type="button"
                               onClick={() => set("purpose", opt.id)}
                               className={[
-                                "flex min-h-11 items-center justify-center rounded-xl text-xs font-bold border transition-all cursor-pointer",
+                                "flex min-h-11 items-center justify-center rounded-xl text-xs font-bold border transition-colors duration-150 cursor-pointer",
                                 isSelected
                                   ? "border-ondjo-blue bg-ondjo-blue-soft text-ondjo-blue font-black shadow-2xs"
                                   : "border-slate-200 text-slate-700 hover:bg-slate-50",
@@ -1387,7 +1386,7 @@ export function SearchBar({
                               type="button"
                               onClick={() => set("origin", opt.id)}
                               className={[
-                                "relative flex items-center justify-between rounded-2xl border p-3 text-left transition-all cursor-pointer min-h-18 active:scale-[0.99]",
+                                "relative flex items-center justify-between rounded-2xl border p-3 text-left transition-colors duration-150 cursor-pointer min-h-18 active:scale-[0.99]",
                                 isSelected
                                   ? "border-ondjo-blue bg-ondjo-blue-soft/50 ring-2 ring-ondjo-blue/20 shadow-xs"
                                   : "border-slate-200/90 bg-white hover:bg-slate-50",
@@ -1507,7 +1506,7 @@ export function SearchBar({
                                 })
                               }
                               className={[
-                                "min-h-8 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-all cursor-pointer",
+                                "min-h-8 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors duration-150 cursor-pointer",
                                 isSel
                                   ? "border-ondjo-blue bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
                                   : "border-slate-200 text-slate-600 hover:bg-slate-100",
@@ -1709,7 +1708,7 @@ export function SearchBar({
                                 aria-label={item.label}
                                 aria-pressed={isSelected}
                                 className={[
-                                  "group relative flex flex-col items-center justify-center rounded-2xl p-2 text-center border transition-all duration-150 cursor-pointer select-none min-h-18 active:scale-97",
+                                  "group relative flex flex-col items-center justify-center rounded-2xl p-2 text-center border transition-colors duration-150 cursor-pointer select-none min-h-18 active:scale-97",
                                   isSelected
                                     ? "bg-ondjo-blue/8 border-2 border-ondjo-blue shadow-xs"
                                     : "bg-white border-slate-200/90 text-slate-700 hover:bg-slate-50 shadow-2xs",
@@ -1773,7 +1772,7 @@ export function SearchBar({
                         : "Pesquisar imóveis"}
                     </button>
                   </div>
-                </motion.div>
+                </m.div>
               </div>
             )}
           </AnimatePresence>,

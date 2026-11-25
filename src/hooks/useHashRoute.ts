@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export type Route =
   | { page: "home" }
@@ -18,7 +18,7 @@ function readRoute(): Route {
   const params = new URLSearchParams(queryString || "");
 
   if (segment === "imovel" && id) return { page: "property", id };
-  if (segment === "pesquisar") return { page: "search" };
+  if (segment === "pesquisar" || segment === "pesquisa") return { page: "search" };
   if (segment === "favoritos") return { page: "favorites" };
   if (segment === "mensagens" || segment === "chat") {
     const propertyId = params.get("property") || undefined;
@@ -30,6 +30,10 @@ function readRoute(): Route {
   return { page: "home" };
 }
 
+function getRouteKey(route: Route): string {
+  return route.page === "property" ? `property:${route.id}` : route.page;
+}
+
 export function navigate(path: string) {
   window.location.hash = path.startsWith("#")
     ? path
@@ -38,9 +42,18 @@ export function navigate(path: string) {
 
 export function useHashRoute() {
   const [route, setRoute] = useState<Route>(readRoute);
+  const lastRouteKeyRef = useRef<string>(getRouteKey(route));
 
   useEffect(() => {
-    const onChange = () => setRoute(readRoute());
+    const onChange = () => {
+      const next = readRoute();
+      const nextKey = getRouteKey(next);
+      if (nextKey !== lastRouteKeyRef.current) {
+        lastRouteKeyRef.current = nextKey;
+        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      }
+      setRoute(next);
+    };
     window.addEventListener("hashchange", onChange);
     return () => window.removeEventListener("hashchange", onChange);
   }, []);

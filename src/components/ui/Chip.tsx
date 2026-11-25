@@ -1,5 +1,6 @@
 import React, { forwardRef } from "react";
 import { X } from "lucide-react";
+import { cn } from "../../utils/cn";
 
 export interface ChipProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   active?: boolean;
@@ -36,13 +37,11 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(
     if (onRemove) {
       return (
         <span
-          className={[
-            "inline-flex items-center gap-1.5 pl-3.5 pr-1.5 py-1 rounded-full border text-xs sm:text-sm font-medium transition-all duration-150 ease-out select-none min-h-9.5",
+          className={cn(
+            "inline-flex items-center gap-1.5 pl-3.5 pr-1.5 py-1 rounded-full border text-xs sm:text-sm font-medium transition-colors duration-150 ease-out select-none min-h-9.5",
             active ? activeClasses : inactiveClasses,
             className,
-          ]
-            .filter(Boolean)
-            .join(" ")}
+          )}
         >
           <button
             type="button"
@@ -93,15 +92,13 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(
         type="button"
         onClick={onClick}
         aria-pressed={active}
-        className={[
-          "inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs sm:text-sm font-medium transition-all duration-150 ease-out select-none",
+        className={cn(
+          "inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs sm:text-sm font-medium transition-[background-color,border-color,color,transform] duration-150 ease-out select-none",
           "min-h-9.5 active:scale-[0.98]",
           "focus-visible:outline-2 focus-visible:outline-ondjo-blue focus-visible:outline-offset-2",
           active ? activeClasses : inactiveClasses,
           className,
-        ]
-          .filter(Boolean)
-          .join(" ")}
+        )}
         {...props}
       >
         {icon && <span className="shrink-0 flex items-center">{icon}</span>}

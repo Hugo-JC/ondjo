@@ -1,5 +1,6 @@
 import React from "react";
 import { ShieldCheck } from "lucide-react";
+import { cn } from "../../utils/cn";
 
 export type BadgeVariant =
   | "verified"
@@ -60,14 +61,12 @@ export const Badge: React.FC<BadgeProps> = ({
 
   return (
     <span
-      className={[
+      className={cn(
         "inline-flex max-w-full items-center justify-center select-none leading-none tracking-wide",
         variantStyles[variant],
         sizeStyles[size],
         className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      )}
       {...props}
     >
       {defaultIcon && (

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ExternalLink,
   MapPin,
@@ -63,6 +63,10 @@ export function PropertyMap({
 
   const embedUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${minLng}%2C${minLat}%2C${maxLng}%2C${maxLat}&layer=mapnik&marker=${coords.lat}%2C${coords.lng}`;
   const directOsmUrl = `https://www.openstreetmap.org/?mlat=${coords.lat}&mlon=${coords.lng}#map=15/${coords.lat}/${coords.lng}`;
+
+  useEffect(() => {
+    setMapLoaded(false);
+  }, [embedUrl]);
 
   const handleZoomIn = () => {
     setZoomLevel((prev) => Math.max(0, prev - 1));

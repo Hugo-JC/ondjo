@@ -1,5 +1,6 @@
 import React, { forwardRef } from "react";
 import { Loader2 } from "lucide-react";
+import { cn } from "../../utils/cn";
 
 export type ButtonVariant =
   | "primary"
@@ -65,17 +66,15 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         disabled={disabled || isLoading}
-        className={[
-          "inline-flex items-center justify-center select-none font-sans transition-all duration-150 ease-out",
+        className={cn(
+          "inline-flex items-center justify-center select-none font-sans transition-[background-color,border-color,color,box-shadow,transform] duration-150 ease-out",
           "focus-visible:outline-2 focus-visible:outline-ondjo-blue focus-visible:outline-offset-2",
           "disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none",
           variantStyles[variant],
           sizeStyles[size],
-          fullWidth ? "w-full" : "",
+          fullWidth && "w-full",
           className,
-        ]
-          .filter(Boolean)
-          .join(" ")}
+        )}
         {...props}
       >
         {isLoading ? (

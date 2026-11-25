@@ -1,6 +1,5 @@
-import { useRef } from "react";
+import { memo, useRef } from "react";
 import { Heart, ShieldCheck, Sparkles } from "lucide-react";
-import { motion } from "framer-motion";
 import type { Property } from "../types";
 import { formatKz } from "../utils/format";
 import { navigate } from "../hooks/useHashRoute";
@@ -8,7 +7,7 @@ import { useFavorites } from "../hooks/useFavorites";
 import { PropertyImageCarousel } from "./PropertyImageCarousel";
 import { setActiveCard, getActiveCardId } from "../utils/cardActiveState";
 
-export function PropertyCard({
+export const PropertyCard = memo(function PropertyCard({
   property,
   index = 0,
 }: {
@@ -53,15 +52,7 @@ export function PropertyCard({
   const isArrendamento = property.purpose === "arrendamento";
 
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 12 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "0px 0px -60px" }}
-      transition={{
-        duration: 0.24,
-        ease: "easeOut",
-        delay: Math.min(index * 0.035, 0.12),
-      }}
+    <article
       onPointerDown={handlePointerDown}
       onMouseLeave={handleMouseLeave}
       onClick={handleCardClick}
@@ -69,7 +60,7 @@ export function PropertyCard({
       tabIndex={0}
       role="link"
       aria-label={`${property.title}, ${property.neighborhood}, ${property.city}. Preço: ${formatKz(property.price, { perMonth: isArrendamento })}`}
-      className="group relative flex min-w-0 w-full max-w-full cursor-pointer flex-col overflow-hidden rounded-2xl bg-transparent transition-transform duration-400 hover:-translate-y-0.5 focus-ring"
+      className="group relative flex min-w-0 w-full max-w-full cursor-pointer flex-col overflow-hidden rounded-2xl bg-transparent transition-transform duration-150 ease-out hover:-translate-y-0.5 focus-ring"
     >
       <div className="relative overflow-hidden rounded-2xl bg-slate-100">
         <PropertyImageCarousel
@@ -83,7 +74,7 @@ export function PropertyCard({
 
         <div className="pointer-events-none absolute left-3 top-3 z-10 flex max-w-[calc(100%-4rem)] flex-wrap items-center gap-1.5">
           {property.verified ? (
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-slate-900 shadow-sm backdrop-blur-md">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-slate-900 shadow-sm">
               <ShieldCheck
                 size={13}
                 className="shrink-0 text-ondjo-blue"
@@ -92,7 +83,7 @@ export function PropertyCard({
               <span>Verificado</span>
             </div>
           ) : property.featured ? (
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-slate-900 shadow-sm backdrop-blur-md">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-slate-900 shadow-sm">
               <Sparkles
                 size={13}
                 className="shrink-0 text-amber-500"
@@ -102,7 +93,7 @@ export function PropertyCard({
             </div>
           ) : null}
 
-          <span className="inline-flex items-center rounded-full bg-ondjo-navy/85 px-2.5 py-0.5 text-[11px] font-bold text-white shadow-xs backdrop-blur-md">
+          <span className="inline-flex items-center rounded-full bg-ondjo-navy/90 px-2.5 py-0.5 text-[11px] font-bold text-white shadow-xs">
             {isArrendamento ? "Arrendar" : "Venda"}
           </span>
         </div>
@@ -114,7 +105,7 @@ export function PropertyCard({
             e.stopPropagation();
             toggleFavorite(property.id);
           }}
-          className="focus-ring absolute right-2 top-2 z-20 flex size-11 items-center justify-center rounded-full text-white transition hover:scale-110 active:scale-90 cursor-pointer"
+          className="focus-ring absolute right-2 top-2 z-20 flex size-11 items-center justify-center rounded-full text-white transition-transform duration-150 hover:scale-110 active:scale-90 cursor-pointer"
           aria-label={
             favorite
               ? `Remover ${property.title} dos favoritos`
@@ -125,7 +116,7 @@ export function PropertyCard({
           <Heart
             size={24}
             strokeWidth={2.5}
-            className={`transition-colors duration-200 ${
+            className={`transition-colors duration-150 ${
               favorite
                 ? "fill-ondjo-danger text-ondjo-danger"
                 : "fill-black/20 text-white"
@@ -165,6 +156,6 @@ export function PropertyCard({
           </span>
         </div>
       </div>
-    </motion.article>
+    </article>
   );
-}
+});

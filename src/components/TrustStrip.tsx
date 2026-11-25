@@ -7,7 +7,7 @@ import {
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 
 interface Pillar {
   icon: LucideIcon;
@@ -151,15 +151,15 @@ export function TrustStrip() {
           const Icon = pillar.icon;
 
           return (
-            <motion.div
+            <m.div
               key={pillar.title}
-              initial={shouldReduceMotion ? undefined : { opacity: 0, y: 14 }}
+              initial={shouldReduceMotion ? undefined : { opacity: 0, y: 10 }}
               whileInView={
                 shouldReduceMotion ? undefined : { opacity: 1, y: 0 }
               }
               viewport={{ once: true, margin: "-40px" }}
-              transition={{ duration: 0.35, delay: index * 0.08 }}
-              className={`group relative flex w-[78vw] max-w-70 shrink-0 snap-center sm:w-auto sm:max-w-none sm:shrink flex-col justify-between rounded-2xl border border-slate-100 bg-slate-50/70 p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-lg hover:shadow-slate-200/40 ${style.glow}`}
+              transition={{ duration: 0.2, delay: index * 0.04 }}
+              className={`group relative flex w-[78vw] max-w-70 shrink-0 snap-center sm:w-auto sm:max-w-none sm:shrink flex-col justify-between rounded-2xl border border-slate-100 bg-slate-50/70 p-4 sm:p-5 transition-[transform,background-color,box-shadow,border-color] duration-150 hover:-translate-y-0.5 hover:bg-white hover:shadow-lg hover:shadow-slate-200/40 ${style.glow}`}
             >
               <div>
                 <div className="flex items-center justify-between gap-2">
@@ -194,7 +194,7 @@ export function TrustStrip() {
                 />
                 <span>Padrão ONDJO de Qualidade</span>
               </div>
-            </motion.div>
+            </m.div>
           );
         })}
       </div>

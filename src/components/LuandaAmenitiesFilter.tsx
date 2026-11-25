@@ -11,7 +11,7 @@ import {
   SlidersHorizontal,
   Check,
 } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 
 export interface AmenityItem {
   id: string;
@@ -141,7 +141,7 @@ export function LuandaAmenitiesFilter({
               type="button"
               onClick={() => toggleAmenity(amenity.id)}
               className={[
-                "group shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-200 border",
+                "group shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors duration-150 border cursor-pointer",
                 isSelected
                   ? "bg-ondjo-blue/10 border-ondjo-blue text-ondjo-blue shadow-xs ring-1 ring-ondjo-blue/20"
                   : "bg-white/90 border-ondjo-border text-ondjo-ink hover:border-ondjo-muted hover:bg-ondjo-bg/60",
@@ -171,17 +171,19 @@ export function LuandaAmenitiesFilter({
       <AnimatePresence>
         {modalOpen && (
           <div className="fixed inset-0 z-50 grid place-items-center p-4">
-            <motion.div
+            <m.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.14 }}
               onClick={() => setModalOpen(false)}
-              className="absolute inset-0 bg-black/50 backdrop-blur-xs"
+              className="absolute inset-0 bg-black/50"
             />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            <m.div
+              initial={{ opacity: 0, scale: 0.96, y: 8 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              exit={{ opacity: 0, scale: 0.96, y: 8 }}
+              transition={{ duration: 0.14, ease: "easeOut" }}
               className="relative w-full max-w-md rounded-2xl border border-ondjo-border bg-white p-5 shadow-2xl z-10"
               role="dialog"
               aria-modal="true"
@@ -217,7 +219,7 @@ export function LuandaAmenitiesFilter({
                       type="button"
                       onClick={() => toggleAmenity(amenity.id)}
                       className={[
-                        "w-full text-left p-3 rounded-xl border transition-all flex items-start gap-3",
+                        "w-full text-left p-3 rounded-xl border transition-colors duration-150 flex items-start gap-3 cursor-pointer",
                         isSelected
                           ? "border-ondjo-blue bg-ondjo-blue/5 shadow-xs"
                           : "border-ondjo-border hover:border-ondjo-muted bg-white",
@@ -269,7 +271,7 @@ export function LuandaAmenitiesFilter({
                   Aplicar ({selectedAmenities.length} selecionadas)
                 </button>
               </div>
-            </motion.div>
+            </m.div>
           </div>
         )}
       </AnimatePresence>

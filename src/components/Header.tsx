@@ -54,7 +54,7 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-45 w-full py-1.5 border-b border-ondjo-border/80 bg-white/95 backdrop-blur-md transition-all">
+    <header className="sticky top-0 z-45 w-full py-1.5 border-b border-ondjo-border/80 bg-white/95 backdrop-blur-md">
       {/* Ajuste h-10, sm:h-15 e lg:h-17 para alterar a altura do Header por ecrã. */}
       <div className="mx-auto flex h-10 sm:h-15 lg:h-17 w-full max-w-7xl items-center justify-between gap-3 px-5 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 min-w-0">
@@ -99,7 +99,7 @@ export default function Header() {
               <div
                 role="menu"
                 aria-orientation="vertical"
-                className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-ondjo-border bg-white py-2 shadow-xl z-50 animate-in fade-in-50 zoom-in-95"
+                className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-ondjo-border bg-white py-2 shadow-xl z-50 ondjo-pop-in"
               >
                 <div className="px-4 py-2 border-b border-slate-100">
                   <p className="text-xs font-bold text-ondjo-ink">

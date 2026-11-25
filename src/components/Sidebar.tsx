@@ -167,7 +167,7 @@ export default function Sidebar({
         aria-label="Navegação lateral ONDJO"
         className={[
           "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-ondjo-border/80 bg-white shadow-xs",
-          "transition-[width,transform] duration-200 ease-out motion-reduce:transition-none",
+          "transition-transform duration-150 ease-out lg:transition-none motion-reduce:transition-none",
           expanded ? "lg:w-64" : "lg:w-20",
           "w-72 max-w-[85vw]",
           mobileOpen
@@ -211,12 +211,12 @@ export default function Sidebar({
               onMouseEnter={() => setIsTopIconHovered(true)}
               onMouseLeave={() => setIsTopIconHovered(false)}
               aria-label="Expandir menu lateral"
-              className="focus-ring group relative flex size-12 items-center justify-center rounded-2xl bg-slate-50/80 hover:bg-ondjo-blue-soft/80 border border-slate-200/60 hover:border-ondjo-blue/30 transition-all cursor-pointer shadow-2xs"
+              className="focus-ring group relative flex size-12 items-center justify-center rounded-2xl bg-slate-50/80 hover:bg-ondjo-blue-soft/80 border border-slate-200/60 hover:border-ondjo-blue/30 transition-colors duration-150 cursor-pointer shadow-2xs"
             >
               {/* Marca ONDJO (Padrão) */}
               <div
                 className={[
-                  "absolute inset-0 flex items-center justify-center transition-all duration-200",
+                  "absolute inset-0 flex items-center justify-center transition-[opacity,transform] duration-150",
                   isTopIconHovered
                     ? "opacity-0 scale-75"
                     : "opacity-100 scale-100",
@@ -228,7 +228,7 @@ export default function Sidebar({
               {/* Ícone de Expandir no Hover */}
               <div
                 className={[
-                  "absolute inset-0 flex items-center justify-center text-ondjo-blue transition-all duration-200",
+                  "absolute inset-0 flex items-center justify-center text-ondjo-blue transition-[opacity,transform] duration-150",
                   isTopIconHovered
                     ? "opacity-100 scale-100"
                     : "opacity-0 scale-75",
@@ -352,7 +352,7 @@ export default function Sidebar({
               expanded ? "Recolher menu lateral" : "Expandir menu lateral"
             }
             className={[
-              "focus-ring hidden lg:flex items-center gap-3 rounded-2xl p-2.5 text-xs font-semibold text-ondjo-muted hover:bg-white hover:text-ondjo-ink hover:shadow-2xs transition-all cursor-pointer",
+              "focus-ring hidden lg:flex items-center gap-3 rounded-2xl p-2.5 text-xs font-semibold text-ondjo-muted hover:bg-white hover:text-ondjo-ink hover:shadow-2xs transition-colors duration-150 cursor-pointer",
               expanded
                 ? "justify-start w-full px-3"
                 : "justify-center w-full max-w-14 h-12 mx-auto",
@@ -400,7 +400,7 @@ function SidebarButton({
 
   const showTooltip = !expanded && !isDismissed && (isHovered || isFocused);
 
-  // Fecha o tooltip imediatamente ao navegar ou mudar a rota
+  // Fecha o tooltip imediatamente ao mudar a rota
   useEffect(() => {
     const handleDismiss = () => {
       setIsDismissed(true);
@@ -410,10 +410,8 @@ function SidebarButton({
     };
 
     window.addEventListener("hashchange", handleDismiss);
-    window.addEventListener("click", handleDismiss);
     return () => {
       window.removeEventListener("hashchange", handleDismiss);
-      window.removeEventListener("click", handleDismiss);
     };
   }, []);
 
@@ -475,7 +473,7 @@ function SidebarButton({
         aria-label={!expanded ? item.label : undefined}
         aria-describedby={showTooltip ? tooltipId : undefined}
         className={[
-          "group relative flex items-center rounded-2xl select-none focus-ring transition-all cursor-pointer",
+          "group relative flex items-center rounded-2xl select-none focus-ring transition-colors duration-150 cursor-pointer",
           expanded
             ? "min-h-12 w-full gap-3.5 px-3.5 text-sm font-semibold"
             : "w-full max-w-14 h-12.5 justify-center mx-auto",
@@ -535,7 +533,7 @@ function SidebarButton({
             id={tooltipId}
             role="tooltip"
             style={{ left: coords.left, top: coords.top }}
-            className="pointer-events-none fixed z-70 -translate-y-1/2 flex items-center animate-in fade-in-50 zoom-in-95 duration-150"
+            className="pointer-events-none fixed z-70 -translate-y-1/2 flex items-center ondjo-pop-in"
           >
             <div className="rounded-lg bg-ondjo-navy px-2.5 py-1 text-xs font-semibold text-white shadow-lg shadow-ondjo-navy/20 whitespace-nowrap select-none">
               {item.label}

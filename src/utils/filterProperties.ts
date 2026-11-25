@@ -46,8 +46,14 @@ export function filterProperties(
     }
 
     // Tipo
-    if (filters.type && filters.type.trim() && item.type !== filters.type) {
-      return false;
+    if (filters.type && filters.type.trim()) {
+      const filterType = filters.type.trim().toLowerCase();
+      const itemType = item.type.toLowerCase();
+      if (filterType === "vivenda" || filterType === "vivendas") {
+        if (itemType !== "moradia" && itemType !== "casa") return false;
+      } else if (itemType !== filterType) {
+        return false;
+      }
     }
 
     // Finalidade: Comprar (venda) vs Arrendar (arrendamento)

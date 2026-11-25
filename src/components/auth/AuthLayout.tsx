@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Logo } from "../Logo";
 
 type Props = {
@@ -70,10 +70,10 @@ export default function AuthLayout({
               <Logo height={32} decorative />
             </a>
           </div>
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
+          <m.div
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.28 }}
+            transition={{ duration: 0.16, ease: "easeOut" }}
             className="mx-auto flex w-full max-w-2xl flex-1 items-start px-5 pb-10 pt-4 sm:px-8 sm:pt-8 lg:items-center lg:px-10 lg:pb-16"
           >
             <div className="w-full">
@@ -90,7 +90,7 @@ export default function AuthLayout({
               </div>
               {children}
             </div>
-          </motion.div>
+          </m.div>
         </section>
       </div>
     </main>

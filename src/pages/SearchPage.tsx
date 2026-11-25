@@ -16,9 +16,8 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { properties } from "../data/properties";
-import { filterProperties } from "../utils/filterProperties";
 import { formatKz } from "../utils/format";
 import { PropertyCard } from "../components/PropertyCard";
 import { PropertyImageCarousel } from "../components/PropertyImageCarousel";
@@ -34,6 +33,7 @@ import {
 import { navigate } from "../hooks/useHashRoute";
 import { useFavorites } from "../hooks/useFavorites";
 import { useSavedSearches } from "../hooks/useSavedSearches";
+import { useFilteredPropertiesQuery, type SortOption } from "../hooks/usePropertiesQuery";
 
 const POPULAR_NEIGHBORHOODS = [
   "Talatona",
@@ -45,6 +45,12 @@ const POPULAR_NEIGHBORHOODS = [
   "Alvalade",
   "Belas",
 ];
+
+function normalizePurposeParam(raw: string | null): "comprar" | "arrendar" {
+  const val = (raw ?? "").toLowerCase().trim();
+  if (val === "arrendar" || val === "arrendamento") return "arrendar";
+  return "comprar";
+}
 
 function readFiltersFromUrl(): SearchFilters {
   const hash = window.location.hash || "";
@@ -58,7 +64,7 @@ function readFiltersFromUrl(): SearchFilters {
     minPrice: params.get("minPrice") ?? "",
     maxPrice: params.get("maxPrice") ?? "",
     bedrooms: params.get("bedrooms") ?? "",
-    purpose: params.get("purpose") ?? "comprar",
+    purpose: normalizePurposeParam(params.get("purpose")),
     origin: params.get("origin") ?? "todos",
     bathrooms: params.get("bathrooms") ?? "",
     parking: params.get("parking") ?? "",
@@ -72,12 +78,21 @@ export function SearchPage() {
   const { saveSearch } = useSavedSearches();
   const [savedSearchToast, setSavedSearchToast] = useState(false);
   const [filters, setFilters] = useState<SearchFilters>(readFiltersFromUrl);
-  const [sort, setSort] = useState<"relevance" | "price-low" | "price-high" | "area">("relevance");
+  const [sort, setSort] = useState<SortOption>("relevance");
   const [view, setView] = useState<"grid" | "list">("grid");
   const [mobileModalOpen, setMobileModalOpen] = useState(false);
   const [activePopover, setActivePopover] = useState<"type" | "bedrooms" | "price" | null>(null);
 
   const popoverRef = useRef<HTMLDivElement>(null);
+  const savedToastTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (savedToastTimerRef.current !== null) {
+        window.clearTimeout(savedToastTimerRef.current);
+      }
+    };
+  }, []);
 
   // Sincroniza filtros ao mudar a hash (ex.: voltar no navegador)
   useEffect(() => {
@@ -99,15 +114,19 @@ export function SearchPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Bloquear scroll do body quando o modal estiver aberto
+  // Bloquear scroll do body e suportar Escape quando o modal estiver aberto
   useEffect(() => {
-    if (mobileModalOpen) {
-      const prev = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      return () => {
-        document.body.style.overflow = prev;
-      };
-    }
+    if (!mobileModalOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileModalOpen(false);
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", handleEsc);
+    };
   }, [mobileModalOpen]);
 
   const updateUrlFilters = (next: SearchFilters) => {
@@ -127,7 +146,7 @@ export function SearchPage() {
     }
 
     const queryString = params.toString();
-    navigate(queryString ? `pesquisa?${queryString}` : "pesquisa");
+    navigate(queryString ? `pesquisar?${queryString}` : "pesquisar");
   };
 
   const handleFilterChange = (next: SearchFilters) => {
@@ -147,19 +166,7 @@ export function SearchPage() {
     setActivePopover(null);
   };
 
-  const results = useMemo(() => {
-    const filtered = filterProperties(properties, {
-      ...filters,
-      purpose: filters.purpose as "comprar" | "arrendar",
-    });
-
-    return [...filtered].sort((a, b) => {
-      if (sort === "price-low") return a.price - b.price;
-      if (sort === "price-high") return b.price - a.price;
-      if (sort === "area") return b.area - a.area;
-      return 0; // relevance / ordem padrao
-    });
-  }, [filters, sort]);
+  const { data: results = [] } = useFilteredPropertiesQuery(filters, sort);
 
   // Imóveis recomendados caso não haja resultados
   const recommendedProperties = useMemo(() => {
@@ -270,7 +277,7 @@ export function SearchPage() {
           =================================== */}
       <section
         aria-label="Filtros rápidos de pesquisa"
-        className="sticky top-10 sm:top-10 lg:top-10 z-40 w-full border-b border-slate-200/50 bg-white/90 backdrop-blur-md shadow-[0_2px_12px_rgba(16,42,67,0.03)] transition-all"
+        className="sticky top-10 sm:top-10 lg:top-10 z-40 w-full border-b border-slate-200/60 bg-white/95 shadow-[0_2px_12px_rgba(16,42,67,0.03)]"
         ref={popoverRef}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-3.5 sm:px-6 lg:px-8 py-2.5 sm:py-3">
@@ -285,7 +292,7 @@ export function SearchPage() {
               <button
                 type="button"
                 onClick={() => setFilterField("purpose", "comprar")}
-                className={`focus-ring min-h-8.5 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                className={`focus-ring min-h-8.5 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-colors duration-150 cursor-pointer ${
                   !isArrendamento
                     ? "bg-white text-ondjo-navy shadow-xs"
                     : "text-ondjo-muted hover:text-ondjo-ink"
@@ -296,7 +303,7 @@ export function SearchPage() {
               <button
                 type="button"
                 onClick={() => setFilterField("purpose", "arrendar")}
-                className={`focus-ring min-h-8.5 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                className={`focus-ring min-h-8.5 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-colors duration-150 cursor-pointer ${
                   isArrendamento
                     ? "bg-white text-ondjo-navy shadow-xs"
                     : "text-ondjo-muted hover:text-ondjo-ink"
@@ -320,7 +327,7 @@ export function SearchPage() {
                     setActivePopover(activePopover === "type" ? null : "type");
                   }
                 }}
-                className={`focus-ring inline-flex min-h-9 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition-all cursor-pointer select-none shadow-2xs ${
+                className={`focus-ring inline-flex min-h-9 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition-colors duration-150 cursor-pointer select-none shadow-2xs ${
                   filters.type
                     ? "bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-xs hover:bg-ondjo-blue-soft/90"
                     : "bg-slate-100/80 text-ondjo-ink hover:bg-slate-200/70"
@@ -331,7 +338,7 @@ export function SearchPage() {
                 <span>{filters.type || "Tipo de imóvel"}</span>
                 <ChevronDown
                   size={14}
-                  className={`text-slate-400 transition-transform ${
+                  className={`text-slate-400 transition-transform duration-150 ${
                     activePopover === "type" ? "rotate-180" : ""
                   }`}
                 />
@@ -378,7 +385,7 @@ export function SearchPage() {
                     setActivePopover(activePopover === "bedrooms" ? null : "bedrooms");
                   }
                 }}
-                className={`focus-ring inline-flex min-h-9 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition-all cursor-pointer select-none shadow-2xs ${
+                className={`focus-ring inline-flex min-h-9 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition-colors duration-150 cursor-pointer select-none shadow-2xs ${
                   filters.bedrooms
                     ? "bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-xs hover:bg-ondjo-blue-soft/90"
                     : "bg-slate-100/80 text-ondjo-ink hover:bg-slate-200/70"
@@ -395,7 +402,7 @@ export function SearchPage() {
                 </span>
                 <ChevronDown
                   size={14}
-                  className={`text-slate-400 transition-transform ${
+                  className={`text-slate-400 transition-transform duration-150 ${
                     activePopover === "bedrooms" ? "rotate-180" : ""
                   }`}
                 />
@@ -442,7 +449,7 @@ export function SearchPage() {
                     setActivePopover(activePopover === "price" ? null : "price");
                   }
                 }}
-                className={`focus-ring inline-flex min-h-9 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition-all cursor-pointer select-none shadow-2xs ${
+                className={`focus-ring inline-flex min-h-9 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition-colors duration-150 cursor-pointer select-none shadow-2xs ${
                   filters.minPrice || filters.maxPrice
                     ? "bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-xs hover:bg-ondjo-blue-soft/90"
                     : "bg-slate-100/80 text-ondjo-ink hover:bg-slate-200/70"
@@ -455,7 +462,7 @@ export function SearchPage() {
                 </span>
                 <ChevronDown
                   size={14}
-                  className={`text-slate-400 transition-transform ${
+                  className={`text-slate-400 transition-transform duration-150 ${
                     activePopover === "price" ? "rotate-180" : ""
                   }`}
                 />
@@ -501,7 +508,7 @@ export function SearchPage() {
                   filters.origin === "verificados" ? "todos" : "verificados";
                 setFilterField("origin", nextOrigin);
               }}
-              className={`focus-ring shrink-0 snap-start inline-flex min-h-9 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition-all cursor-pointer select-none shadow-2xs ${
+              className={`focus-ring shrink-0 snap-start inline-flex min-h-9 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition-colors duration-150 cursor-pointer select-none shadow-2xs ${
                 filters.origin === "verificados"
                   ? "bg-emerald-50 text-emerald-800 font-bold shadow-xs hover:bg-emerald-100/80"
                   : "bg-slate-100/80 text-ondjo-ink hover:bg-slate-200/70"
@@ -522,7 +529,7 @@ export function SearchPage() {
             <button
               type="button"
               onClick={() => setMobileModalOpen(true)}
-              className="focus-ring relative inline-flex min-h-9.5 items-center gap-2 rounded-full bg-white hover:bg-slate-50 text-ondjo-navy px-3.5 py-1.5 text-xs font-bold shadow-2xs hover:shadow-xs active:scale-95 transition-all cursor-pointer border border-slate-200/50"
+              className="focus-ring relative inline-flex min-h-9.5 items-center gap-2 rounded-full bg-white hover:bg-slate-50 text-ondjo-navy px-3.5 py-1.5 text-xs font-bold shadow-2xs hover:shadow-xs active:scale-95 transition-[background-color,box-shadow,transform] duration-150 cursor-pointer border border-slate-200/50"
               aria-label="Abrir todos os filtros de pesquisa"
             >
               <SlidersHorizontal size={14} className="text-ondjo-blue" />
@@ -597,9 +604,15 @@ export function SearchPage() {
                   onClick={() => {
                     saveSearch(filters);
                     setSavedSearchToast(true);
-                    setTimeout(() => setSavedSearchToast(false), 2800);
+                    if (savedToastTimerRef.current !== null) {
+                      window.clearTimeout(savedToastTimerRef.current);
+                    }
+                    savedToastTimerRef.current = window.setTimeout(() => {
+                      setSavedSearchToast(false);
+                      savedToastTimerRef.current = null;
+                    }, 2800);
                   }}
-                  className={`focus-ring inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer select-none shadow-2xs hover:shadow-xs active:scale-95 ${
+                  className={`focus-ring inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors duration-150 cursor-pointer select-none shadow-2xs hover:shadow-xs active:scale-95 ${
                     savedSearchToast
                       ? "bg-emerald-50 text-emerald-800 border border-emerald-200/50"
                       : "bg-white text-slate-700 hover:text-ondjo-blue hover:bg-slate-50 border border-slate-200/50"
@@ -631,7 +644,7 @@ export function SearchPage() {
               <select
                 value={sort}
                 onChange={(e) =>
-                  setSort(e.target.value as "relevance" | "price-low" | "price-high" | "area")
+                  setSort(e.target.value as SortOption)
                 }
                 className="bg-transparent font-bold outline-none text-ondjo-ink cursor-pointer"
               >
@@ -651,7 +664,7 @@ export function SearchPage() {
               <button
                 type="button"
                 onClick={() => setView("grid")}
-                className={`focus-ring grid size-8 place-items-center rounded-full transition-all cursor-pointer ${
+                className={`focus-ring grid size-8 place-items-center rounded-full transition-colors duration-150 cursor-pointer ${
                   view === "grid"
                     ? "bg-white text-ondjo-navy shadow-xs font-bold"
                     : "text-ondjo-muted hover:text-ondjo-ink"
@@ -664,7 +677,7 @@ export function SearchPage() {
               <button
                 type="button"
                 onClick={() => setView("list")}
-                className={`focus-ring grid size-8 place-items-center rounded-full transition-all cursor-pointer ${
+                className={`focus-ring grid size-8 place-items-center rounded-full transition-colors duration-150 cursor-pointer ${
                   view === "list"
                     ? "bg-white text-ondjo-navy shadow-xs font-bold"
                     : "text-ondjo-muted hover:text-ondjo-ink"
@@ -822,24 +835,25 @@ export function SearchPage() {
                 role="dialog"
                 aria-modal="true"
                 aria-label="Todos os filtros de pesquisa"
-                className="fixed inset-0 z-100 flex flex-col justify-end lg:items-center lg:justify-center bg-black/60 backdrop-blur-xs p-0 lg:p-4"
+                className="fixed inset-0 z-100 flex flex-col justify-end lg:items-center lg:justify-center bg-black/55 p-0 lg:p-4"
               >
                 {/* Backdrop clicável */}
-                <motion.div
+                <m.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
+                  transition={{ duration: 0.14 }}
                   className="fixed inset-0"
                   onClick={() => setMobileModalOpen(false)}
                   aria-label="Fechar painel de filtros"
                 />
 
                 {/* Conteúdo do Sheet / Modal */}
-                <motion.div
-                  initial={{ y: "100%", opacity: 0.8 }}
+                <m.div
+                  initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: "100%", opacity: 0 }}
-                  transition={{ type: "spring", damping: 28, stiffness: 280 }}
+                  exit={{ y: 16, opacity: 0 }}
+                  transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
                   className="relative z-10 flex max-h-[90dvh] w-full max-w-xl flex-col overflow-hidden rounded-t-[28px] lg:rounded-3xl bg-white shadow-2xl"
                 >
                   {/* Pega no mobile */}
@@ -1182,12 +1196,12 @@ export function SearchPage() {
                     <button
                       type="button"
                       onClick={() => setMobileModalOpen(false)}
-                      className="focus-ring flex min-h-11 items-center justify-center rounded-xl bg-ondjo-navy px-6 py-2.5 text-xs font-extrabold text-white shadow-sm hover:bg-slate-800 active:scale-98 transition-all cursor-pointer"
+                      className="focus-ring flex min-h-11 items-center justify-center rounded-xl bg-ondjo-navy px-6 py-2.5 text-xs font-extrabold text-white shadow-sm hover:bg-slate-800 active:scale-98 transition-[background-color,transform] duration-150 cursor-pointer"
                     >
                       Ver {results.length} {results.length === 1 ? "imóvel" : "imóveis"}
                     </button>
                   </div>
-                </motion.div>
+                </m.div>
               </div>
             )}
           </AnimatePresence>,
@@ -1204,11 +1218,9 @@ function ListPropertyCard({ property }: { property: (typeof properties)[number] 
   const isArrendamento = property.purpose === "arrendamento";
 
   return (
-    <motion.article
-      whileHover={{ y: -2 }}
-      transition={{ duration: 0.2 }}
+    <article
       onClick={() => navigate(`imovel/${property.id}`)}
-      className="focus-ring group grid w-full gap-4 sm:gap-5 rounded-3xl bg-white p-3.5 sm:p-4 shadow-ondjo-card hover:shadow-ondjo-card-hover border border-slate-100/80 transition-all duration-300 sm:grid-cols-[260px_1fr] cursor-pointer relative"
+      className="focus-ring group grid w-full gap-4 sm:gap-5 rounded-3xl bg-white p-3.5 sm:p-4 shadow-ondjo-card hover:shadow-ondjo-card-hover hover:-translate-y-0.5 border border-slate-100/80 transition-[transform,box-shadow] duration-150 sm:grid-cols-[260px_1fr] cursor-pointer relative"
     >
       <div className="relative overflow-hidden rounded-2xl bg-slate-100 aspect-4/3 w-full sm:aspect-auto sm:h-full">
         <PropertyImageCarousel
@@ -1222,12 +1234,12 @@ function ListPropertyCard({ property }: { property: (typeof properties)[number] 
         {/* Badges */}
         <div className="pointer-events-none absolute left-3 top-3 z-10 flex items-center gap-1.5">
           {property.verified && (
-            <div className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800 shadow-xs backdrop-blur-md">
+            <div className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800 shadow-xs">
               <ShieldCheck size={12} className="text-emerald-600" />
               <span>Verificado</span>
             </div>
           )}
-          <span className="inline-flex items-center rounded-full bg-ondjo-navy/85 px-2.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-md">
+          <span className="inline-flex items-center rounded-full bg-ondjo-navy/90 px-2.5 py-0.5 text-[10px] font-bold text-white">
             {isArrendamento ? "Arrendamento" : "Venda"}
           </span>
         </div>
@@ -1240,7 +1252,7 @@ function ListPropertyCard({ property }: { property: (typeof properties)[number] 
             e.stopPropagation();
             toggleFavorite(property.id);
           }}
-          className="focus-ring absolute right-3 top-3 z-20 flex size-8.5 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-sm backdrop-blur-xs transition hover:scale-110 active:scale-90 cursor-pointer"
+          className="focus-ring absolute right-3 top-3 z-20 flex size-8.5 items-center justify-center rounded-full bg-white/95 text-slate-700 shadow-sm transition-transform duration-150 hover:scale-110 active:scale-90 cursor-pointer"
           aria-label={favorite ? "Remover dos favoritos" : "Guardar nos favoritos"}
         >
           <Heart
@@ -1278,11 +1290,11 @@ function ListPropertyCard({ property }: { property: (typeof properties)[number] 
           <span className="text-lg sm:text-xl font-extrabold text-ondjo-navy tracking-tight">
             {formatKz(property.price, { perMonth: isArrendamento })}
           </span>
-          <span className="text-xs font-bold text-ondjo-blue bg-ondjo-blue-soft/60 group-hover:bg-ondjo-blue group-hover:text-white px-3 py-1.5 rounded-full transition-all inline-flex items-center gap-1">
+          <span className="text-xs font-bold text-ondjo-blue bg-ondjo-blue-soft/60 group-hover:bg-ondjo-blue group-hover:text-white px-3 py-1.5 rounded-full transition-colors duration-150 inline-flex items-center gap-1">
             Ver detalhes →
           </span>
         </div>
       </div>
-    </motion.article>
+    </article>
   );
 }

@@ -37,7 +37,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { properties } from "../data/properties";
@@ -49,6 +49,7 @@ import { PropertyCard } from "../components/PropertyCard";
 import { ScheduleVisitPanel } from "../components/ScheduleVisitPanel";
 import { PropertyMap } from "../components/PropertyMap";
 import { getOptimizedImageUrl } from "../utils/images";
+import { usePropertyByIdQuery } from "../hooks/usePropertiesQuery";
 
 // Mapeamento semântico de ícones de comodidades locais em Angola
 function getFeatureIcon(featureName: string) {
@@ -204,7 +205,7 @@ function SafeGalleryImage({
             setLoaded(true);
             setError(true);
           }}
-          className={`${fit === "cover" ? "h-full w-full object-cover" : "max-h-full max-w-full object-contain"} transition-opacity duration-300 ${
+          className={`${fit === "cover" ? "h-full w-full object-cover" : "max-h-full max-w-full object-contain"} transition-opacity duration-150 ${
             loaded ? "opacity-100" : "opacity-0"
           } ${imgClassName}`}
         />
@@ -213,25 +214,56 @@ function SafeGalleryImage({
   );
 }
 
+const REPORT_REASONS = [
+  "Anúncio duplicado ou já arrendado/vendido",
+  "Preço ou informação enganosa",
+  "Suspeita de fraude ou pedido de adiantamento",
+  "Contacto indisponível ou incorreto",
+] as const;
+
 export function PropertyPage({ id }: { id: string }) {
-  const property = properties.find((item) => item.id === id);
+  const { data: property } = usePropertyByIdQuery(id);
   const [activePhoto, setActivePhoto] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [phoneCopyStatus, setPhoneCopyStatus] = useState<"copied" | "error" | null>(null);
   const [scheduleVisitOpen, setScheduleVisitOpen] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportReason, setReportReason] = useState<string>(REPORT_REASONS[0]);
+  const [reportNotes, setReportNotes] = useState("");
+  const [reportSubmitted, setReportSubmitted] = useState(false);
 
   // Sincronização de favoritos global
   const { isFavorite, toggleFavorite } = useFavorites();
   const favorite = property ? isFavorite(property.id) : false;
 
-  // Referência para fechar a lightbox
+  // Referência para fechar a lightbox e limpar temporizadores
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const copyTimerRef = useRef<number | null>(null);
+  const phoneTimerRef = useRef<number | null>(null);
 
   // Touch Swipe para carrossel móvel
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
+
+  // Resetar estado da galeria e modais quando o utilizador navega para outro imóvel
+  useEffect(() => {
+    setActivePhoto(0);
+    setShowFullDescription(false);
+    setLightboxOpen(false);
+    setScheduleVisitOpen(false);
+    setReportOpen(false);
+    setReportSubmitted(false);
+    setReportNotes("");
+  }, [id]);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current !== null) window.clearTimeout(copyTimerRef.current);
+      if (phoneTimerRef.current !== null) window.clearTimeout(phoneTimerRef.current);
+    };
+  }, []);
 
   // Imóveis semelhantes na mesma zona ou perfil
   const similarProperties = useMemo(
@@ -246,6 +278,21 @@ export function PropertyPage({ id }: { id: string }) {
         .slice(0, 3),
     [id, property?.neighborhood, property?.type],
   );
+
+  // Fechar modal de denúncia com Escape e bloquear scroll
+  useEffect(() => {
+    if (!reportOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setReportOpen(false);
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [reportOpen]);
 
   // Acessibilidade por teclado na Lightbox (Escape, Setas)
   useEffect(() => {
@@ -324,7 +371,11 @@ export function PropertyPage({ id }: { id: string }) {
       if (navigator.clipboard) {
         await navigator.clipboard.writeText(window.location.href);
         setCopiedLink(true);
-        setTimeout(() => setCopiedLink(false), 2200);
+        if (copyTimerRef.current !== null) window.clearTimeout(copyTimerRef.current);
+        copyTimerRef.current = window.setTimeout(() => {
+          setCopiedLink(false);
+          copyTimerRef.current = null;
+        }, 2200);
       }
     } catch {
       setCopiedLink(false);
@@ -350,10 +401,18 @@ export function PropertyPage({ id }: { id: string }) {
     try {
       await navigator.clipboard.writeText(phone);
       setPhoneCopyStatus("copied");
-      window.setTimeout(() => setPhoneCopyStatus(null), 2200);
+      if (phoneTimerRef.current !== null) window.clearTimeout(phoneTimerRef.current);
+      phoneTimerRef.current = window.setTimeout(() => {
+        setPhoneCopyStatus(null);
+        phoneTimerRef.current = null;
+      }, 2200);
     } catch {
       setPhoneCopyStatus("error");
-      window.setTimeout(() => setPhoneCopyStatus(null), 3000);
+      if (phoneTimerRef.current !== null) window.clearTimeout(phoneTimerRef.current);
+      phoneTimerRef.current = window.setTimeout(() => {
+        setPhoneCopyStatus(null);
+        phoneTimerRef.current = null;
+      }, 3000);
     }
   };
 
@@ -994,8 +1053,12 @@ export function PropertyPage({ id }: { id: string }) {
 
                 <button
                   type="button"
+                  onClick={() => {
+                    setReportSubmitted(false);
+                    setReportOpen(true);
+                  }}
                   aria-label="Denunciar este anúncio"
-                  className="focus-ring flex min-h-10 w-full items-center justify-center gap-2 rounded-2xl px-4 text-xs font-bold text-slate-500 transition hover:bg-red-50 hover:text-red-700 cursor-pointer"
+                  className="focus-ring flex min-h-10 w-full items-center justify-center gap-2 rounded-2xl px-4 text-xs font-bold text-slate-500 transition-colors duration-150 hover:bg-red-50 hover:text-red-700 cursor-pointer"
                 >
                   <ShieldAlert size={15} aria-hidden="true" />
                   <span>Denunciar anúncio</span>
@@ -1116,19 +1179,20 @@ export function PropertyPage({ id }: { id: string }) {
                 aria-label={`Galeria de fotos: ${property.title}`}
                 className="fixed inset-0 z-100 flex items-center justify-center p-3 sm:p-6"
               >
-                <motion.div
+                <m.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
+                  transition={{ duration: 0.12 }}
                   onClick={() => setLightboxOpen(false)}
-                  className="absolute inset-0 bg-black/92 backdrop-blur-md"
+                  className="absolute inset-0 bg-black/92"
                 />
 
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.96 }}
+                <m.div
+                  initial={{ opacity: 0, scale: 0.97 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.96 }}
-                  transition={{ duration: 0.18, ease: "easeOut" }}
+                  exit={{ opacity: 0, scale: 0.97 }}
+                  transition={{ duration: 0.12, ease: "easeOut" }}
                   className="relative z-10 flex flex-col items-center max-w-5xl w-full max-h-[92dvh]"
                 >
                   {/* Cabeçalho da Lightbox */}
@@ -1220,7 +1284,141 @@ export function PropertyPage({ id }: { id: string }) {
                       })}
                     </div>
                   )}
-                </motion.div>
+                </m.div>
+              </div>
+            )}
+          </AnimatePresence>,
+          document.body,
+        )}
+
+      {/* Modal de Denúncia de Anúncio */}
+      {typeof document !== "undefined" &&
+        createPortal(
+          <AnimatePresence>
+            {reportOpen && (
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-label="Denunciar anúncio"
+                className="fixed inset-0 z-100 flex items-center justify-center p-4"
+              >
+                <m.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.12 }}
+                  onClick={() => setReportOpen(false)}
+                  className="fixed inset-0 bg-ondjo-navy/50"
+                  aria-hidden="true"
+                />
+                <m.div
+                  initial={{ opacity: 0, scale: 0.96, y: 8 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.96, y: 8 }}
+                  transition={{ duration: 0.14, ease: "easeOut" }}
+                  className="relative z-10 w-full max-w-md rounded-2xl border border-ondjo-border bg-white p-5 sm:p-6 shadow-2xl"
+                >
+                  <div className="flex items-center justify-between pb-3 border-b border-ondjo-border">
+                    <div className="flex items-center gap-2 text-ondjo-danger">
+                      <ShieldAlert size={18} aria-hidden="true" />
+                      <h2 className="text-base font-black text-ondjo-navy">
+                        Denunciar anúncio
+                      </h2>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setReportOpen(false)}
+                      className="focus-ring rounded-lg p-1.5 text-ondjo-muted hover:bg-ondjo-bg hover:text-ondjo-ink cursor-pointer"
+                      aria-label="Fechar denúncia"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+
+                  {reportSubmitted ? (
+                    <div className="py-6 text-center">
+                      <Check size={32} className="mx-auto text-ondjo-green" />
+                      <p className="mt-3 text-sm font-bold text-ondjo-navy">
+                        Denúncia registada
+                      </p>
+                      <p className="mt-1.5 text-xs text-ondjo-muted leading-relaxed">
+                        A equipa de auditoria ONDJO irá analisar a referência{" "}
+                        <strong>{propertyRef}</strong> e contactar o anunciante se necessário.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setReportOpen(false)}
+                        className="focus-ring mt-5 inline-flex min-h-10 w-full items-center justify-center rounded-xl bg-ondjo-blue px-4 text-xs font-bold text-white hover:bg-ondjo-blue-dark transition-colors cursor-pointer"
+                      >
+                        Fechar
+                      </button>
+                    </div>
+                  ) : (
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        setReportSubmitted(true);
+                      }}
+                      className="mt-4 space-y-3.5"
+                    >
+                      <p className="text-xs text-ondjo-muted">
+                        Selecione o motivo para ajudar a manter a plataforma segura em Angola:
+                      </p>
+
+                      <div className="space-y-2">
+                        {REPORT_REASONS.map((reason) => (
+                          <label
+                            key={reason}
+                            className={`flex items-center gap-2.5 rounded-xl border p-3 text-xs font-semibold cursor-pointer transition-colors duration-150 ${
+                              reportReason === reason
+                                ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-navy"
+                                : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50"
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="reportReason"
+                              value={reason}
+                              checked={reportReason === reason}
+                              onChange={() => setReportReason(reason)}
+                              className="text-ondjo-blue focus:ring-ondjo-blue"
+                            />
+                            <span>{reason}</span>
+                          </label>
+                        ))}
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-ondjo-ink mb-1">
+                          Detalhes adicionais (opcional)
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={reportNotes}
+                          onChange={(e) => setReportNotes(e.target.value)}
+                          placeholder="Descreva brevemente o ocorrido..."
+                          className="filter-input min-h-18 resize-none py-2 text-xs"
+                        />
+                      </div>
+
+                      <div className="flex justify-end gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setReportOpen(false)}
+                          className="focus-ring rounded-xl border border-ondjo-border px-4 py-2 text-xs font-bold text-ondjo-ink hover:bg-ondjo-bg cursor-pointer"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="submit"
+                          className="focus-ring rounded-xl bg-ondjo-danger px-4 py-2 text-xs font-bold text-white hover:opacity-90 cursor-pointer"
+                        >
+                          Enviar denúncia
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </m.div>
               </div>
             )}
           </AnimatePresence>,

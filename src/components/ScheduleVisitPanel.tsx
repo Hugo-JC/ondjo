@@ -1,4 +1,4 @@
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import {
   CalendarDays,
   CheckCircle2,
@@ -44,12 +44,14 @@ export function ScheduleVisitPanel({
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
+  const submitTimerRef = useRef<number | null>(null);
   const minDate = new Date().toISOString().slice(0, 10);
 
   useEffect(() => {
     if (!open) return;
 
     closeButtonRef.current?.focus();
+    const prevOverflow = document.body.style.overflow;
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") onClose();
@@ -60,7 +62,7 @@ export function ScheduleVisitPanel({
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
+      document.body.style.overflow = prevOverflow;
     };
   }, [open, onClose]);
 
@@ -68,24 +70,37 @@ export function ScheduleVisitPanel({
     if (!open) {
       setSubmitted(false);
       setSubmitting(false);
+      if (submitTimerRef.current !== null) {
+        window.clearTimeout(submitTimerRef.current);
+        submitTimerRef.current = null;
+      }
     }
   }, [open]);
+
+  useEffect(() => {
+    return () => {
+      if (submitTimerRef.current !== null) {
+        window.clearTimeout(submitTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
     setSubmitting(true);
-    window.setTimeout(() => {
+    submitTimerRef.current = window.setTimeout(() => {
       setSubmitting(false);
       setSubmitted(true);
-    }, 700);
+      submitTimerRef.current = null;
+    }, 350);
   };
 
   const motionProps = reduceMotion
     ? { initial: false, animate: { opacity: 1 }, exit: { opacity: 0 } }
     : {
-        initial: { opacity: 0, scale: 0.96, y: 12 },
+        initial: { opacity: 0, scale: 0.97, y: 10 },
         animate: { opacity: 1, scale: 1, y: 0 },
-        exit: { opacity: 0, scale: 0.96, y: 12 },
+        exit: { opacity: 0, scale: 0.97, y: 10 },
       };
 
   return (
@@ -98,19 +113,20 @@ export function ScheduleVisitPanel({
           aria-describedby={descId}
           className="fixed inset-0 z-70 flex items-end justify-center p-0 sm:items-center sm:p-4"
         >
-          <motion.button
+          <m.button
             type="button"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.12 }}
             aria-label="Fechar agendamento"
-            className="fixed inset-0 cursor-default bg-ondjo-navy/45 backdrop-blur-[2px]"
+            className="fixed inset-0 cursor-default bg-ondjo-navy/45"
             onClick={onClose}
           />
 
-          <motion.div
+          <m.div
             {...motionProps}
-            transition={{ type: "spring", damping: 26, stiffness: 320 }}
+            transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
             className="relative z-10 flex max-h-[92dvh] pb-safe w-full max-w-md flex-col overflow-hidden rounded-t-[28px] border border-ondjo-border bg-ondjo-surface shadow-[0_24px_80px_rgba(16,42,67,0.18)] sm:rounded-[28px]"
           >
             <div className="border-b border-ondjo-border px-5 py-4 sm:px-6">
@@ -290,7 +306,7 @@ export function ScheduleVisitPanel({
                 </form>
               )}
             </div>
-          </motion.div>
+          </m.div>
         </div>
       )}
     </AnimatePresence>

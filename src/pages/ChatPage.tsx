@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback, useId } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { m, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   ArrowLeft,
   Bell,
@@ -279,6 +279,30 @@ export function ChatPage() {
   const [mobileView, setMobileView] = useState<"list" | "chat">("list");
   const [notification, setNotification] = useState<InAppNotification | null>(null);
 
+  const [confirmResetOpen, setConfirmResetOpen] = useState(false);
+  const [statusFeedback, setStatusFeedback] = useState<string | null>(null);
+  const timeoutsRef = useRef<number[]>([]);
+
+  const scheduleTimeout = useCallback((fn: () => void, ms: number) => {
+    const id = window.setTimeout(() => {
+      timeoutsRef.current = timeoutsRef.current.filter((t) => t !== id);
+      fn();
+    }, ms);
+    timeoutsRef.current.push(id);
+    return id;
+  }, []);
+
+  const clearScheduledTimeouts = useCallback(() => {
+    timeoutsRef.current.forEach((id) => window.clearTimeout(id));
+    timeoutsRef.current = [];
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      clearScheduledTimeouts();
+    };
+  }, [clearScheduledTimeouts]);
+
   // Som de novas mensagens
   const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
     if (typeof window === "undefined") return true;
@@ -291,7 +315,7 @@ export function ChatPage() {
     }
   });
 
-  // Ligar conversa ao imóvel passado pela rota (ex: #/mensagens?property=...)
+  // Ligar conversa ao imóvel passado pela rota (ex: #/mensagens?property=...) sem efeitos colaterais no updater
   useEffect(() => {
     const hash = window.location.hash;
     const queryPart = hash.includes("?") ? hash.split("?")[1] : "";
@@ -299,45 +323,48 @@ export function ChatPage() {
     const propId = params.get("property");
     if (!propId) return;
 
-    setConversations((prev) => {
-      const existing = prev.find((c) => c.propertyId === propId);
-      if (existing) {
-        setActiveChatId(existing.id);
-        setMobileView("chat");
-        return prev;
-      }
-      const prop = properties.find((p) => p.id === propId);
-      if (prop) {
-        const newConv: Conversation = {
-          id: `conv-prop-${prop.id}`,
-          contactName: prop.advertiser?.name || "Consultor ONDJO",
-          role:
-            prop.advertiser?.type === "particular"
-              ? "Proprietário particular"
-              : "Corretor verificado",
-          presence: "online",
-          verified: Boolean(prop.advertiser?.verified ?? prop.verified),
-          propertyId: prop.id,
-          unreadCount: 0,
-          lastActive: "Agora",
-          category: prop.advertiser?.type === "particular" ? "owner" : "agent",
-          avatarUrl: prop.images[0],
-          messages: [
-            {
-              id: `msg-${Date.now()}`,
-              sender: "agent",
-              text: `Olá! Obrigado pelo interesse no imóvel "${prop.title}". Estou disponível para agendar visita e tirar dúvidas.`,
-              timestamp: "Agora",
-              status: "delivered",
-            },
-          ],
-        };
-        setActiveChatId(newConv.id);
-        setMobileView("chat");
-        return [newConv, ...prev];
-      }
-      return prev;
-    });
+    const existing = conversations.find((c) => c.propertyId === propId);
+    if (existing) {
+      setActiveChatId(existing.id);
+      setMobileView("chat");
+      return;
+    }
+
+    const prop = properties.find((p) => p.id === propId);
+    if (!prop) return;
+
+    const newConv: Conversation = {
+      id: `conv-prop-${prop.id}`,
+      contactName: prop.advertiser?.name || "Consultor ONDJO",
+      role:
+        prop.advertiser?.type === "particular"
+          ? "Proprietário particular"
+          : "Corretor verificado",
+      presence: "online",
+      verified: Boolean(prop.advertiser?.verified ?? prop.verified),
+      propertyId: prop.id,
+      unreadCount: 0,
+      lastActive: "Agora",
+      category: prop.advertiser?.type === "particular" ? "owner" : "agent",
+      avatarUrl: prop.images[0],
+      messages: [
+        {
+          id: `msg-${Date.now()}`,
+          sender: "agent",
+          text: `Olá! Obrigado pelo interesse no imóvel "${prop.title}". Estou disponível para agendar visita e tirar dúvidas.`,
+          timestamp: "Agora",
+          status: "delivered",
+        },
+      ],
+    };
+
+    setConversations((prev) =>
+      prev.some((c) => c.propertyId === propId) ? prev : [newConv, ...prev],
+    );
+    setActiveChatId(newConv.id);
+    setMobileView("chat");
+    // Apenas na montagem inicial quando abre conversa via link direto do imóvel
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Estado da permissão nativa do navegador
@@ -503,10 +530,11 @@ export function ChatPage() {
     [isNotificationSupported, selectConversation, soundEnabled]
   );
 
-  // Solicitar permissão de notificações do navegador
+  // Solicitar permissão de notificações do navegador (sem window.alert)
   async function requestNotificationPermission() {
     if (!isNotificationSupported) {
-      alert("O seu navegador não possui suporte para notificações de área de trabalho.");
+      setStatusFeedback("O seu navegador não suporta notificações de área de trabalho.");
+      scheduleTimeout(() => setStatusFeedback(null), 4000);
       return;
     }
 
@@ -524,9 +552,10 @@ export function ChatPage() {
           welcome.close();
         };
       } else if (permission === "denied") {
-        alert(
-          "As notificações estão bloqueadas no seu navegador. Para ativá-las, clique no ícone de cadeado/definições ao lado da barra de endereço e autorize as notificações para o ONDJO."
+        setStatusFeedback(
+          "Notificações bloqueadas no navegador. Ative-as nas definições do site junto à barra de endereço.",
         );
+        scheduleTimeout(() => setStatusFeedback(null), 5000);
       }
     } catch (err) {
       console.error("Erro ao solicitar permissão de notificações:", err);
@@ -624,6 +653,7 @@ export function ChatPage() {
     const currentTime = formatTimestamp();
     const currentConvId = activeChat.id;
     const currentSenderName = activeChat.contactName;
+    const currentCategory = activeChat.category;
 
     // 1. Mensagem começa com estado "pending"
     const userMessage: ChatMessage = {
@@ -649,8 +679,8 @@ export function ChatPage() {
     setInputText("");
     requestAnimationFrame(() => scrollMessagesToBottom("smooth"));
 
-    // 2. Transição para "sent" (enviado ao servidor após 400ms)
-    setTimeout(() => {
+    // 2. Transição para "sent"
+    scheduleTimeout(() => {
       setConversations((prev) =>
         prev.map((c) => {
           if (c.id !== currentConvId) return c;
@@ -662,10 +692,10 @@ export function ChatPage() {
           };
         })
       );
-    }, 450);
+    }, 350);
 
-    // 3. Transição para "delivered" (entregue no telemóvel do corretor após 1.1s)
-    setTimeout(() => {
+    // 3. Transição para "delivered"
+    scheduleTimeout(() => {
       setConversations((prev) =>
         prev.map((c) => {
           if (c.id !== currentConvId) return c;
@@ -677,10 +707,10 @@ export function ChatPage() {
           };
         })
       );
-    }, 1100);
+    }, 850);
 
-    // 4. Corretor abre a mensagem (passa a "read" após 2.2s) e inicia digitação ("isTyping")
-    setTimeout(() => {
+    // 4. Corretor abre a mensagem ("read") e inicia digitação
+    scheduleTimeout(() => {
       setConversations((prev) =>
         prev.map((c) => {
           if (c.id !== currentConvId) return c;
@@ -694,12 +724,12 @@ export function ChatPage() {
           };
         })
       );
-    }, 2200);
+    }, 1500);
 
-    // 5. Corretor conclui a resposta inteligente e envia após 4.2s
-    setTimeout(() => {
+    // 5. Resposta do corretor/assistente
+    scheduleTimeout(() => {
       let replyText = "";
-      if (activeChat.category === "assistant") {
+      if (currentCategory === "assistant") {
         if (text.toLowerCase().includes("ipu") || text.toLowerCase().includes("imposto")) {
           replyText =
             "O IPU (Imposto Predial Urbano) é anual e incide sobre o rendimento das rendas (habitualmente taxa efetiva entre 10% a 15%) ou sobre o valor patrimonial. Exija sempre o DAR liquidado pelo senhorio na AGT.";
@@ -766,13 +796,14 @@ export function ChatPage() {
 
       // Disparar Notificação Nativa do Navegador se a página estiver em segundo plano
       triggerBrowserNotification(currentConvId, currentSenderName, replyText);
-    }, 4400);
+    }, 2800);
   }
 
   // Simular recebimento de mensagem em tempo real de outro corretor (demonstração interativa)
   function handleTriggerIncomingSimulation() {
     const candidateConvs = conversations.filter((c) => c.id !== activeChatId);
     const target = candidateConvs[Math.floor(Math.random() * candidateConvs.length)] || conversations[0];
+    if (!target) return;
 
     const sampleIncomingMessages = [
       "Boa tarde! Temos uma atualização sobre o imóvel que consultou. O proprietário aceita adiantamento de 3 meses.",
@@ -816,7 +847,7 @@ export function ChatPage() {
       });
 
       // Auto-fechar toast após 5s
-      setTimeout(() => {
+      scheduleTimeout(() => {
         setNotification((curr) => (curr?.conversationId === target.id ? null : curr));
       }, 5000);
     }
@@ -824,6 +855,7 @@ export function ChatPage() {
 
   // Confirmar proposta de visita
   function handleConfirmVisit(messageId: string) {
+    if (!activeChat) return;
     setConversations((prev) =>
       prev.map((c) => {
         if (c.id !== activeChat.id) return c;
@@ -853,10 +885,13 @@ export function ChatPage() {
     );
   }
 
-  // Restaurar dados originais de simulação
+  // Restaurar dados originais de simulação (com modal in-app sem window.confirm)
   function handleResetConversations() {
-    const canReset = typeof window !== "undefined" && window.confirm("Deseja restaurar as conversas e mensagens de demonstração padrão do ONDJO?");
-    if (!canReset) return;
+    setConfirmResetOpen(true);
+  }
+
+  function confirmResetConversations() {
+    clearScheduledTimeouts();
 
     if (typeof window !== "undefined") {
       window.localStorage.removeItem(LOCAL_STORAGE_KEY);
@@ -866,6 +901,7 @@ export function ChatPage() {
     setActiveChatId(DEFAULT_CONVERSATIONS[0]?.id ?? "");
     setMobileView("list");
     setNotification(null);
+    setConfirmResetOpen(false);
   }
 
   // Renderizar ícone de status de leitura da mensagem
@@ -929,8 +965,27 @@ export function ChatPage() {
     }
   }
 
+  if (!activeChat) return null;
+
   return (
     <div className="flex h-[calc(100dvh-4rem)] min-h-0 flex-col overflow-hidden bg-ondjo-bg p-2 sm:p-5 lg:p-7">
+      {statusFeedback && (
+        <div
+          role="status"
+          className="mx-auto mb-3 flex w-full max-w-7xl items-center justify-between gap-3 rounded-2xl border border-ondjo-warning-border bg-ondjo-warning-soft px-4 py-2.5 text-xs font-semibold text-ondjo-warning shadow-xs"
+        >
+          <span>{statusFeedback}</span>
+          <button
+            type="button"
+            onClick={() => setStatusFeedback(null)}
+            className="rounded-lg p-1 hover:bg-black/5 cursor-pointer"
+            aria-label="Fechar aviso"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
       {/* Banner de Ativação de Notificações do Navegador */}
       {isNotificationSupported && notificationPermission === "default" && (
         <div className="mx-auto mb-3 max-w-7xl">
@@ -952,7 +1007,7 @@ export function ChatPage() {
               <button
                 type="button"
                 onClick={requestNotificationPermission}
-                className="focus-ring rounded-xl bg-ondjo-blue px-3.5 py-1.5 font-bold text-white shadow-xs hover:bg-ondjo-blue-dark transition-colors"
+                className="focus-ring rounded-xl bg-ondjo-blue px-3.5 py-1.5 font-bold text-white shadow-xs hover:bg-ondjo-blue-dark transition-colors cursor-pointer"
               >
                 Permitir notificações
               </button>
@@ -964,10 +1019,11 @@ export function ChatPage() {
       {/* Notificação In-App de Nova Mensagem em Tempo Real */}
       <AnimatePresence>
         {notification && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+          <m.div
+            initial={{ opacity: 0, y: -12, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            exit={{ opacity: 0, y: -12, scale: 0.97 }}
+            transition={{ duration: 0.14, ease: "easeOut" }}
             className="fixed top-4 right-4 z-50 max-w-sm w-[calc(100%-2rem)] rounded-2xl border border-ondjo-blue/30 bg-ondjo-surface p-3.5 shadow-lg ring-1 ring-ondjo-navy/5"
           >
             <div className="flex items-start gap-3">
@@ -1013,7 +1069,7 @@ export function ChatPage() {
                 <X size={14} />
               </button>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
@@ -1567,10 +1623,11 @@ export function ChatPage() {
               {/* Indicador de Digitação do Corretor */}
               <AnimatePresence>
                 {activeChat.isTyping && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 6 }}
+                  <m.div
+                    initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 4 }}
+                    transition={{ duration: 0.12 }}
                     className="flex items-center gap-2 rounded-2xl border border-ondjo-border bg-ondjo-surface px-3.5 py-2 shadow-2xs w-fit"
                   >
                     <span className="text-xs font-semibold text-ondjo-muted">
@@ -1581,7 +1638,7 @@ export function ChatPage() {
                       <span className="size-1.5 animate-bounce rounded-full bg-ondjo-blue" style={{ animationDelay: "150ms" }} />
                       <span className="size-1.5 animate-bounce rounded-full bg-ondjo-blue" style={{ animationDelay: "300ms" }} />
                     </span>
-                  </motion.div>
+                  </m.div>
                 )}
               </AnimatePresence>
 
@@ -1745,11 +1802,11 @@ export function ChatPage() {
       <AnimatePresence>
         {activeProperty && propertyDrawerOpen && (
           <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 lg:hidden">
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 250 }}
+            <m.div
+              initial={{ y: 32, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 24, opacity: 0 }}
+              transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
               className="max-h-[85dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-ondjo-surface p-5 shadow-2xl"
             >
               <div className="flex items-center justify-between pb-3 border-b border-ondjo-border">
@@ -1816,7 +1873,62 @@ export function ChatPage() {
                   </a>
                 </div>
               </div>
-            </motion.div>
+            </m.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Diálogo in-app de confirmação para restaurar conversas demo */}
+      <AnimatePresence>
+        {confirmResetOpen && (
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-label="Restaurar conversas de demonstração"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          >
+            <m.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.12 }}
+              onClick={() => setConfirmResetOpen(false)}
+              className="fixed inset-0 bg-ondjo-navy/50"
+              aria-hidden="true"
+            />
+            <m.div
+              initial={{ opacity: 0, scale: 0.96, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 8 }}
+              transition={{ duration: 0.14, ease: "easeOut" }}
+              className="relative z-10 w-full max-w-md rounded-2xl border border-ondjo-border bg-white p-5 sm:p-6 shadow-2xl"
+            >
+              <div className="flex items-center gap-2.5 text-ondjo-navy">
+                <RotateCcw size={18} className="text-ondjo-blue" aria-hidden="true" />
+                <h2 className="text-base font-black">
+                  Restaurar conversas demo?
+                </h2>
+              </div>
+              <p className="mt-2 text-xs leading-5 text-ondjo-muted">
+                As mensagens enviadas nesta sessão serão substituídas pelas conversas de demonstração padrão do ONDJO.
+              </p>
+              <div className="mt-5 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmResetOpen(false)}
+                  className="focus-ring rounded-xl border border-ondjo-border px-4 py-2 text-xs font-bold text-ondjo-ink hover:bg-ondjo-bg cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmResetConversations}
+                  className="focus-ring rounded-xl bg-ondjo-blue px-4 py-2 text-xs font-bold text-white hover:bg-ondjo-blue-dark cursor-pointer"
+                >
+                  Restaurar
+                </button>
+              </div>
+            </m.div>
           </div>
         )}
       </AnimatePresence>

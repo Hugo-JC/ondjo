@@ -8,7 +8,7 @@ import {
   Search,
   ShieldCheck,
 } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import { useMemo, useRef, useState } from "react";
 
 import { properties } from "../data/properties";
@@ -108,38 +108,38 @@ export function Home() {
           {/* Topo do Hero: Eyebrow e Título Magnético */}
           <div className="mx-auto max-w-4xl text-center">
             {/* Título Principal */}
-            <motion.h1
-              initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
+            <m.h1
+              initial={reduceMotion ? undefined : { opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, delay: 0.05 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
               className="text-3xl font-black tracking-tight text-white sm:text-5xl lg:text-[58px] leading-[1.12]"
             >
               O imóvel certo para a sua vida,{" "}
               <span className="bg-linear-to-r from-blue-200 via-ondjo-blue-soft to-white bg-clip-text text-transparent">
                 com preços reais em Kwanzas.
               </span>
-            </motion.h1>
+            </m.h1>
 
             {/* Subtítulo Convincente e Acessível */}
-            <motion.p
-              initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
+            <m.p
+              initial={reduceMotion ? undefined : { opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, delay: 0.1 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
               className="mx-auto mt-3.5 max-w-2xl text-sm leading-relaxed text-slate-200 sm:text-base sm:leading-7"
             >
               Descubra casas, apartamentos e terrenos com documentação auditada,
               fotografias reais e contacto direto no WhatsApp ou chat. Sem taxas
               surpresa e sem intermediários clandestinos.
-            </motion.p>
+            </m.p>
           </div>
 
           {/* Barra de Pesquisa em Pílula (Central) */}
-          <motion.div
-            initial={reduceMotion ? undefined : { opacity: 0, y: 14 }}
+          <m.div
+            initial={reduceMotion ? undefined : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{
-              duration: 0.38,
-              delay: reduceMotion ? 0 : 0.15,
+              duration: 0.18,
+              ease: "easeOut",
             }}
             className="relative z-20 mx-auto mt-6 max-w-5xl sm:mt-8 w-full"
             tabIndex={-1}
@@ -149,7 +149,7 @@ export function Home() {
               onChange={setFilters}
               onSearch={search}
             />
-          </motion.div>
+          </m.div>
         </div>
       </section>
       <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-14 lg:px-8 lg:py-18 flex-1 min-w-0">

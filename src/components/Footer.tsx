@@ -85,7 +85,7 @@ export function Footer() {
             <ul className="mt-4 space-y-2.5 text-xs text-ondjo-muted">
               <li>
                 <a
-                  href="#/pesquisar?type=apartamento"
+                  href="#/pesquisar?type=Apartamento"
                   className="hover:text-ondjo-blue transition-colors"
                 >
                   Apartamentos T1 a T4+
@@ -93,7 +93,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="#/pesquisar?type=vivenda"
+                  href="#/pesquisar?type=Moradia"
                   className="hover:text-ondjo-blue transition-colors"
                 >
                   Vivendas e Moradias
@@ -101,7 +101,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="#/pesquisar?type=terreno"
+                  href="#/pesquisar?type=Terreno"
                   className="hover:text-ondjo-blue transition-colors"
                 >
                   Terrenos urbanizados
@@ -109,7 +109,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="#/pesquisar?purpose=arrendamento"
+                  href="#/pesquisar?purpose=arrendar"
                   className="hover:text-ondjo-blue transition-colors"
                 >
                   Arrendamento residencial
@@ -179,15 +179,11 @@ export function Footer() {
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 sm:justify-start">
             <span>© 2026 ONDJO. Todos os direitos reservados.</span>
             <span className="hidden sm:inline text-slate-300">•</span>
-            <span className="hover:text-ondjo-ink cursor-pointer">
-              Privacidade
-            </span>
+            <span>Privacidade</span>
             <span className="hidden sm:inline text-slate-300">•</span>
-            <span className="hover:text-ondjo-ink cursor-pointer">Termos</span>
+            <span>Termos</span>
             <span className="hidden sm:inline text-slate-300">•</span>
-            <span className="hover:text-ondjo-ink cursor-pointer">
-              Mapa do site
-            </span>
+            <span>Luanda, Angola</span>
           </div>
 
           <div className="flex items-center text-sm gap-4 font-semibold text-ondjo-ink">

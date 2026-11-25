@@ -13,7 +13,7 @@ import {
   UserRound,
   Phone,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m } from "framer-motion";
 import AuthInput from "../components/auth/AuthInput";
 import AuthLayout from "../components/auth/AuthLayout";
 import RoleCard from "../components/auth/RoleCard";
@@ -101,7 +101,7 @@ export default function RegisterPage() {
         title="Tudo pronto para começar!"
         description="O seu registo no ONDJO foi simulado com sucesso."
       >
-        <motion.div
+        <m.div
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           className="rounded-2xl border border-ondjo-green/30 bg-ondjo-green-soft/60 p-6 sm:p-8"
@@ -132,7 +132,7 @@ export default function RegisterPage() {
               Pesquisar imóveis
             </a>
           </div>
-        </motion.div>
+        </m.div>
       </AuthLayout>
     );
   }
@@ -166,10 +166,10 @@ export default function RegisterPage() {
           <span>{progress}</span>
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-ondjo-border">
-          <motion.div
+          <m.div
             className="h-full rounded-full bg-ondjo-blue"
             animate={{ width: progress }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
           />
         </div>
         <div className="mt-3 grid grid-cols-4 gap-2 text-center">
@@ -194,7 +194,7 @@ export default function RegisterPage() {
 
       {/* Alerta de erro de validação */}
       {errorMsg && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-6 flex items-center gap-2 rounded-xl border border-ondjo-danger/20 bg-red-50 p-3.5 text-xs font-semibold text-ondjo-danger"
@@ -202,7 +202,7 @@ export default function RegisterPage() {
         >
           <AlertCircle className="size-4 shrink-0" />
           <span>{errorMsg}</span>
-        </motion.div>
+        </m.div>
       )}
 
       <form
@@ -213,13 +213,12 @@ export default function RegisterPage() {
           }
         }}
       >
-        <AnimatePresence mode="wait">
           {step === 1 && (
-            <motion.div
+            <m.div
               key="step-1"
-              initial={{ opacity: 0, x: 12 }}
+              initial={{ opacity: 0, x: 8 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -12 }}
+              transition={{ duration: 0.14, ease: "easeOut" }}
               className="grid gap-4 sm:grid-cols-2"
             >
               <RoleCard
@@ -236,15 +235,15 @@ export default function RegisterPage() {
                 selected={role === "proprietario"}
                 onClick={() => setRole("proprietario")}
               />
-            </motion.div>
+            </m.div>
           )}
 
           {step === 2 && (
-            <motion.div
+            <m.div
               key="step-2"
-              initial={{ opacity: 0, x: 12 }}
+              initial={{ opacity: 0, x: 8 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -12 }}
+              transition={{ duration: 0.14, ease: "easeOut" }}
               className="space-y-4"
             >
               <div className="grid gap-4 sm:grid-cols-2">
@@ -310,15 +309,15 @@ export default function RegisterPage() {
                   )}
                 </select>
               </div>
-            </motion.div>
+            </m.div>
           )}
 
           {step === 3 && (
-            <motion.div
+            <m.div
               key="step-3"
-              initial={{ opacity: 0, x: 12 }}
+              initial={{ opacity: 0, x: 8 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -12 }}
+              transition={{ duration: 0.14, ease: "easeOut" }}
               className="space-y-4"
             >
               <AuthInput
@@ -395,15 +394,15 @@ export default function RegisterPage() {
                   placeholder="Repita a palavra-passe anterior"
                 />
               </div>
-            </motion.div>
+            </m.div>
           )}
 
           {step === 4 && (
-            <motion.div
+            <m.div
               key="step-4"
-              initial={{ opacity: 0, x: 12 }}
+              initial={{ opacity: 0, x: 8 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -12 }}
+              transition={{ duration: 0.14, ease: "easeOut" }}
               className="space-y-4"
             >
               {/* Resumo visual dos dados */}
@@ -444,9 +443,8 @@ export default function RegisterPage() {
                   Declaro que li e aceito os <strong>Termos de Utilização</strong> e a <strong>Política de Privacidade</strong> do ONDJO para navegação e publicação no mercado angolano.
                 </span>
               </label>
-            </motion.div>
+            </m.div>
           )}
-        </AnimatePresence>
 
         {/* Botões de navegação dos passos */}
         <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">

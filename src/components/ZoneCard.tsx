@@ -91,7 +91,7 @@ export function ZoneCard({ zone }: { zone: ZoneSummary }) {
     <a
       href={`#/pesquisar?location=${encodeURIComponent(name)}`}
       aria-label={`Explorar ${count} imóveis em ${name}, a partir de ${formatKz(minPrice)}`}
-      className="focus-ring group relative flex h-68 sm:h-72 w-full flex-col justify-between overflow-hidden rounded-[25px] bg-ondjo-navy text-white shadow-sm transition-all duration-400 hover:-translate-y-1 hover:border-blue-400/50 hover:shadow-xl hover:shadow-slate-900/15 active:scale-[0.99]"
+      className="focus-ring group relative flex h-68 sm:h-72 w-full flex-col justify-between overflow-hidden rounded-[25px] bg-ondjo-navy text-white shadow-sm transition-[transform,box-shadow] duration-150 ease-out hover:-translate-y-1 hover:border-blue-400/50 hover:shadow-xl hover:shadow-slate-900/15 active:scale-[0.99]"
     >
       {/* Imagem de Fundo com Formatos Modernos (WebP/AVIF), SrcSet e Carregamento Diferido */}
       <div className="absolute inset-0 overflow-hidden bg-ondjo-navy">
@@ -114,14 +114,14 @@ export function ZoneCard({ zone }: { zone: ZoneSummary }) {
 
       {/* Topo do Card: Badge de Imóveis + Botão com Seta */}
       <div className="relative z-10 flex items-center justify-between p-4 sm:p-5">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-black/45 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-md">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-black/55 px-2.5 py-1 text-xs font-bold text-white">
           <MapPin size={15} className="text-blue-300" aria-hidden="true" />
           <span>{formatCount(count)}</span>
         </span>
 
         <span
           aria-hidden="true"
-          className="grid size-9 place-items-center rounded-full border border-white/20 bg-white/15 text-white backdrop-blur-md transition-all duration-300 group-hover:bg-ondjo-blue group-hover:text-white group-hover:rotate-45"
+          className="grid size-9 place-items-center rounded-full border border-white/20 bg-white/15 text-white transition-[background-color,transform] duration-150 group-hover:bg-ondjo-blue group-hover:text-white group-hover:rotate-45"
         >
           <ArrowUpRight size={16} />
         </span>

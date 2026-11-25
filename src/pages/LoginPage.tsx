@@ -1,6 +1,6 @@
-import { useState, useId } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Eye, EyeOff, LockKeyhole, Mail, ArrowRight, CheckCircle2, X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import AuthInput from "../components/auth/AuthInput";
 import AuthLayout from "../components/auth/AuthLayout";
 
@@ -14,24 +14,44 @@ export default function LoginPage() {
   const [forgotSubmitted, setForgotSubmitted] = useState(false);
 
   const passwordId = useId();
+  const loginTimerRef = useRef<number | null>(null);
+  const forgotTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (loginTimerRef.current !== null) window.clearTimeout(loginTimerRef.current);
+      if (forgotTimerRef.current !== null) window.clearTimeout(forgotTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!showForgotModal) return;
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowForgotModal(false);
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [showForgotModal]);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
+    if (loginTimerRef.current !== null) window.clearTimeout(loginTimerRef.current);
+    loginTimerRef.current = window.setTimeout(() => {
       setIsLoading(false);
       setSubmitted(true);
-    }, 600);
+    }, 250);
   }
 
   function handleForgotSubmit(e: React.FormEvent) {
     e.preventDefault();
     setForgotSubmitted(true);
-    setTimeout(() => {
+    if (forgotTimerRef.current !== null) window.clearTimeout(forgotTimerRef.current);
+    forgotTimerRef.current = window.setTimeout(() => {
       setShowForgotModal(false);
       setForgotSubmitted(false);
       setForgotEmail("");
-    }, 2200);
+    }, 1500);
   }
 
   return (
@@ -42,7 +62,7 @@ export default function LoginPage() {
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         {submitted && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             role="status"
@@ -58,7 +78,7 @@ export default function LoginPage() {
                 Ir para a página inicial <ArrowRight className="size-3.5" />
               </a>
             </div>
-          </motion.div>
+          </m.div>
         )}
 
         <div className="space-y-4">
@@ -132,7 +152,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={isLoading}
-          className="focus-ring flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-ondjo-blue px-5 text-sm font-bold text-white shadow-sm transition-all hover:bg-ondjo-blue-dark active:scale-[0.99] disabled:opacity-60"
+          className="focus-ring flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-ondjo-blue px-5 text-sm font-bold text-white shadow-sm transition-[background-color,transform] duration-150 hover:bg-ondjo-blue-dark active:scale-[0.99] disabled:opacity-60 cursor-pointer"
         >
           {isLoading ? (
             <span className="inline-block size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -161,18 +181,25 @@ export default function LoginPage() {
       {/* Modal de recuperação de palavra-passe */}
       <AnimatePresence>
         {showForgotModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Recuperar palavra-passe"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          >
+            <m.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-ondjo-navy/50 backdrop-blur-xs"
+              transition={{ duration: 0.14 }}
+              className="fixed inset-0 bg-ondjo-navy/50"
               onClick={() => setShowForgotModal(false)}
             />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            <m.div
+              initial={{ opacity: 0, scale: 0.96, y: 8 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              exit={{ opacity: 0, scale: 0.96, y: 8 }}
+              transition={{ duration: 0.14, ease: "easeOut" }}
               className="relative w-full max-w-md rounded-2xl border border-ondjo-border bg-white p-6 shadow-2xl z-10"
             >
               <div className="flex items-center justify-between pb-3 border-b border-ondjo-border">
@@ -226,7 +253,7 @@ export default function LoginPage() {
                   </div>
                 </form>
               )}
-            </motion.div>
+            </m.div>
           </div>
         )}
       </AnimatePresence>

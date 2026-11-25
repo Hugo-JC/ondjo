@@ -1,38 +1,62 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 
 const STORAGE_KEY = "ondjo-favorite-properties";
 const CHANGE_EVENT = "ondjo:favorites-changed";
+const EMPTY_FAVORITES: string[] = [];
+
+let cachedRaw: string | null = null;
+let cachedFavorites: string[] = EMPTY_FAVORITES;
 
 function readFavorites(): string[] {
-  if (typeof window === "undefined") return [];
+  if (typeof window === "undefined") return EMPTY_FAVORITES;
   try {
-    const value: unknown = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "[]");
-    return Array.isArray(value)
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (raw === cachedRaw) return cachedFavorites;
+
+    cachedRaw = raw;
+    if (!raw) {
+      cachedFavorites = EMPTY_FAVORITES;
+      return cachedFavorites;
+    }
+
+    const value: unknown = JSON.parse(raw);
+    cachedFavorites = Array.isArray(value)
       ? value.filter((id): id is string => typeof id === "string")
-      : [];
+      : EMPTY_FAVORITES;
+    return cachedFavorites;
   } catch {
-    return [];
+    cachedFavorites = EMPTY_FAVORITES;
+    return cachedFavorites;
   }
 }
 
 function writeFavorites(ids: string[]) {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+  const serialized = JSON.stringify(ids);
+  cachedRaw = serialized;
+  cachedFavorites = ids;
+  window.localStorage.setItem(STORAGE_KEY, serialized);
   window.dispatchEvent(new CustomEvent(CHANGE_EVENT));
+}
+
+function subscribe(callback: () => void) {
+  const onStorage = (e: StorageEvent) => {
+    if (e.key === null || e.key === STORAGE_KEY) callback();
+  };
+  window.addEventListener("storage", onStorage);
+  window.addEventListener(CHANGE_EVENT, callback);
+  return () => {
+    window.removeEventListener("storage", onStorage);
+    window.removeEventListener(CHANGE_EVENT, callback);
+  };
+}
+
+function getServerSnapshot(): string[] {
+  return EMPTY_FAVORITES;
 }
 
 /** Shared, persistent favorites state for property cards and the saved page. */
 export function useFavorites() {
-  const [favoriteIds, setFavoriteIds] = useState<string[]>(readFavorites);
-
-  useEffect(() => {
-    const sync = () => setFavoriteIds(readFavorites());
-    window.addEventListener("storage", sync);
-    window.addEventListener(CHANGE_EVENT, sync);
-    return () => {
-      window.removeEventListener("storage", sync);
-      window.removeEventListener(CHANGE_EVENT, sync);
-    };
-  }, []);
+  const favoriteIds = useSyncExternalStore(subscribe, readFavorites, getServerSnapshot);
 
   const toggleFavorite = useCallback((id: string) => {
     const current = readFavorites();
@@ -40,24 +64,26 @@ export function useFavorites() {
       ? current.filter((savedId) => savedId !== id)
       : [id, ...current];
     writeFavorites(next);
-    setFavoriteIds(next);
   }, []);
 
   const removeFavorite = useCallback((id: string) => {
     const next = readFavorites().filter((savedId) => savedId !== id);
     writeFavorites(next);
-    setFavoriteIds(next);
   }, []);
 
   const clearFavorites = useCallback(() => {
     writeFavorites([]);
-    setFavoriteIds([]);
   }, []);
+
+  const isFavorite = useCallback(
+    (id: string) => favoriteIds.includes(id),
+    [favoriteIds],
+  );
 
   return {
     favoriteIds,
     favoriteCount: favoriteIds.length,
-    isFavorite: (id: string) => favoriteIds.includes(id),
+    isFavorite,
     toggleFavorite,
     removeFavorite,
     clearFavorites,

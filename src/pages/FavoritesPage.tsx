@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import {
   ArrowUpDown,
   Check,
@@ -49,6 +49,11 @@ export function FavoritesPage() {
   const clearTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
+    if (!showComparisonModal && !confirmClearOpen) return;
+
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         if (showComparisonModal) {
@@ -61,14 +66,11 @@ export function FavoritesPage() {
       }
     }
 
-    if (showComparisonModal || confirmClearOpen) {
-      window.addEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "hidden";
-    }
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
+      document.body.style.overflow = prevOverflow;
     };
   }, [showComparisonModal, confirmClearOpen]);
 
@@ -428,47 +430,50 @@ export function FavoritesPage() {
                 const isLimitReached = !isSelected && selectedForCompare.length >= 3;
 
                 return (
-                  <div key={property.id} className="relative">
-                    {/* Botão integrado de Comparação no canto inferior ou flutuante sem quebrar o layout */}
-                    <div className="absolute left-3 top-3 z-20">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleCompare(property.id);
-                        }}
-                        disabled={isLimitReached}
-                        className={`focus-ring inline-flex min-h-8 items-center gap-1.5 rounded-full px-3 text-[11px] font-bold backdrop-blur-md shadow-xs transition cursor-pointer ${
-                          isSelected
-                            ? "bg-ondjo-blue text-white shadow-md ring-2 ring-white"
-                            : isLimitReached
-                            ? "cursor-not-allowed bg-white/80 opacity-40 text-slate-400"
-                            : "bg-white/95 text-ondjo-ink hover:bg-white hover:text-ondjo-blue"
-                        }`}
-                        aria-pressed={isSelected}
-                        aria-label={
-                          isSelected
-                            ? `Remover ${property.title} da comparação`
-                            : isLimitReached
-                            ? `Limite de 3 atingido`
-                            : `Comparar ${property.title}`
-                        }
-                      >
-                        <span
-                          className={`grid size-3.5 place-items-center rounded-full border transition ${
-                            isSelected
-                              ? "border-white bg-white text-ondjo-blue"
-                              : "border-slate-400 bg-white"
-                          }`}
-                          aria-hidden="true"
-                        >
-                          {isSelected && <Check size={10} strokeWidth={3} />}
-                        </span>
-                        <span>{isSelected ? "Selecionado" : "Comparar"}</span>
-                      </button>
-                    </div>
-
+                  <div key={property.id} className="flex flex-col gap-2">
                     <PropertyCard property={property} index={index} />
+
+                    <button
+                      type="button"
+                      onClick={() => toggleCompare(property.id)}
+                      disabled={isLimitReached}
+                      className={`focus-ring inline-flex min-h-10 w-full items-center justify-between rounded-2xl border px-3.5 text-xs font-bold transition-colors duration-150 cursor-pointer ${
+                        isSelected
+                          ? "border-ondjo-blue bg-ondjo-blue text-white shadow-xs"
+                          : isLimitReached
+                            ? "cursor-not-allowed border-slate-200 bg-slate-50 opacity-50 text-slate-400"
+                            : "border-ondjo-border bg-white text-ondjo-ink hover:border-ondjo-blue-soft hover:bg-ondjo-blue-50 hover:text-ondjo-blue"
+                      }`}
+                      aria-pressed={isSelected}
+                      aria-label={
+                        isSelected
+                          ? `Remover ${property.title} da comparação`
+                          : isLimitReached
+                            ? "Limite de 3 imóveis no comparador atingido"
+                            : `Comparar ${property.title}`
+                      }
+                    >
+                      <span className="inline-flex items-center gap-2">
+                        <Scale size={14} aria-hidden="true" />
+                        <span>
+                          {isSelected
+                            ? "Selecionado para comparar"
+                            : isLimitReached
+                              ? "Limite de 3 atingido"
+                              : "Comparar imóvel"}
+                        </span>
+                      </span>
+                      <span
+                        className={`grid size-4.5 place-items-center rounded-full border transition-colors ${
+                          isSelected
+                            ? "border-white bg-white text-ondjo-blue"
+                            : "border-slate-300 bg-white"
+                        }`}
+                        aria-hidden="true"
+                      >
+                        {isSelected && <Check size={11} strokeWidth={3} />}
+                      </span>
+                    </button>
                   </div>
                 );
               })}
@@ -492,12 +497,12 @@ export function FavoritesPage() {
           {/* DOCK FLUTUANTE DE COMPARAÇÃO */}
           <AnimatePresence>
             {selectedForCompare.length > 0 && (
-              <motion.aside
+              <m.aside
                 aria-label="Barra de ação do comparador"
-                initial={{ opacity: 0, y: 40 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 40 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.14, ease: "easeOut" }}
                 className="fixed bottom-4 inset-x-3.5 z-40 max-w-xl sm:bottom-6 sm:left-1/2 sm:-translate-x-1/2 sm:inset-x-auto sm:w-full"
               >
                 <div className="flex items-center justify-between gap-3 rounded-2xl border border-ondjo-navy/15 bg-ondjo-navy p-3 text-white shadow-xl shadow-slate-950/25 sm:p-4">
@@ -545,7 +550,7 @@ export function FavoritesPage() {
                     </button>
                   </div>
                 </div>
-              </motion.aside>
+              </m.aside>
             )}
           </AnimatePresence>
 
@@ -558,20 +563,21 @@ export function FavoritesPage() {
                 aria-labelledby={modalTitleId}
                 className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 lg:p-6"
               >
-                <motion.div
+                <m.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
+                  transition={{ duration: 0.14 }}
                   onClick={() => setShowComparisonModal(false)}
-                  className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs"
+                  className="fixed inset-0 bg-slate-950/55"
                   aria-hidden="true"
                 />
 
-                <motion.div
-                  initial={{ opacity: 0, y: "100%" }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: "100%" }}
-                  transition={{ type: "spring", damping: 25, stiffness: 220 }}
+                <m.div
+                  initial={{ opacity: 0, y: 16, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 16, scale: 0.98 }}
+                  transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
                   className="relative z-10 flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-t-3xl border border-ondjo-border bg-white shadow-2xl sm:rounded-3xl sm:max-h-[88vh]"
                 >
                   <div className="border-b border-ondjo-border px-4 py-3.5 sm:px-6 sm:py-5">
@@ -736,7 +742,7 @@ export function FavoritesPage() {
                       Fechar
                     </button>
                   </div>
-                </motion.div>
+                </m.div>
               </div>
             )}
           </AnimatePresence>
@@ -750,19 +756,21 @@ export function FavoritesPage() {
                 aria-labelledby={clearDialogTitleId}
                 className="fixed inset-0 z-50 flex items-center justify-center p-4"
               >
-                <motion.div
+                <m.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
+                  transition={{ duration: 0.14 }}
                   onClick={() => setConfirmClearOpen(false)}
-                  className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs"
+                  className="fixed inset-0 bg-slate-950/55"
                   aria-hidden="true"
                 />
 
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                <m.div
+                  initial={{ opacity: 0, scale: 0.96, y: 8 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                  exit={{ opacity: 0, scale: 0.96, y: 8 }}
+                  transition={{ duration: 0.14, ease: "easeOut" }}
                   className="relative z-10 w-full max-w-md rounded-2xl border border-ondjo-border bg-white p-5 shadow-2xl sm:rounded-3xl sm:p-6"
                 >
                   <div className="grid size-12 place-items-center rounded-2xl bg-ondjo-danger-soft text-ondjo-danger" aria-hidden="true">
@@ -796,7 +804,7 @@ export function FavoritesPage() {
                       Sim, remover todos
                     </button>
                   </div>
-                </motion.div>
+                </m.div>
               </div>
             )}
           </AnimatePresence>
