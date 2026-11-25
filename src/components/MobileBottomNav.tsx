@@ -1,6 +1,51 @@
-import { Heart, Home, MessageSquare, Search, UserRound } from "lucide-react";
+import { AnimatePresence, LayoutGroup, m } from "framer-motion";
+import {
+  Heart,
+  Home,
+  MessageSquare,
+  Search,
+  UserRound,
+  type LucideIcon,
+} from "lucide-react";
 import { useHashRoute } from "../hooks/useHashRoute";
 import { useFavorites } from "../hooks/useFavorites";
+import { cn } from "../utils/cn";
+
+interface MobileNavItem {
+  id: string;
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  badge?: "favorites";
+}
+
+const MOBILE_NAV_ITEMS: MobileNavItem[] = [
+  { id: "home", label: "Explorar", href: "#/", icon: Home },
+  { id: "search", label: "Pesquisar", href: "#/pesquisar", icon: Search },
+  {
+    id: "favorites",
+    label: "Favoritos",
+    href: "#/favoritos",
+    icon: Heart,
+    badge: "favorites",
+  },
+  { id: "chat", label: "Mensagens", href: "#/chat", icon: MessageSquare },
+  { id: "login", label: "Entrar", href: "#/login", icon: UserRound },
+];
+
+const PILL_SPRING = {
+  type: "spring" as const,
+  stiffness: 440,
+  damping: 32,
+  mass: 0.68,
+};
+
+const INDICATOR_SPRING = {
+  type: "spring" as const,
+  stiffness: 500,
+  damping: 34,
+  mass: 0.6,
+};
 
 export function MobileBottomNav() {
   const route = useHashRoute();
@@ -12,120 +57,122 @@ export function MobileBottomNav() {
     return null;
   }
 
-  const isHome = route.page === "home";
-  const isSearch = route.page === "search";
-  const isFavorites = route.page === "favorites";
-  const isChat = route.page === "chat";
-  const isLogin = route.page === "login" || route.page === "register";
+  function isItemActive(id: string) {
+    if (id === "home") return route.page === "home";
+    if (id === "search") return route.page === "search";
+    if (id === "favorites") return route.page === "favorites";
+    if (id === "chat") return route.page === "chat";
+    if (id === "login") {
+      return route.page === "login" || route.page === "register";
+    }
+    return false;
+  }
 
   return (
-    <nav
+    <m.nav
       aria-label="Navegação móvel principal"
-      className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-ondjo-border/80 px-2 pt-1 pb-safe lg:hidden shadow-[0_-4px_20px_rgba(16,42,67,0.06)]"
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+      className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+0.625rem)] inset-x-3 mx-auto w-[min(calc(100%-1.5rem),21.5rem)] sm:w-[23.5rem] md:w-[25rem] z-40 lg:hidden rounded-full border border-slate-200/90 bg-white/88 backdrop-blur-2xl backdrop-saturate-180 p-1.5 sm:p-2 shadow-[0_14px_34px_-6px_rgba(16,42,67,0.22),0_3px_10px_rgba(16,42,67,0.08),inset_0_1px_0_rgba(255,255,255,0.95)]"
     >
-      <div className="flex items-center justify-around max-w-md mx-auto">
-        <a
-          href="#/"
-          aria-current={isHome ? "page" : undefined}
-          className={`flex flex-col items-center justify-center min-w-14 min-h-12 py-1 rounded-xl transition-colors ${
-            isHome
-              ? "text-ondjo-blue font-bold"
-              : "text-ondjo-muted hover:text-ondjo-ink"
-          }`}
-        >
-          <Home
-            size={20}
-            className={isHome ? "stroke-[2.4]" : "stroke-2"}
-            aria-hidden="true"
-          />
-          <span className="text-[10px] tracking-tight mt-0.5">Explorar</span>
-        </a>
+      <LayoutGroup id="ondjo-mobile-bottom-nav">
+        <div className="grid grid-cols-5 items-center gap-1 sm:gap-1.5">
+          {MOBILE_NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const active = isItemActive(item.id);
+            const showFavBadge = item.badge === "favorites" && favoriteCount > 0;
 
-        <a
-          href="#/pesquisar"
-          aria-current={isSearch ? "page" : undefined}
-          className={`flex flex-col items-center justify-center min-w-14 min-h-12 py-1 rounded-xl transition-colors ${
-            isSearch
-              ? "text-ondjo-blue font-bold"
-              : "text-ondjo-muted hover:text-ondjo-ink"
-          }`}
-        >
-          <Search
-            size={20}
-            className={isSearch ? "stroke-[2.4]" : "stroke-2"}
-            aria-hidden="true"
-          />
-          <span className="text-[10px] tracking-tight mt-0.5">Pesquisar</span>
-        </a>
-
-        <a
-          href="#/favoritos"
-          aria-current={isFavorites ? "page" : undefined}
-          aria-label={
-            favoriteCount > 0
-              ? `Favoritos, ${favoriteCount} guardados`
-              : "Favoritos"
-          }
-          className={`relative flex flex-col items-center justify-center min-w-14 min-h-12 py-1 rounded-xl transition-colors ${
-            isFavorites
-              ? "text-ondjo-blue font-bold"
-              : "text-ondjo-muted hover:text-ondjo-ink"
-          }`}
-        >
-          <div className="relative">
-            <Heart
-              size={20}
-              className={
-                isFavorites ? "stroke-[2.4] fill-ondjo-blue/15" : "stroke-2"
-              }
-              aria-hidden="true"
-            />
-            {favoriteCount > 0 && (
-              <span
-                aria-hidden="true"
-                className="absolute -top-1 -right-2 min-w-4 h-4 px-1 rounded-full bg-ondjo-navy text-white text-[10px] font-black flex items-center justify-center leading-none"
+            return (
+              <m.a
+                key={item.id}
+                href={item.href}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.88 }}
+                transition={{ duration: 0.14, ease: [0.16, 1, 0.3, 1] }}
+                aria-current={active ? "page" : undefined}
+                aria-label={
+                  showFavBadge
+                    ? `${item.label}, ${favoriteCount} guardados`
+                    : item.label
+                }
+                title={item.label}
+                className={cn(
+                  "focus-ring relative flex items-center justify-center h-12 sm:h-13 rounded-full select-none transition-colors duration-150",
+                  active
+                    ? "text-ondjo-blue"
+                    : "text-slate-500 hover:text-ondjo-navy",
+                )}
               >
-                {favoriteCount}
-              </span>
-            )}
-          </div>
-          <span className="text-[10px] tracking-tight mt-0.5">Favoritos</span>
-        </a>
+                {active && (
+                  <m.span
+                    layoutId="ondjo-apple-nav-pill"
+                    aria-hidden="true"
+                    transition={PILL_SPRING}
+                    className="absolute inset-0 rounded-full bg-gradient-to-b from-ondjo-blue-50 to-ondjo-blue-soft/80 ring-1 ring-ondjo-blue/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_3px_10px_rgba(23,78,166,0.16)]"
+                  />
+                )}
 
-        <a
-          href="#/chat"
-          aria-current={isChat ? "page" : undefined}
-          className={`flex flex-col items-center justify-center min-w-14 min-h-12 py-1 rounded-xl transition-colors ${
-            isChat
-              ? "text-ondjo-blue font-bold"
-              : "text-ondjo-muted hover:text-ondjo-ink"
-          }`}
-        >
-          <MessageSquare
-            size={20}
-            className={isChat ? "stroke-[2.4]" : "stroke-2"}
-            aria-hidden="true"
-          />
-          <span className="text-[10px] tracking-tight mt-0.5">Mensagens</span>
-        </a>
+                <m.span
+                  key={`${item.id}-${route.page}`}
+                  initial={{ opacity: 0.5, scale: 0.92 }}
+                  animate={{
+                    opacity: 1,
+                    scale: active ? 1.08 : 1,
+                    y: active ? -1 : 0,
+                  }}
+                  transition={{
+                    opacity: { duration: 0.2, ease: [0.16, 1, 0.3, 1] },
+                    scale: { type: "spring", stiffness: 520, damping: 28 },
+                    y: { type: "spring", stiffness: 520, damping: 28 },
+                  }}
+                  className="relative z-10 flex items-center justify-center"
+                >
+                  <span className="relative inline-flex items-center justify-center">
+                    <Icon
+                      size={22}
+                      strokeWidth={active ? 2.4 : 1.9}
+                      className={cn(
+                        "transition-colors duration-150",
+                        item.id === "favorites" && active && "fill-ondjo-blue/18",
+                      )}
+                      aria-hidden="true"
+                    />
+                    <AnimatePresence initial={false}>
+                      {showFavBadge && (
+                        <m.span
+                          key="fav-count"
+                          initial={{ scale: 0.4, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={{ scale: 0.4, opacity: 0 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 560,
+                            damping: 26,
+                          }}
+                          aria-hidden="true"
+                          className="absolute -top-1.5 -right-2.5 min-w-4 h-4 px-1 rounded-full bg-ondjo-navy text-white text-[9px] font-bold tabular-nums flex items-center justify-center leading-none shadow-xs ring-1.5 ring-white"
+                        >
+                          {favoriteCount > 9 ? "9+" : favoriteCount}
+                        </m.span>
+                      )}
+                    </AnimatePresence>
+                  </span>
+                </m.span>
 
-        <a
-          href="#/login"
-          aria-current={isLogin ? "page" : undefined}
-          className={`flex flex-col items-center justify-center min-w-14 min-h-12 py-1 rounded-xl transition-colors ${
-            isLogin
-              ? "text-ondjo-blue font-bold"
-              : "text-ondjo-muted hover:text-ondjo-ink"
-          }`}
-        >
-          <UserRound
-            size={20}
-            className={isLogin ? "stroke-[2.4]" : "stroke-2"}
-            aria-hidden="true"
-          />
-          <span className="text-[10px] tracking-tight mt-0.5">Entrar</span>
-        </a>
-      </div>
-    </nav>
+                {active && (
+                  <m.span
+                    layoutId="ondjo-apple-nav-bar"
+                    aria-hidden="true"
+                    transition={INDICATOR_SPRING}
+                    className="absolute bottom-1.5 inset-x-0 mx-auto h-[2.5px] w-4 rounded-full bg-ondjo-blue"
+                  />
+                )}
+              </m.a>
+            );
+          })}
+        </div>
+      </LayoutGroup>
+    </m.nav>
   );
 }

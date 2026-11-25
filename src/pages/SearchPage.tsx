@@ -34,6 +34,10 @@ import { navigate } from "../hooks/useHashRoute";
 import { useFavorites } from "../hooks/useFavorites";
 import { useSavedSearches } from "../hooks/useSavedSearches";
 import { useFilteredPropertiesQuery, type SortOption } from "../hooks/usePropertiesQuery";
+import {
+  SearchPageSkeleton,
+  SearchResultsSkeleton,
+} from "../components/ui/Skeleton";
 
 const POPULAR_NEIGHBORHOODS = [
   "Talatona",
@@ -166,7 +170,11 @@ export function SearchPage() {
     setActivePopover(null);
   };
 
-  const { data: results = [] } = useFilteredPropertiesQuery(filters, sort);
+  const {
+    data: results = [],
+    isPending,
+    isFetching,
+  } = useFilteredPropertiesQuery(filters, sort);
 
   // Imóveis recomendados caso não haja resultados
   const recommendedProperties = useMemo(() => {
@@ -269,6 +277,10 @@ export function SearchPage() {
   }, [filters]);
 
   const isArrendamento = filters.purpose === "arrendar";
+
+  if (isPending) {
+    return <SearchPageSkeleton view={view} />;
+  }
 
   return (
     <main className="min-h-screen w-full bg-ondjo-bg pb-20">
@@ -724,7 +736,9 @@ export function SearchPage() {
         {/* =========================================================
             GRELHA OU LISTA DE RESULTADOS
             ========================================================= */}
-        {results.length > 0 ? (
+        {isFetching && results.length === 0 ? (
+          <SearchResultsSkeleton view={view} count={6} />
+        ) : results.length > 0 ? (
           <div
             className={`mt-6 ${
               view === "grid"

@@ -7,6 +7,10 @@ import { MobileBottomNav } from "./components/MobileBottomNav";
 import { Home } from "./pages/Home";
 import { useHashRoute } from "./hooks/useHashRoute";
 import { loadMotionFeatures } from "./utils/motionFeatures";
+import {
+  PropertyPageSkeleton,
+  SearchPageSkeleton,
+} from "./components/ui/Skeleton";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -64,13 +68,13 @@ export default function App() {
             </Suspense>
           ) : route.page === "property" ? (
             <AppShell>
-              <Suspense fallback={<PageFallback />}>
+              <Suspense fallback={<PropertyPageSkeleton />}>
                 <PropertyPage id={route.id} />
               </Suspense>
             </AppShell>
           ) : route.page === "search" ? (
             <AppShell>
-              <Suspense fallback={<PageFallback />}>
+              <Suspense fallback={<SearchPageSkeleton />}>
                 <SearchPage />
               </Suspense>
             </AppShell>
@@ -118,7 +122,7 @@ function AppShell({
       className={
         fixedContent
           ? "h-dvh w-full max-w-full overflow-hidden bg-ondjo-bg flex flex-col"
-          : "min-h-dvh w-full max-w-full overflow-x-clip bg-ondjo-bg flex flex-col pb-16 lg:pb-0"
+          : "min-h-dvh w-full max-w-full overflow-x-clip bg-ondjo-bg flex flex-col pb-20 lg:pb-0"
       }
     >
       <Sidebar expanded={sidebarExpanded} onExpandedChange={setSidebarExpanded} />

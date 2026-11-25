@@ -50,6 +50,7 @@ import { ScheduleVisitPanel } from "../components/ScheduleVisitPanel";
 import { PropertyMap } from "../components/PropertyMap";
 import { getOptimizedImageUrl } from "../utils/images";
 import { usePropertyByIdQuery } from "../hooks/usePropertiesQuery";
+import { PropertyPageSkeleton } from "../components/ui/Skeleton";
 
 // Mapeamento semântico de ícones de comodidades locais em Angola
 function getFeatureIcon(featureName: string) {
@@ -222,7 +223,7 @@ const REPORT_REASONS = [
 ] as const;
 
 export function PropertyPage({ id }: { id: string }) {
-  const { data: property } = usePropertyByIdQuery(id);
+  const { data: property, isPending, isFetching } = usePropertyByIdQuery(id);
   const [activePhoto, setActivePhoto] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -323,6 +324,10 @@ export function PropertyPage({ id }: { id: string }) {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [lightboxOpen, property]);
+
+  if (isPending || (isFetching && !property)) {
+    return <PropertyPageSkeleton />;
+  }
 
   if (!property) {
     return (

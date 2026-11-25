@@ -239,6 +239,26 @@ svg {
   animation: ondjo-pop-in 110ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+@keyframes ondjo-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.ondjo-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgb(221 229 238 / 0.65) 0%,
+    rgb(241 245 249 / 0.95) 50%,
+    rgb(221 229 238 / 0.65) 100%
+  );
+  background-size: 200% 100%;
+  animation: ondjo-shimmer 1.6s ease-in-out infinite;
+}
+
 .scrollbar-subtle {
   scrollbar-width: thin;
   scrollbar-color: #cbd2dc transparent;
