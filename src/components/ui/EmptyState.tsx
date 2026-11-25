@@ -1,6 +1,6 @@
 import React from "react";
 import { Search } from "lucide-react";
-import { Button } from "./Button";
+import { Button } from "./button";
 
 export interface EmptyStateProps {
   icon?: React.ReactNode;
@@ -26,7 +26,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   return (
     <div
       className={[
-        "flex flex-col items-center justify-center text-center p-8 sm:p-12 rounded-3xl border border-dashed border-ondjo-border bg-white shadow-xs",
+        "flex flex-col items-center justify-center text-center p-8 sm:p-12 rounded-3xl ondjo-border-dashed-soft bg-white shadow-xs",
         className,
       ]
         .filter(Boolean)

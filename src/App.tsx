@@ -10,7 +10,9 @@ import { loadMotionFeatures } from "./utils/motionFeatures";
 import {
   PropertyPageSkeleton,
   SearchPageSkeleton,
-} from "./components/ui/Skeleton";
+  Skeleton,
+} from "./components/ui/ondjo-skeletons";
+import { TooltipProvider } from "./components/ui/tooltip";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -45,8 +47,8 @@ function PageFallback() {
       aria-busy="true"
       aria-label="A carregar página"
     >
-      <div className="h-7 w-48 animate-pulse rounded-xl bg-slate-200/80" />
-      <div className="h-44 w-full animate-pulse rounded-3xl bg-slate-200/60" />
+      <Skeleton className="h-7 w-48 rounded-xl" />
+      <Skeleton className="h-44 w-full rounded-3xl" />
     </div>
   );
 }
@@ -58,7 +60,8 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <LazyMotion features={loadMotionFeatures} strict>
         <MotionConfig reducedMotion="user">
-          {route.page === "login" ? (
+          <TooltipProvider delay={180}>
+            {route.page === "login" ? (
             <Suspense fallback={<PageFallback />}>
               <LoginPage />
             </Suspense>
@@ -94,7 +97,8 @@ export default function App() {
             <AppShell>
               <Home />
             </AppShell>
-          )}
+            )}
+          </TooltipProvider>
         </MotionConfig>
       </LazyMotion>
     </QueryClientProvider>

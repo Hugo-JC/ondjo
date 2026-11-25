@@ -9,7 +9,11 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { AMENITY_OPTIONS } from "../data/amenities";
-import { cn } from "../utils/cn";
+import { cn } from "@/lib/utils";
+import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export type SearchOrigin =
   | "todos"
@@ -23,6 +27,8 @@ export interface OriginOption {
   label: string;
   shortLabel: string;
   icon: LucideIcon;
+  colorClass: string;
+  bgSoftClass: string;
 }
 
 export const ORIGIN_OPTIONS: OriginOption[] = [
@@ -31,24 +37,32 @@ export const ORIGIN_OPTIONS: OriginOption[] = [
     label: "Todos os anúncios",
     shortLabel: "Todos",
     icon: Sparkles,
+    colorClass: "text-ondjo-blue",
+    bgSoftClass: "bg-ondjo-blue-50",
   },
   {
     id: "verificados",
     label: "Verificados ONDJO",
     shortLabel: "Verificados",
     icon: ShieldCheck,
+    colorClass: "text-emerald-600",
+    bgSoftClass: "bg-emerald-50",
   },
   {
     id: "proprietario",
     label: "Direto Proprietário",
     shortLabel: "Proprietário",
     icon: UserCheck,
+    colorClass: "text-sky-600",
+    bgSoftClass: "bg-sky-50",
   },
   {
     id: "agentes",
     label: "Agências & Corretores",
     shortLabel: "Agências",
     icon: Building2,
+    colorClass: "text-indigo-600",
+    bgSoftClass: "bg-indigo-50",
   },
 ];
 
@@ -98,11 +112,6 @@ export function PriceDualRangeSlider({
     ? Math.max(0, Math.min(Number(maxPrice), ceiling))
     : ceiling;
 
-  const [activeThumb, setActiveThumb] = useState<"min" | "max">("max");
-
-  const minPercent = Math.min(100, Math.max(0, (minVal / ceiling) * 100));
-  const maxPercent = Math.min(100, Math.max(0, (maxVal / ceiling) * 100));
-
   const presets = isRental
     ? [
         { label: "Até 300 mil", min: "", max: "300000" },
@@ -116,18 +125,6 @@ export function PriceDualRangeSlider({
         { label: "80 – 150 M", min: "80000000", max: "150000000" },
         { label: "150 M+", min: "150000000", max: "" },
       ];
-
-  const handleMinChange = (val: number) => {
-    setActiveThumb("min");
-    const clamped = Math.min(val, Math.max(0, maxVal - step));
-    onChangeMin(clamped <= 0 ? "" : String(clamped));
-  };
-
-  const handleMaxChange = (val: number) => {
-    setActiveThumb("max");
-    const clamped = Math.max(val, minVal + step);
-    onChangeMax(clamped >= ceiling ? "" : String(clamped));
-  };
 
   const hasFilter = Boolean(minPrice || maxPrice);
 
@@ -157,65 +154,36 @@ export function PriceDualRangeSlider({
         </div>
 
         {hasFilter && (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="xs"
             onClick={() => {
               onChangeMin("");
               onChangeMax("");
             }}
-            className="focus-ring shrink-0 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-ondjo-blue hover:bg-ondjo-blue-50 transition-colors cursor-pointer"
+            className="text-ondjo-blue hover:bg-ondjo-blue-50 hover:text-ondjo-blue"
           >
             Limpar
-          </button>
+          </Button>
         )}
       </div>
 
-      {/* Slider duplo respirável */}
+      {/* Slider duplo shadcn/ui (Base UI) */}
       <div className="px-1 py-1">
-        <div className="relative flex h-7 w-full items-center">
-          <div className="absolute h-1.5 w-full rounded-full bg-slate-200/85" />
-          <div
-            className="absolute h-1.5 rounded-full bg-ondjo-blue transition-[left,width] duration-75"
-            style={{
-              left: `${minPercent}%`,
-              width: `${Math.max(0, maxPercent - minPercent)}%`,
-            }}
-          />
-
-          <input
-            type="range"
-            min={0}
-            max={ceiling}
-            step={step}
-            value={minVal}
-            onMouseDown={() => setActiveThumb("min")}
-            onTouchStart={() => setActiveThumb("min")}
-            onChange={(e) => handleMinChange(Number(e.target.value))}
-            aria-label="Preço mínimo em Kwanzas"
-            className={cn(
-              "focus-ring absolute inset-0 h-full w-full appearance-none bg-transparent pointer-events-none cursor-pointer",
-              activeThumb === "min" ? "z-30" : "z-20",
-              "[&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:size-5.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-ondjo-blue [&::-webkit-slider-thumb]:shadow-[0_2px_8px_rgba(16,42,67,0.18)] [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:active:scale-115 [&::-webkit-slider-thumb]:transition-transform [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:size-5.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-ondjo-blue [&::-moz-range-thumb]:shadow-[0_2px_8px_rgba(16,42,67,0.18)] [&::-moz-range-thumb]:hover:scale-110 [&::-moz-range-thumb]:active:scale-115 [&::-moz-range-thumb]:transition-transform",
-            )}
-          />
-
-          <input
-            type="range"
-            min={0}
-            max={ceiling}
-            step={step}
-            value={maxVal}
-            onMouseDown={() => setActiveThumb("max")}
-            onTouchStart={() => setActiveThumb("max")}
-            onChange={(e) => handleMaxChange(Number(e.target.value))}
-            aria-label="Preço máximo em Kwanzas"
-            className={cn(
-              "focus-ring absolute inset-0 h-full w-full appearance-none bg-transparent pointer-events-none cursor-pointer",
-              activeThumb === "max" ? "z-30" : "z-20",
-              "[&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:size-5.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-ondjo-blue [&::-webkit-slider-thumb]:shadow-[0_2px_8px_rgba(16,42,67,0.18)] [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:active:scale-115 [&::-webkit-slider-thumb]:transition-transform [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:size-5.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-ondjo-blue [&::-moz-range-thumb]:shadow-[0_2px_8px_rgba(16,42,67,0.18)] [&::-moz-range-thumb]:hover:scale-110 [&::-moz-range-thumb]:active:scale-115 [&::-moz-range-thumb]:transition-transform",
-            )}
-          />
-        </div>
+        <Slider
+          value={[minVal, maxVal]}
+          min={0}
+          max={ceiling}
+          step={step}
+          minStepsBetweenValues={1}
+          onValueChange={(val) => {
+            if (!Array.isArray(val) || val.length < 2) return;
+            const [nextMin, nextMax] = val as number[];
+            onChangeMin(nextMin <= 0 ? "" : String(nextMin));
+            onChangeMax(nextMax >= ceiling ? "" : String(nextMax));
+          }}
+        />
       </div>
 
       {/* Campos manuais limpos com espaço e unidade Kz */}
@@ -225,13 +193,13 @@ export function PriceDualRangeSlider({
             Mínimo
           </span>
           <div className="relative flex items-center">
-            <input
+            <Input
               type="text"
               inputMode="numeric"
               placeholder="Sem mínimo"
               value={formatKzInputDisplay(minPrice)}
               onChange={(e) => onChangeMin(e.target.value.replace(/\D/g, ""))}
-              className="h-11 w-full rounded-xl border border-ondjo-border bg-white pl-3 pr-9 text-xs sm:text-sm font-semibold text-ondjo-navy tabular-nums outline-none transition-colors duration-150 placeholder:text-slate-400 focus:border-ondjo-blue focus:ring-3 focus:ring-ondjo-blue/12"
+              className="pl-3 pr-9 text-xs sm:text-sm font-semibold text-ondjo-navy tabular-nums"
             />
             <span
               aria-hidden="true"
@@ -247,13 +215,13 @@ export function PriceDualRangeSlider({
             Máximo
           </span>
           <div className="relative flex items-center">
-            <input
+            <Input
               type="text"
               inputMode="numeric"
               placeholder="Sem máximo"
               value={formatKzInputDisplay(maxPrice)}
               onChange={(e) => onChangeMax(e.target.value.replace(/\D/g, ""))}
-              className="h-11 w-full rounded-xl border border-ondjo-border bg-white pl-3 pr-9 text-xs sm:text-sm font-semibold text-ondjo-navy tabular-nums outline-none transition-colors duration-150 placeholder:text-slate-400 focus:border-ondjo-blue focus:ring-3 focus:ring-ondjo-blue/12"
+              className="pl-3 pr-9 text-xs sm:text-sm font-semibold text-ondjo-navy tabular-nums"
             />
             <span
               aria-hidden="true"
@@ -265,7 +233,7 @@ export function PriceDualRangeSlider({
         </label>
       </div>
 
-      {/* 4 Atalhos limpos em grelha respirável */}
+      {/* 4 Atalhos limpos com variação de bordas */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-0.5">
         {presets.map((preset) => {
           const active = isPresetActive(preset.min, preset.max);
@@ -284,10 +252,10 @@ export function PriceDualRangeSlider({
                 }
               }}
               className={cn(
-                "focus-ring min-h-9.5 rounded-xl border px-2.5 py-1.5 text-xs font-semibold tabular-nums transition-colors duration-150 cursor-pointer whitespace-nowrap",
+                "focus-ring min-h-9.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold tabular-nums cursor-pointer whitespace-nowrap",
                 active
-                  ? "border-ondjo-blue bg-ondjo-blue text-white shadow-2xs"
-                  : "border-ondjo-border/90 bg-slate-50/70 text-ondjo-ink hover:bg-slate-100 hover:border-slate-300",
+                  ? "ondjo-border-selected bg-ondjo-blue text-white shadow-2xs"
+                  : "ondjo-border-interactive bg-slate-50/70 text-ondjo-ink hover:bg-slate-100",
               )}
             >
               {preset.label}
@@ -311,8 +279,9 @@ export function OriginSelector({
   const current = (value || "todos") as SearchOrigin;
 
   return (
-    <div
-      role="radiogroup"
+    <RadioGroup
+      value={current}
+      onValueChange={(val) => onChange(String(val) as SearchOrigin)}
       aria-label="Origem do anúncio"
       className="grid grid-cols-2 gap-2"
     >
@@ -321,33 +290,31 @@ export function OriginSelector({
         const Icon = opt.icon;
 
         return (
-          <button
+          <label
             key={opt.id}
-            type="button"
-            role="radio"
-            aria-checked={isSelected}
-            onClick={() => onChange(opt.id)}
             className={cn(
-              "focus-ring flex min-h-11 items-center gap-2.5 rounded-xl border px-3 py-2 text-left text-xs font-semibold transition-colors duration-150 cursor-pointer",
+              "flex min-h-11 items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-semibold cursor-pointer select-none has-focus-visible:ring-3 has-focus-visible:ring-ondjo-blue/25 has-focus-visible:border-ondjo-blue",
               isSelected
-                ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold ring-1 ring-ondjo-blue/20"
-                : "border-ondjo-border bg-white text-ondjo-ink hover:border-slate-300 hover:bg-slate-50/80",
+                ? "ondjo-border-selected bg-ondjo-blue-50/75 text-ondjo-navy font-bold"
+                : "ondjo-border-interactive bg-white text-ondjo-ink hover:bg-slate-50/80",
             )}
           >
-            <Icon
-              size={16}
-              strokeWidth={isSelected ? 2.3 : 1.9}
-              className={cn(
-                "shrink-0",
-                isSelected ? "text-ondjo-blue" : "text-slate-400",
-              )}
+            <RadioGroupItem value={opt.id} className="sr-only" />
+            <span
               aria-hidden="true"
-            />
+              className={cn(
+                "grid size-6.5 shrink-0 place-items-center rounded-lg",
+                opt.bgSoftClass,
+                opt.colorClass,
+              )}
+            >
+              <Icon size={14} strokeWidth={isSelected ? 2.4 : 2} />
+            </span>
             <span className="truncate">{opt.label}</span>
-          </button>
+          </label>
         );
       })}
-    </div>
+    </RadioGroup>
   );
 }
 
@@ -387,23 +354,22 @@ export function AmenitiesSelector({
               onClick={() => onToggle(item.id)}
               aria-pressed={isSelected}
               className={cn(
-                "focus-ring group flex min-h-10.5 items-center gap-2 rounded-xl border px-3 py-2 text-left text-xs font-semibold transition-colors duration-150 cursor-pointer select-none",
+                "focus-ring group flex min-h-11 items-center gap-2 rounded-xl px-2.5 py-2 text-left text-xs font-semibold cursor-pointer select-none",
                 isSelected
-                  ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-navy font-bold ring-1 ring-ondjo-blue/20"
-                  : "border-ondjo-border bg-white text-ondjo-ink hover:border-slate-300 hover:bg-slate-50/80",
+                  ? "ondjo-border-selected bg-ondjo-blue-50/70 text-ondjo-navy font-bold"
+                  : "ondjo-border-interactive bg-white text-ondjo-ink hover:bg-slate-50/80",
               )}
             >
-              <Icon
-                size={15}
-                strokeWidth={isSelected ? 2.3 : 1.9}
-                className={cn(
-                  "shrink-0 transition-colors",
-                  isSelected
-                    ? "text-ondjo-blue"
-                    : "text-slate-400 group-hover:text-ondjo-ink",
-                )}
+              <span
                 aria-hidden="true"
-              />
+                className={cn(
+                  "grid size-6.5 shrink-0 place-items-center rounded-lg transition-transform duration-150 group-hover:scale-105",
+                  item.bgSoftClass,
+                  item.colorClass,
+                )}
+              >
+                <Icon size={14} strokeWidth={isSelected ? 2.4 : 2.1} />
+              </span>
               <span className="truncate flex-1">
                 {item.shortLabel || item.label}
               </span>
@@ -421,10 +387,12 @@ export function AmenitiesSelector({
       </div>
 
       {remainingCount > 0 && (
-        <button
+        <Button
           type="button"
+          variant="link"
+          size="xs"
           onClick={() => setExpanded((prev) => !prev)}
-          className="focus-ring inline-flex items-center gap-1 rounded-lg px-1 py-1 text-xs font-semibold text-ondjo-blue hover:underline cursor-pointer"
+          className="px-1 text-ondjo-blue"
         >
           <span>
             {expanded
@@ -439,7 +407,7 @@ export function AmenitiesSelector({
             )}
             aria-hidden="true"
           />
-        </button>
+        </Button>
       )}
     </div>
   );

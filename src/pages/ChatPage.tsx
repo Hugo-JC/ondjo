@@ -29,6 +29,22 @@ import {
 } from "lucide-react";
 import { properties } from "../data/properties";
 import type { Property } from "../types";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  Badge,
+  Separator,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "../components/ui";
 
 export type MessageStatus = "pending" | "sent" | "delivered" | "read";
 export type PresenceState = "online" | "away" | "offline";
@@ -281,7 +297,19 @@ export function ChatPage() {
 
   const [confirmResetOpen, setConfirmResetOpen] = useState(false);
   const [statusFeedback, setStatusFeedback] = useState<string | null>(null);
+  const [isDesktop, setIsDesktop] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia("(min-width: 1024px)").matches : true,
+  );
   const timeoutsRef = useRef<number[]>([]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const update = () => setIsDesktop(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   const scheduleTimeout = useCallback((fn: () => void, ms: number) => {
     const id = window.setTimeout(() => {
@@ -911,7 +939,7 @@ export function ChatPage() {
       case "pending":
         return (
           <span title="A enviar...">
-            <Clock size={12} className="opacity-70 animate-pulse" />
+            <Clock size={12} className="opacity-70" />
           </span>
         );
       case "sent":
@@ -1074,7 +1102,7 @@ export function ChatPage() {
       </AnimatePresence>
 
       {/* Janela principal de chat — altura fixa; scroll só nas listas de conversas e mensagens */}
-      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col overflow-hidden rounded-2xl border border-ondjo-border bg-ondjo-surface shadow-xs">
+      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col overflow-hidden rounded-2xl ondjo-border-surface bg-ondjo-surface shadow-xs">
         <header className="shrink-0 border-b border-ondjo-border/80 bg-ondjo-surface px-4 py-3 sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
@@ -1706,7 +1734,7 @@ export function ChatPage() {
               aria-label="Ficha do imóvel em negociação"
               className="hidden lg:block border-l border-ondjo-border/80 bg-ondjo-bg/40 p-4 lg:col-span-3 xl:col-span-3 overflow-y-auto scrollbar-subtle"
             >
-              <div className="rounded-2xl border border-ondjo-border bg-ondjo-surface p-4 shadow-xs">
+              <div className="ondjo-border-surface rounded-2xl bg-ondjo-surface p-4 shadow-xs">
                 <div className="flex items-center justify-between pb-3 border-b border-ondjo-border/60">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-ondjo-navy">
                     Imóvel em negociação
@@ -1714,7 +1742,7 @@ export function ChatPage() {
                   <button
                     type="button"
                     onClick={() => setPropertyDrawerOpen(false)}
-                    className="focus-ring text-ondjo-muted hover:text-ondjo-ink p-1 rounded-lg"
+                    className="focus-ring text-ondjo-muted hover:text-ondjo-ink p-1 rounded-lg cursor-pointer"
                     aria-label="Fechar painel do imóvel"
                   >
                     <X size={15} />
@@ -1722,7 +1750,7 @@ export function ChatPage() {
                 </div>
 
                 {/* Imagem */}
-                <div className="mt-3 overflow-hidden rounded-xl ring-1 ring-ondjo-border">
+                <div className="ondjo-border-hairline mt-3 overflow-hidden rounded-xl">
                   <img
                     src={activeProperty.images[0]}
                     alt={activeProperty.title}
@@ -1746,7 +1774,7 @@ export function ChatPage() {
                 </div>
 
                 {/* Especificações */}
-                <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl bg-ondjo-bg p-3 text-xs">
+                <div className="ondjo-border-hairline mt-4 grid grid-cols-2 gap-2 rounded-xl bg-ondjo-bg p-3 text-xs">
                   <div>
                     <span className="text-ondjo-muted block text-[10px] uppercase font-bold">Tipo</span>
                     <span className="font-bold text-ondjo-navy">{activeProperty.type}</span>
@@ -1772,12 +1800,9 @@ export function ChatPage() {
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {activeProperty.features.map((feat) => (
-                      <span
-                        key={feat}
-                        className="rounded-md border border-ondjo-border/80 bg-ondjo-bg px-2 py-0.5 text-[11px] font-semibold text-ondjo-ink"
-                      >
+                      <Badge key={feat} variant="outline" className="ondjo-border-hairline bg-ondjo-bg text-[11px]">
                         {feat}
-                      </span>
+                      </Badge>
                     ))}
                   </div>
                 </div>
@@ -1798,38 +1823,33 @@ export function ChatPage() {
         </div>
       </div>
 
-      {/* Modal / Bottom Sheet do Imóvel para Telemóveis (Mobile) */}
-      <AnimatePresence>
-        {activeProperty && propertyDrawerOpen && (
-          <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 lg:hidden">
-            <m.div
-              initial={{ y: 32, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 24, opacity: 0 }}
-              transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-              className="max-h-[85dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-ondjo-surface p-5 shadow-2xl"
-            >
-              <div className="flex items-center justify-between pb-3 border-b border-ondjo-border">
+      {/* Bottom Sheet do Imóvel para Telemóveis (shadcn Sheet) */}
+      <Sheet
+        open={Boolean(activeProperty && propertyDrawerOpen && !isDesktop)}
+        onOpenChange={setPropertyDrawerOpen}
+      >
+        <SheetContent
+          side="bottom"
+          className="max-h-[85dvh] rounded-t-3xl p-0 pb-safe overflow-hidden lg:hidden"
+        >
+          {activeProperty && (
+            <>
+              <SheetHeader className="px-5 pt-5 pb-3 pr-14">
                 <div className="flex items-center gap-2">
                   <Building2 size={18} className="text-ondjo-blue" />
-                  <h3 className="text-sm font-bold text-ondjo-navy">
+                  <SheetTitle className="text-sm font-bold text-ondjo-navy">
                     Imóvel em negociação
-                  </h3>
+                  </SheetTitle>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setPropertyDrawerOpen(false)}
-                  className="focus-ring rounded-xl border border-ondjo-border p-2 text-ondjo-muted hover:bg-ondjo-bg hover:text-ondjo-ink"
-                >
-                  <X size={16} />
-                </button>
-              </div>
+              </SheetHeader>
 
-              <div className="mt-4">
+              <Separator className="bg-ondjo-border-hairline" />
+
+              <div className="overflow-y-auto p-5">
                 <img
                   src={activeProperty.images[0]}
                   alt={activeProperty.title}
-                  className="aspect-video w-full rounded-2xl object-cover ring-1 ring-ondjo-border"
+                  className="ondjo-border-hairline aspect-video w-full rounded-2xl object-cover"
                 />
 
                 <div className="mt-3">
@@ -1844,7 +1864,7 @@ export function ChatPage() {
                   </p>
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl bg-ondjo-bg p-3 text-xs">
+                <div className="ondjo-border-hairline mt-4 grid grid-cols-2 gap-2 rounded-xl bg-ondjo-bg p-3 text-xs">
                   <div>
                     <span className="text-ondjo-muted block text-[10px] uppercase font-bold">Tipo</span>
                     <span className="font-bold text-ondjo-navy">{activeProperty.type}</span>
@@ -1873,65 +1893,33 @@ export function ChatPage() {
                   </a>
                 </div>
               </div>
-            </m.div>
-          </div>
-        )}
-      </AnimatePresence>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
 
-      {/* Diálogo in-app de confirmação para restaurar conversas demo */}
-      <AnimatePresence>
-        {confirmResetOpen && (
-          <div
-            role="alertdialog"
-            aria-modal="true"
-            aria-label="Restaurar conversas de demonstração"
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          >
-            <m.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.12 }}
-              onClick={() => setConfirmResetOpen(false)}
-              className="fixed inset-0 bg-ondjo-navy/50"
-              aria-hidden="true"
-            />
-            <m.div
-              initial={{ opacity: 0, scale: 0.96, y: 8 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 8 }}
-              transition={{ duration: 0.14, ease: "easeOut" }}
-              className="relative z-10 w-full max-w-md rounded-2xl border border-ondjo-border bg-white p-5 sm:p-6 shadow-2xl"
-            >
-              <div className="flex items-center gap-2.5 text-ondjo-navy">
-                <RotateCcw size={18} className="text-ondjo-blue" aria-hidden="true" />
-                <h2 className="text-base font-black">
-                  Restaurar conversas demo?
-                </h2>
-              </div>
-              <p className="mt-2 text-xs leading-5 text-ondjo-muted">
-                As mensagens enviadas nesta sessão serão substituídas pelas conversas de demonstração padrão do ONDJO.
-              </p>
-              <div className="mt-5 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setConfirmResetOpen(false)}
-                  className="focus-ring rounded-xl border border-ondjo-border px-4 py-2 text-xs font-bold text-ondjo-ink hover:bg-ondjo-bg cursor-pointer"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  onClick={confirmResetConversations}
-                  className="focus-ring rounded-xl bg-ondjo-blue px-4 py-2 text-xs font-bold text-white hover:bg-ondjo-blue-dark cursor-pointer"
-                >
-                  Restaurar
-                </button>
-              </div>
-            </m.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {/* Diálogo de confirmação para restaurar conversas demo (shadcn AlertDialog) */}
+      <AlertDialog open={confirmResetOpen} onOpenChange={setConfirmResetOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center gap-2.5 text-ondjo-navy">
+              <RotateCcw size={18} className="text-ondjo-blue" aria-hidden="true" />
+              <AlertDialogTitle className="text-base font-black text-ondjo-navy">
+                Restaurar conversas demo?
+              </AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-xs leading-5 text-ondjo-muted">
+              As mensagens enviadas nesta sessão serão substituídas pelas conversas de demonstração padrão do ONDJO.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mx-0 mb-0 rounded-none border-t border-ondjo-border-hairline bg-transparent px-0 pt-4 pb-0">
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction variant="primary" onClick={confirmResetConversations}>
+              Restaurar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

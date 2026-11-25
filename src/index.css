@@ -1,20 +1,34 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
 
 @theme {
   /* Identidade */
   --color-ondjo-navy: #102a43; /* logótipo, hero, superfícies escuras */
   --color-ondjo-blue: #174ea6; /* ÚNICA cor de ação: botões, links, seleção, foco */
-  --color-ondjo-blue-dark: #113e85; /* hover da ação (derivada, não vem da paleta) */
+  --color-ondjo-blue-dark: #113e85; /* hover da ação */
   --color-ondjo-blue-soft: #dce7f5; /* seleção e fundos azuis */
   --color-ondjo-blue-50: #eef4fd; /* hover subtil, fundos de secção */
   --color-ondjo-blue-400: #5b8fe0; /* links e ícones sobre navy */
 
-  /* Raios de curvatura (escala única ONDJO / Airbnb / Houter) */
-  --radius-ondjo-card: 1.08rem; /*30px: cards*/ 
-  --radius-ondjo-sm: 0.75rem; /* 12px: inputs, chips */
-  --radius-ondjo-md: 1rem; /* 16px: cartões */
-  --radius-ondjo-lg: 1.5rem; /* 24px: hero, painéis, modais */
+  /* Escala consistente de raios de curvatura */
+  --radius-ondjo-xs: 0.5rem; /* 8px: micro badges e botões compactos */
+  --radius-ondjo-sm: 0.75rem; /* 12px: inputs, chips, botões de filtro */
+  --radius-ondjo-md: 1rem; /* 16px: popovers, painéis internos */
+  --radius-ondjo-card: 1.08rem; /* ~17px: cards de imóvel */
+  --radius-ondjo-lg: 1.5rem; /* 24px: secções principais, modais */
+  --radius-ondjo-xl: 1.75rem; /* 28px: bottom sheets mobile */
   --radius-ondjo-full: 9999px; /* pílulas */
+
+  /* Sistema de variação de bordas ONDJO */
+  --color-ondjo-border-hairline: rgb(16 42 67 / 0.07);
+  --color-ondjo-border: #dde5ee;
+  --color-ondjo-border-strong: #c4d1e0;
+  --color-ondjo-border-active: #174ea6;
+  --color-ondjo-border-accent: #bfd3f2;
 
   /* Sombras suaves e elegantes */
   --shadow-ondjo-card:
@@ -24,7 +38,7 @@
   --shadow-ondjo-popover: 0 8px 32px rgb(16 42 67 / 0.16);
   --shadow-ondjo-pill: 0 2px 8px rgb(16 42 67 / 0.08);
 
-  /* Superfícies escuras: preparadas para painéis e um futuro modo escuro. */
+  /* Superfícies escuras */
   --color-ondjo-navy-deep: #071a33;
   --color-ondjo-dark-bg: #0b1626;
   --color-ondjo-dark-surface: #12243a;
@@ -37,12 +51,11 @@
 
   /* Verde = estado (verificado, sucesso), nunca ação */
   --color-ondjo-green: #176b52;
-  --color-ondjo-green-soft: #e8f4ef; /* Mint Mist: fundos de ícones e etiquetas */
+  --color-ondjo-green-soft: #e8f4ef;
 
   /* Neutros */
   --color-ondjo-ink: #243b53;
   --color-ondjo-muted: #526579;
-  --color-ondjo-border: #dde5ee; /* derivada, não vem da paleta */
   --color-ondjo-surface: #ffffff;
   --color-ondjo-bg: #f4f7fb;
 
@@ -58,10 +71,6 @@
   --color-ondjo-danger: #b42318;
   --color-ondjo-danger-soft: #fef3f2;
   --color-ondjo-danger-border: #fda29b;
-
-  --font-sans:
-    Roboto, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
 }
 
 :root {
@@ -75,6 +84,40 @@
   --sab: env(safe-area-inset-bottom, 0px);
   --sal: env(safe-area-inset-left, 0px);
   --sar: env(safe-area-inset-right, 0px);
+
+  /* Tokens semânticos alinhados ao shadcn/ui + paleta ONDJO */
+  --background: #f4f7fb;
+  --foreground: #102a43;
+  --card: #ffffff;
+  --card-foreground: #243b53;
+  --popover: #ffffff;
+  --popover-foreground: #243b53;
+  --primary: #174ea6;
+  --primary-foreground: #ffffff;
+  --secondary: #eef4fd;
+  --secondary-foreground: #102a43;
+  --muted: #eef3f8;
+  --muted-foreground: #526579;
+  --accent: #eef4fd;
+  --accent-foreground: #174ea6;
+  --destructive: #b42318;
+  --border: #dde5ee;
+  --input: #dde5ee;
+  --ring: #174ea6;
+  --chart-1: #174ea6;
+  --chart-2: #176b52;
+  --chart-3: #5b8fe0;
+  --chart-4: #102a43;
+  --chart-5: #526579;
+  --radius: 0.75rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #243b53;
+  --sidebar-primary: #174ea6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eef4fd;
+  --sidebar-accent-foreground: #174ea6;
+  --sidebar-border: #dde5ee;
+  --sidebar-ring: #174ea6;
 }
 
 *,
@@ -99,6 +142,7 @@ body {
   min-width: 320px;
   overflow-x: clip;
   background: var(--color-ondjo-bg);
+  color: var(--color-ondjo-ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -110,7 +154,6 @@ body {
   overflow-x: clip;
 }
 
-/* Evita que filhos de flex e grid quebrem a grelha por min-width intrínseca */
 .min-w-0 {
   min-width: 0;
 }
@@ -174,7 +217,6 @@ svg {
   display: none;
 }
 
-/* Suporte para Safe Area no mobile */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -264,8 +306,128 @@ svg {
   scrollbar-color: #cbd2dc transparent;
 }
 
+/* Sistema consistente de variação de bordas e inputs */
 @layer components {
   .filter-input {
-    @apply h-11 w-full rounded-xl border border-ondjo-border bg-white px-3 text-base sm:text-sm font-medium text-ondjo-ink outline-none transition-colors duration-150 placeholder:text-slate-500 focus:border-ondjo-blue focus:ring-4 focus:ring-blue-100;
+    @apply h-11 w-full rounded-xl border border-ondjo-border bg-white px-3 text-base sm:text-sm font-medium text-ondjo-ink outline-none transition-colors duration-150 placeholder:text-slate-400 hover:border-ondjo-border-strong focus:border-ondjo-blue focus:ring-3 focus:ring-ondjo-blue/12;
+  }
+
+  .ondjo-border-hairline {
+    border: 1px solid var(--color-ondjo-border-hairline);
+  }
+
+  .ondjo-border-surface {
+    border: 1px solid var(--color-ondjo-border);
+  }
+
+  .ondjo-border-interactive {
+    border: 1px solid var(--color-ondjo-border);
+    transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+  }
+
+  .ondjo-border-interactive:hover {
+    border-color: var(--color-ondjo-border-strong);
+  }
+
+  .ondjo-border-selected {
+    border: 1.5px solid var(--color-ondjo-border-active);
+    box-shadow: 0 0 0 3px rgb(23 78 166 / 0.1);
+  }
+
+  .ondjo-border-featured {
+    border: 1px solid var(--color-ondjo-border-accent);
+  }
+
+  .ondjo-border-dashed-soft {
+    border: 1px dashed var(--color-ondjo-border-strong);
+  }
+}
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: Roboto, 'Geist Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.67);
+  --radius-md: calc(var(--radius) * 0.85);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.33);
+  --radius-2xl: calc(var(--radius) * 1.67);
+  --radius-3xl: calc(var(--radius) * 2);
+  --radius-4xl: calc(var(--radius) * 2.33);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
   }
 }

@@ -62,7 +62,7 @@ export const PropertyCard = memo(function PropertyCard({
       aria-label={`${property.title}, ${property.neighborhood}, ${property.city}. Preço: ${formatKz(property.price, { perMonth: isArrendamento })}`}
       className="group relative flex min-w-0 w-full max-w-full cursor-pointer flex-col overflow-hidden rounded-2xl bg-transparent transition-transform duration-150 ease-out hover:-translate-y-0.5 focus-ring"
     >
-      <div className="relative overflow-hidden rounded-2xl bg-slate-100">
+      <div className="ondjo-border-hairline relative overflow-hidden rounded-2xl bg-slate-100">
         <PropertyImageCarousel
           propertyId={property.id}
           images={property.images}

@@ -1,5 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useState } from "react";
 import {
   CircleHelp,
   Heart,
@@ -16,6 +15,12 @@ import {
 import { Logo } from "./Logo";
 import { useFavorites } from "../hooks/useFavorites";
 import { useHashRoute } from "../hooks/useHashRoute";
+import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface SidebarProps {
   expanded?: boolean;
@@ -211,7 +216,7 @@ export default function Sidebar({
               onMouseEnter={() => setIsTopIconHovered(true)}
               onMouseLeave={() => setIsTopIconHovered(false)}
               aria-label="Expandir menu lateral"
-              className="focus-ring group relative flex size-12 items-center justify-center rounded-2xl bg-slate-50/80 hover:bg-ondjo-blue-soft/80 border border-slate-200/60 hover:border-ondjo-blue/30 transition-colors duration-150 cursor-pointer shadow-2xs"
+              className="focus-ring group relative flex size-12 items-center justify-center rounded-2xl bg-slate-50/80 hover:bg-ondjo-blue-soft/80 ondjo-border-interactive hover:border-ondjo-blue/30 cursor-pointer shadow-2xs"
             >
               {/* Marca ONDJO (Padrão) */}
               <div
@@ -275,21 +280,13 @@ export default function Sidebar({
             })}
           </div>
 
-          {/* Separador elegante */}
+          {/* Separador shadcn */}
           <div
             className={
-              sidebarExpanded
-                ? "my-3 px-2"
-                : "my-2.5 flex justify-center"
+              sidebarExpanded ? "my-3 px-2" : "my-2.5 flex justify-center px-3"
             }
           >
-            <div
-              className={
-                sidebarExpanded
-                  ? "h-px w-full bg-ondjo-border/70"
-                  : "h-px w-10 bg-ondjo-border/80"
-              }
-            />
+            <Separator className="bg-ondjo-border/80" />
           </div>
 
           {/* Itens Secundários (Publicar Imóvel, Ajuda) */}
@@ -308,7 +305,7 @@ export default function Sidebar({
           {/* Card de Anúncio para Proprietários no modo expandido */}
           {sidebarExpanded && (
             <div className="mt-auto pt-4 px-1">
-              <div className="rounded-2xl border border-ondjo-blue-soft bg-ondjo-blue-50/60 p-3.5">
+              <div className="rounded-2xl ondjo-border-featured bg-ondjo-blue-50/60 p-3.5">
                 <p className="text-xs font-bold text-ondjo-navy">
                   É proprietário ou corretor?
                 </p>
@@ -389,158 +386,76 @@ function SidebarButton({
   onNavigate,
 }: SidebarButtonProps) {
   const Icon = item.icon;
-  const [isHovered, setIsHovered] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
-  const [isDismissed, setIsDismissed] = useState(false);
-  const anchorRef = useRef<HTMLAnchorElement>(null);
-  const tooltipId = useId();
-  const [coords, setCoords] = useState<{ left: number; top: number } | null>(
-    null,
-  );
 
-  const showTooltip = !expanded && !isDismissed && (isHovered || isFocused);
+  const anchorElement = (
+    <a
+      href={item.href}
+      onClick={onNavigate}
+      aria-current={active ? "page" : undefined}
+      aria-label={!expanded ? item.label : undefined}
+      className={[
+        "group relative flex items-center rounded-2xl select-none focus-ring transition-colors duration-150 cursor-pointer",
+        expanded
+          ? "min-h-12 w-full gap-3.5 px-3.5 text-sm font-semibold"
+          : "w-full max-w-14 h-12.5 justify-center mx-auto",
+        active
+          ? "bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
+          : item.highlight
+            ? "text-ondjo-ink hover:bg-ondjo-blue-50/70 hover:text-ondjo-blue"
+            : "text-ondjo-muted hover:text-ondjo-ink hover:bg-slate-100/90",
+      ].join(" ")}
+    >
+      {/* Ícone com Badge de Contagem */}
+      <span className="relative grid place-items-center shrink-0">
+        <Icon
+          size={21}
+          strokeWidth={active ? 2.5 : 2}
+          className={[
+            "transition-colors",
+            active
+              ? "text-ondjo-blue"
+              : item.highlight
+                ? "text-ondjo-blue group-hover:scale-105 transition-transform"
+                : "text-ondjo-muted group-hover:text-ondjo-ink",
+          ].join(" ")}
+          aria-hidden="true"
+        />
 
-  // Fecha o tooltip imediatamente ao mudar a rota
-  useEffect(() => {
-    const handleDismiss = () => {
-      setIsDismissed(true);
-      setIsHovered(false);
-      setIsFocused(false);
-      anchorRef.current?.blur();
-    };
-
-    window.addEventListener("hashchange", handleDismiss);
-    return () => {
-      window.removeEventListener("hashchange", handleDismiss);
-    };
-  }, []);
-
-  // Calcula coordenadas do tooltip flutuante
-  useEffect(() => {
-    if (!showTooltip || !anchorRef.current) {
-      setCoords(null);
-      return;
-    }
-
-    const updateCoords = () => {
-      const rect = anchorRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      setCoords({
-        left: rect.right + 10,
-        top: rect.top + rect.height / 2,
-      });
-    };
-
-    updateCoords();
-    window.addEventListener("scroll", updateCoords, true);
-    window.addEventListener("resize", updateCoords);
-    return () => {
-      window.removeEventListener("scroll", updateCoords, true);
-      window.removeEventListener("resize", updateCoords);
-    };
-  }, [showTooltip]);
-
-  const handleClick = () => {
-    setIsDismissed(true);
-    setIsHovered(false);
-    setIsFocused(false);
-    anchorRef.current?.blur();
-    onNavigate();
-  };
-
-  return (
-    <>
-      <a
-        ref={anchorRef}
-        href={item.href}
-        onClick={handleClick}
-        onMouseEnter={() => {
-          setIsDismissed(false);
-          setIsHovered(true);
-        }}
-        onMouseLeave={() => {
-          setIsHovered(false);
-          setIsDismissed(false);
-        }}
-        onFocus={() => {
-          setIsDismissed(false);
-          setIsFocused(true);
-        }}
-        onBlur={() => {
-          setIsFocused(false);
-        }}
-        aria-current={active ? "page" : undefined}
-        aria-label={!expanded ? item.label : undefined}
-        aria-describedby={showTooltip ? tooltipId : undefined}
-        className={[
-          "group relative flex items-center rounded-2xl select-none focus-ring transition-colors duration-150 cursor-pointer",
-          expanded
-            ? "min-h-12 w-full gap-3.5 px-3.5 text-sm font-semibold"
-            : "w-full max-w-14 h-12.5 justify-center mx-auto",
-          active
-            ? "bg-ondjo-blue-soft text-ondjo-blue font-bold shadow-2xs"
-            : item.highlight
-              ? "text-ondjo-ink hover:bg-ondjo-blue-50/70 hover:text-ondjo-blue"
-              : "text-ondjo-muted hover:text-ondjo-ink hover:bg-slate-100/90",
-        ].join(" ")}
-      >
-        {/* Ícone com Badge de Contagem */}
-        <span className="relative grid place-items-center shrink-0">
-          <Icon
-            size={21}
-            strokeWidth={active ? 2.5 : 2}
-            className={[
-              "transition-colors",
-              active
-                ? "text-ondjo-blue"
-                : item.highlight
-                  ? "text-ondjo-blue group-hover:scale-105 transition-transform"
-                  : "text-ondjo-muted group-hover:text-ondjo-ink",
-            ].join(" ")}
+        {/* Badge flutuante no modo compacto */}
+        {!expanded && badgeCount > 0 && (
+          <span
             aria-hidden="true"
-          />
+            className="absolute -top-1.5 -right-2 grid min-w-4 h-4 place-items-center rounded-full bg-ondjo-navy px-1 text-[9px] font-black text-white shadow-xs"
+          >
+            {badgeCount > 9 ? "9+" : badgeCount}
+          </span>
+        )}
+      </span>
 
-          {/* Badge flutuante no modo compacto */}
-          {!expanded && badgeCount > 0 && (
-            <span
-              aria-hidden="true"
-              className="absolute -top-1.5 -right-2 grid min-w-4 h-4 place-items-center rounded-full bg-ondjo-navy px-1 text-[9px] font-black text-white shadow-xs"
-            >
-              {badgeCount > 9 ? "9+" : badgeCount}
+      {/* Rótulo de texto no modo expandido */}
+      {expanded && (
+        <div className="flex flex-1 items-center justify-between min-w-0">
+          <span className="truncate">{item.label}</span>
+          {badgeCount > 0 && (
+            <span className="grid min-w-5 h-5 place-items-center rounded-full bg-ondjo-blue px-1.5 text-[10px] font-black text-white">
+              {badgeCount}
             </span>
           )}
-        </span>
+        </div>
+      )}
+    </a>
+  );
 
-        {/* Rótulo de texto no modo expandido */}
-        {expanded && (
-          <div className="flex flex-1 items-center justify-between min-w-0">
-            <span className="truncate">{item.label}</span>
-            {badgeCount > 0 && (
-              <span className="grid min-w-5 h-5 place-items-center rounded-full bg-ondjo-blue px-1.5 text-[10px] font-black text-white">
-                {badgeCount}
-              </span>
-            )}
-          </div>
-        )}
-      </a>
+  if (expanded) {
+    return anchorElement;
+  }
 
-      {/* Tooltip Limpo: Exibe APENAS o nome da opção e sem bordas pesadas */}
-      {showTooltip &&
-        coords &&
-        typeof document !== "undefined" &&
-        createPortal(
-          <div
-            id={tooltipId}
-            role="tooltip"
-            style={{ left: coords.left, top: coords.top }}
-            className="pointer-events-none fixed z-70 -translate-y-1/2 flex items-center ondjo-pop-in"
-          >
-            <div className="rounded-lg bg-ondjo-navy px-2.5 py-1 text-xs font-semibold text-white shadow-lg shadow-ondjo-navy/20 whitespace-nowrap select-none">
-              {item.label}
-            </div>
-          </div>,
-          document.body,
-        )}
-    </>
+  return (
+    <Tooltip>
+      <TooltipTrigger render={anchorElement} />
+      <TooltipContent side="right" sideOffset={10}>
+        {item.label}
+      </TooltipContent>
+    </Tooltip>
   );
 }

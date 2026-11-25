@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -17,9 +17,31 @@ import { m } from "framer-motion";
 import AuthInput from "../components/auth/AuthInput";
 import AuthLayout from "../components/auth/AuthLayout";
 import RoleCard from "../components/auth/RoleCard";
+import {
+  Button,
+  Checkbox,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui";
 
 type Role = "cliente" | "proprietario";
 type Step = 1 | 2 | 3 | 4;
+
+const CLIENT_GOALS = [
+  { value: "Quero arrendar", label: "Quero arrendar apartamento/casa" },
+  { value: "Quero comprar", label: "Quero comprar imóvel definitivo" },
+  { value: "Ainda não decidi", label: "Ainda estou a explorar opções" },
+] as const;
+
+const OWNER_GOALS = [
+  { value: "Arrendamento", label: "Apenas arrendamento" },
+  { value: "Venda", label: "Apenas venda" },
+  { value: "Venda e arrendamento", label: "Venda e arrendamento" },
+] as const;
 
 export default function RegisterPage() {
   const [step, setStep] = useState<Step>(1);
@@ -38,7 +60,19 @@ export default function RegisterPage() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  const termsId = useId();
   const progress = useMemo(() => `${step * 25}%`, [step]);
+
+  const goalOptions = role === "cliente" ? CLIENT_GOALS : OWNER_GOALS;
+  const selectedGoalLabel =
+    goalOptions.find((g) => g.value === goal)?.label ?? goalOptions[0].label;
+
+  function handleSelectRole(nextRole: Role) {
+    setRole(nextRole);
+    setGoal(
+      nextRole === "cliente" ? CLIENT_GOALS[0].value : OWNER_GOALS[0].value,
+    );
+  }
 
   // Medidor de força de senha
   const passwordStrength = useMemo(() => {
@@ -127,7 +161,7 @@ export default function RegisterPage() {
             </a>
             <a
               href="#/pesquisar"
-              className="focus-ring inline-flex min-h-11 items-center justify-center rounded-xl border border-ondjo-border bg-white px-5 text-sm font-bold text-ondjo-ink hover:bg-ondjo-bg transition-colors"
+              className="focus-ring inline-flex min-h-11 items-center justify-center rounded-xl ondjo-border-interactive bg-white px-5 text-sm font-bold text-ondjo-ink hover:bg-ondjo-bg transition-colors"
             >
               Pesquisar imóveis
             </a>
@@ -208,255 +242,256 @@ export default function RegisterPage() {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          if (validateStep(step)) {
+          if (validateStep(step) && termsAccepted) {
             setCompleted(true);
           }
         }}
       >
-          {step === 1 && (
-            <m.div
-              key="step-1"
-              initial={{ opacity: 0, x: 8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.14, ease: "easeOut" }}
-              className="grid gap-4 sm:grid-cols-2"
-            >
-              <RoleCard
-                title="Quero encontrar um imóvel"
-                description="Pesquisar, guardar favoritos, conversar e agendar visitas em Angola."
-                icon={<Home className="size-5" />}
-                selected={role === "cliente"}
-                onClick={() => setRole("cliente")}
-              />
-              <RoleCard
-                title="Quero anunciar um imóvel"
-                description="Publicar imóveis, gerir anúncios e acompanhar interessados com segurança."
-                icon={<Building2 className="size-5" />}
-                selected={role === "proprietario"}
-                onClick={() => setRole("proprietario")}
-              />
-            </m.div>
-          )}
+        {step === 1 && (
+          <m.div
+            key="step-1"
+            initial={{ opacity: 0, x: 8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.14, ease: "easeOut" }}
+            className="grid gap-4 sm:grid-cols-2"
+          >
+            <RoleCard
+              title="Quero encontrar um imóvel"
+              description="Pesquisar, guardar favoritos, conversar e agendar visitas em Angola."
+              icon={<Home className="size-5" />}
+              selected={role === "cliente"}
+              onClick={() => handleSelectRole("cliente")}
+            />
+            <RoleCard
+              title="Quero anunciar um imóvel"
+              description="Publicar imóveis, gerir anúncios e acompanhar interessados com segurança."
+              icon={<Building2 className="size-5" />}
+              selected={role === "proprietario"}
+              onClick={() => handleSelectRole("proprietario")}
+            />
+          </m.div>
+        )}
 
-          {step === 2 && (
-            <m.div
-              key="step-2"
-              initial={{ opacity: 0, x: 8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.14, ease: "easeOut" }}
-              className="space-y-4"
-            >
-              <div className="grid gap-4 sm:grid-cols-2">
-                <AuthInput
-                  id="register-first-name"
-                  label="Primeiro nome"
-                  placeholder="Ex: Hugo"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  autoComplete="given-name"
-                  required
-                  icon={<UserRound className="size-4" />}
-                />
-                <AuthInput
-                  id="register-last-name"
-                  label="Apelido"
-                  placeholder="Ex: Capolo"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  autoComplete="family-name"
-                  required
-                />
-              </div>
-
+        {step === 2 && (
+          <m.div
+            key="step-2"
+            initial={{ opacity: 0, x: 8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.14, ease: "easeOut" }}
+            className="space-y-4"
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
               <AuthInput
-                id="register-phone"
-                label="Telefone em Angola"
-                type="tel"
-                placeholder="+244 9xx xxx xxx"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                autoComplete="tel"
+                id="register-first-name"
+                label="Primeiro nome"
+                placeholder="Ex: Hugo"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                autoComplete="given-name"
                 required
-                icon={<Phone className="size-4" />}
-                hint="Será usado para contactos relacionados com os imóveis e verificação da conta."
+                icon={<UserRound className="size-4" />}
               />
+              <AuthInput
+                id="register-last-name"
+                label="Apelido"
+                placeholder="Ex: Capolo"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                autoComplete="family-name"
+                required
+              />
+            </div>
 
-              <div>
-                <label
-                  htmlFor="register-goal"
-                  className="mb-2 block text-sm font-semibold text-ondjo-ink"
-                >
-                  {role === "cliente" ? "O que procura principalmente?" : "O que pretende anunciar?"}
-                </label>
-                <select
+            <AuthInput
+              id="register-phone"
+              label="Telefone em Angola"
+              type="tel"
+              placeholder="+244 9xx xxx xxx"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              autoComplete="tel"
+              required
+              icon={<Phone className="size-4" />}
+              hint="Será usado para contactos relacionados com os imóveis e verificação da conta."
+            />
+
+            <div>
+              <label
+                htmlFor="register-goal"
+                className="mb-2 block text-sm font-semibold text-ondjo-ink"
+              >
+                {role === "cliente" ? "O que procura principalmente?" : "O que pretende anunciar?"}
+              </label>
+              <Select
+                value={goal}
+                onValueChange={(val) => setGoal(String(val ?? goalOptions[0].value))}
+              >
+                <SelectTrigger
                   id="register-goal"
-                  value={goal}
-                  onChange={(e) => setGoal(e.target.value)}
-                  className="focus-ring min-h-12 w-full rounded-xl border border-ondjo-border bg-white px-4 text-sm font-medium text-ondjo-ink outline-none transition-shadow"
+                  className="ondjo-border-interactive h-12 w-full rounded-xl bg-white px-4 text-sm font-medium text-ondjo-ink"
                 >
-                  {role === "cliente" ? (
-                    <>
-                      <option value="Quero arrendar">Quero arrendar apartamento/casa</option>
-                      <option value="Quero comprar">Quero comprar imóvel definitivo</option>
-                      <option value="Ainda não decidi">Ainda estou a explorar opções</option>
-                    </>
-                  ) : (
-                    <>
-                      <option value="Arrendamento">Apenas arrendamento</option>
-                      <option value="Venda">Apenas venda</option>
-                      <option value="Venda e arrendamento">Venda e arrendamento</option>
-                    </>
-                  )}
-                </select>
-              </div>
-            </m.div>
-          )}
+                  <SelectValue>{selectedGoalLabel}</SelectValue>
+                </SelectTrigger>
+                <SelectContent align="start">
+                  {goalOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </m.div>
+        )}
 
-          {step === 3 && (
-            <m.div
-              key="step-3"
-              initial={{ opacity: 0, x: 8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.14, ease: "easeOut" }}
-              className="space-y-4"
-            >
-              <AuthInput
-                id="register-email"
-                name="email"
-                type="email"
-                label="Email principal"
-                placeholder="exemplo@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-                required
-                icon={<Mail className="size-4" />}
-              />
+        {step === 3 && (
+          <m.div
+            key="step-3"
+            initial={{ opacity: 0, x: 8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.14, ease: "easeOut" }}
+            className="space-y-4"
+          >
+            <AuthInput
+              id="register-email"
+              name="email"
+              type="email"
+              label="Email principal"
+              placeholder="exemplo@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              required
+              icon={<Mail className="size-4" />}
+            />
 
-              <div>
-                <div className="mb-2 flex items-center justify-between">
-                  <label
-                    htmlFor="register-password"
-                    className="text-sm font-semibold text-ondjo-ink"
-                  >
-                    Palavra-passe
-                  </label>
-                  {password && (
-                    <span className="text-xs font-bold text-ondjo-muted">
-                      Força: <strong className={passwordStrength.level === 3 ? "text-ondjo-success" : passwordStrength.level === 2 ? "text-ondjo-warning" : "text-ondjo-danger"}>{passwordStrength.label}</strong>
-                    </span>
-                  )}
-                </div>
-
-                <div className="relative">
-                  <LockKeyhole className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-ondjo-muted" />
-                  <input
-                    id="register-password"
-                    type={showPassword ? "text" : "password"}
-                    autoComplete="new-password"
-                    required
-                    minLength={8}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Mínimo de 8 caracteres"
-                    className="focus-ring min-h-12 w-full rounded-xl border border-ondjo-border bg-white pl-10 pr-12 text-sm text-ondjo-ink outline-none placeholder:text-ondjo-muted/60"
-                  />
-                  <button
-                    type="button"
-                    aria-label={showPassword ? "Ocultar palavra-passe" : "Mostrar palavra-passe"}
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="focus-ring absolute right-2.5 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-ondjo-muted hover:bg-ondjo-bg"
-                  >
-                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                  </button>
-                </div>
-
-                {/* Barra de força visual */}
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <label
+                  htmlFor="register-password"
+                  className="text-sm font-semibold text-ondjo-ink"
+                >
+                  Palavra-passe
+                </label>
                 {password && (
-                  <div className="mt-2 flex gap-1.5">
-                    <div className={`h-1 flex-1 rounded-full ${passwordStrength.level >= 1 ? passwordStrength.color : "bg-ondjo-border"}`} />
-                    <div className={`h-1 flex-1 rounded-full ${passwordStrength.level >= 2 ? passwordStrength.color : "bg-ondjo-border"}`} />
-                    <div className={`h-1 flex-1 rounded-full ${passwordStrength.level >= 3 ? passwordStrength.color : "bg-ondjo-border"}`} />
-                  </div>
+                  <span className="text-xs font-bold text-ondjo-muted">
+                    Força: <strong className={passwordStrength.level === 3 ? "text-ondjo-success" : passwordStrength.level === 2 ? "text-ondjo-warning" : "text-ondjo-danger"}>{passwordStrength.label}</strong>
+                  </span>
                 )}
               </div>
 
-              <div>
-                <AuthInput
-                  id="register-password-confirm"
-                  type="password"
-                  label="Confirmar palavra-passe"
-                  value={passwordConfirm}
-                  onChange={(e) => setPasswordConfirm(e.target.value)}
+              <div className="relative">
+                <LockKeyhole className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-ondjo-muted" />
+                <Input
+                  id="register-password"
+                  type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
                   required
                   minLength={8}
-                  placeholder="Repita a palavra-passe anterior"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Mínimo de 8 caracteres"
+                  className="h-12 rounded-xl ondjo-border-interactive bg-white pl-10 pr-12 text-sm text-ondjo-ink placeholder:text-slate-400"
                 />
+                <button
+                  type="button"
+                  aria-label={showPassword ? "Ocultar palavra-passe" : "Mostrar palavra-passe"}
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="focus-ring absolute right-2.5 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-ondjo-muted hover:bg-ondjo-bg cursor-pointer"
+                >
+                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
               </div>
-            </m.div>
-          )}
 
-          {step === 4 && (
-            <m.div
-              key="step-4"
-              initial={{ opacity: 0, x: 8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.14, ease: "easeOut" }}
-              className="space-y-4"
-            >
-              {/* Resumo visual dos dados */}
-              <div className="rounded-2xl border border-ondjo-border bg-ondjo-bg/70 p-5 space-y-3">
-                <p className="text-xs font-bold uppercase tracking-wider text-ondjo-muted">
-                  Resumo do perfil a criar
-                </p>
+              {/* Barra de força visual */}
+              {password && (
+                <div className="mt-2 flex gap-1.5">
+                  <div className={`h-1 flex-1 rounded-full ${passwordStrength.level >= 1 ? passwordStrength.color : "bg-ondjo-border"}`} />
+                  <div className={`h-1 flex-1 rounded-full ${passwordStrength.level >= 2 ? passwordStrength.color : "bg-ondjo-border"}`} />
+                  <div className={`h-1 flex-1 rounded-full ${passwordStrength.level >= 3 ? passwordStrength.color : "bg-ondjo-border"}`} />
+                </div>
+              )}
+            </div>
 
-                <div className="grid grid-cols-2 gap-3 pt-1 text-sm">
-                  <div>
-                    <span className="block text-xs text-ondjo-muted">Perfil:</span>
-                    <strong className="text-ondjo-navy capitalize">{role}</strong>
-                  </div>
-                  <div>
-                    <span className="block text-xs text-ondjo-muted">Nome:</span>
-                    <strong className="text-ondjo-navy">{firstName} {lastName}</strong>
-                  </div>
-                  <div>
-                    <span className="block text-xs text-ondjo-muted">Telefone:</span>
-                    <strong className="text-ondjo-navy">{phone || "+244 ..."}</strong>
-                  </div>
-                  <div>
-                    <span className="block text-xs text-ondjo-muted">Email:</span>
-                    <strong className="text-ondjo-navy truncate block">{email || "exemplo@email.com"}</strong>
-                  </div>
+            <div>
+              <AuthInput
+                id="register-password-confirm"
+                type="password"
+                label="Confirmar palavra-passe"
+                value={passwordConfirm}
+                onChange={(e) => setPasswordConfirm(e.target.value)}
+                autoComplete="new-password"
+                required
+                minLength={8}
+                placeholder="Repita a palavra-passe anterior"
+              />
+            </div>
+          </m.div>
+        )}
+
+        {step === 4 && (
+          <m.div
+            key="step-4"
+            initial={{ opacity: 0, x: 8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.14, ease: "easeOut" }}
+            className="space-y-4"
+          >
+            {/* Resumo visual dos dados */}
+            <div className="ondjo-border-surface rounded-2xl bg-ondjo-bg/70 p-5 space-y-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-ondjo-muted">
+                Resumo do perfil a criar
+              </p>
+
+              <div className="grid grid-cols-2 gap-3 pt-1 text-sm">
+                <div>
+                  <span className="block text-xs text-ondjo-muted">Perfil:</span>
+                  <strong className="text-ondjo-navy capitalize">{role}</strong>
+                </div>
+                <div>
+                  <span className="block text-xs text-ondjo-muted">Nome:</span>
+                  <strong className="text-ondjo-navy">{firstName} {lastName}</strong>
+                </div>
+                <div>
+                  <span className="block text-xs text-ondjo-muted">Telefone:</span>
+                  <strong className="text-ondjo-navy">{phone || "+244 ..."}</strong>
+                </div>
+                <div>
+                  <span className="block text-xs text-ondjo-muted">Email:</span>
+                  <strong className="text-ondjo-navy truncate block">{email || "exemplo@email.com"}</strong>
                 </div>
               </div>
+            </div>
 
-              <label className="flex items-start gap-3 rounded-2xl border border-ondjo-border bg-white p-4 cursor-pointer hover:border-ondjo-blue-soft transition-colors">
-                <input
-                  type="checkbox"
-                  required
-                  checked={termsAccepted}
-                  onChange={(e) => setTermsAccepted(e.target.checked)}
-                  className="mt-1 size-4 rounded border-ondjo-border text-ondjo-blue focus:ring-ondjo-blue"
-                />
-                <span className="text-xs leading-relaxed text-ondjo-ink">
-                  Declaro que li e aceito os <strong>Termos de Utilização</strong> e a <strong>Política de Privacidade</strong> do ONDJO para navegação e publicação no mercado angolano.
-                </span>
-              </label>
-            </m.div>
-          )}
+            <label
+              htmlFor={termsId}
+              className="ondjo-border-interactive flex items-start gap-3 rounded-2xl bg-white p-4 cursor-pointer"
+            >
+              <Checkbox
+                id={termsId}
+                checked={termsAccepted}
+                onCheckedChange={(checked) => setTermsAccepted(Boolean(checked))}
+                className="mt-0.5"
+              />
+              <span className="text-xs leading-relaxed text-ondjo-ink">
+                Declaro que li e aceito os <strong>Termos de Utilização</strong> e a <strong>Política de Privacidade</strong> do ONDJO para navegação e publicação no mercado angolano.
+              </span>
+            </label>
+          </m.div>
+        )}
 
         {/* Botões de navegação dos passos */}
         <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
           {step > 1 ? (
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={previous}
-              className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-ondjo-border bg-white px-5 text-sm font-bold text-ondjo-ink hover:bg-ondjo-bg transition-colors"
+              leftIcon={<ArrowLeft className="size-4" />}
+              className="min-h-12 rounded-xl px-5 text-sm font-bold"
             >
-              <ArrowLeft className="size-4" />
               Voltar
-            </button>
+            </Button>
           ) : (
             <a
               href="#/login"
@@ -467,23 +502,25 @@ export default function RegisterPage() {
           )}
 
           {step < 4 ? (
-            <button
+            <Button
               type="button"
+              variant="primary"
               onClick={next}
-              className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-ondjo-blue px-6 text-sm font-bold text-white shadow-sm hover:bg-ondjo-blue-dark transition-colors"
+              rightIcon={<ArrowRight className="size-4" />}
+              className="min-h-12 rounded-xl px-6 text-sm font-bold shadow-sm"
             >
               Continuar
-              <ArrowRight className="size-4" />
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
               type="submit"
+              variant="primary"
               disabled={!termsAccepted}
-              className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-ondjo-blue px-6 text-sm font-bold text-white shadow-sm hover:bg-ondjo-blue-dark transition-colors disabled:opacity-50"
+              rightIcon={<Check className="size-4" />}
+              className="min-h-12 rounded-xl px-6 text-sm font-bold shadow-sm"
             >
               Criar conta
-              <Check className="size-4" />
-            </button>
+            </Button>
           )}
         </div>
       </form>

@@ -18,17 +18,53 @@ import {
   Building2,
   TrendingUp,
 } from "lucide-react";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { PropertyCard } from "../components/PropertyCard";
 import { properties } from "../data/properties";
 import { formatKz } from "../utils/format";
 import { useFavorites } from "../hooks/useFavorites";
-import { Button, Chip, EmptyState } from "../components/ui";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+  Badge,
+  Button,
+  Chip,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  EmptyState,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Separator,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "../components/ui";
 import { navigate } from "../hooks/useHashRoute";
 import type { Property } from "../types";
 
 type SortOption = "saved" | "price-low" | "price-high" | "area";
 type ViewMode = "grid" | "list";
+
+const SORT_LABELS: Record<SortOption, string> = {
+  saved: "Mais recentes",
+  "price-low": "Menor preço",
+  "price-high": "Maior preço",
+  area: "Maior área (m²)",
+};
 
 export function FavoritesPage() {
   const { favoriteIds, favoriteCount, clearFavorites } = useFavorites();
@@ -42,37 +78,6 @@ export function FavoritesPage() {
 
   const searchInputId = useId();
   const sortSelectId = useId();
-  const modalTitleId = useId();
-  const clearDialogTitleId = useId();
-
-  const compareTriggerRef = useRef<HTMLButtonElement | null>(null);
-  const clearTriggerRef = useRef<HTMLButtonElement | null>(null);
-
-  useEffect(() => {
-    if (!showComparisonModal && !confirmClearOpen) return;
-
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        if (showComparisonModal) {
-          setShowComparisonModal(false);
-          compareTriggerRef.current?.focus();
-        } else if (confirmClearOpen) {
-          setConfirmClearOpen(false);
-          clearTriggerRef.current?.focus();
-        }
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = prevOverflow;
-    };
-  }, [showComparisonModal, confirmClearOpen]);
 
   const allFavorites = useMemo(() => {
     const byId = new Map(properties.map((p) => [p.id, p]));
@@ -193,13 +198,15 @@ export function FavoritesPage() {
       </nav>
 
       {/* Cabeçalho da página de Favoritos */}
-      <header className="mt-3 rounded-2xl border border-ondjo-border bg-white p-5 sm:rounded-3xl sm:p-7 shadow-xs">
+      <header className="mt-3 rounded-2xl ondjo-border-surface bg-white p-5 sm:rounded-3xl sm:p-7 shadow-xs">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-ondjo-blue-soft/70 px-3 py-1 text-xs font-semibold text-ondjo-blue">
-              <Sparkles size={13} aria-hidden="true" />
-              <span>A sua seleção pessoal</span>
-            </div>
+            <Badge
+              variant="secondary"
+              icon={<Sparkles size={13} aria-hidden="true" />}
+            >
+              A sua seleção pessoal
+            </Badge>
             <h1 className="mt-3 text-2xl font-black tracking-tight text-ondjo-navy sm:text-3xl">
               Imóveis guardados
             </h1>
@@ -210,12 +217,12 @@ export function FavoritesPage() {
             {/* Métricas rápidas da seleção */}
             {stats && favoriteCount > 1 && (
               <div className="mt-4 flex flex-wrap items-center gap-3 text-xs">
-                <div className="flex items-center gap-2 rounded-xl bg-ondjo-bg px-3 py-1.5 border border-ondjo-border/60">
+                <div className="ondjo-border-hairline flex items-center gap-2 rounded-xl bg-ondjo-bg px-3 py-1.5">
                   <TrendingUp size={14} className="text-ondjo-green" aria-hidden="true" />
                   <span className="text-ondjo-muted">Preço médio:</span>
                   <strong className="font-bold text-ondjo-navy">{formatKz(stats.avgPrice)}</strong>
                 </div>
-                <div className="flex items-center gap-2 rounded-xl bg-ondjo-bg px-3 py-1.5 border border-ondjo-border/60">
+                <div className="ondjo-border-hairline flex items-center gap-2 rounded-xl bg-ondjo-bg px-3 py-1.5">
                   <Building2 size={14} className="text-ondjo-blue" aria-hidden="true" />
                   <span className="text-ondjo-muted">Área média:</span>
                   <strong className="font-bold text-ondjo-navy">{stats.avgArea} m²</strong>
@@ -227,7 +234,7 @@ export function FavoritesPage() {
           {/* Resumo e Ações Rápidas */}
           {favoriteCount > 0 && (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="flex items-center gap-3.5 rounded-2xl border border-ondjo-border bg-ondjo-bg/60 p-3 sm:px-4 sm:py-3">
+              <div className="ondjo-border-surface flex items-center gap-3.5 rounded-2xl bg-ondjo-bg/60 p-3 sm:px-4 sm:py-3">
                 <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-ondjo-blue text-white shadow-xs" aria-hidden="true">
                   <Heart size={20} fill="currentColor" />
                 </span>
@@ -253,17 +260,18 @@ export function FavoritesPage() {
                 >
                   Exportar CSV
                 </Button>
-                <button
-                  ref={clearTriggerRef}
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
+                  leftIcon={<Trash2 size={13} aria-hidden="true" />}
                   onClick={() => setConfirmClearOpen(true)}
-                  className="focus-ring inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full px-3 text-xs font-semibold text-ondjo-danger hover:bg-ondjo-danger-soft transition cursor-pointer"
+                  className="text-ondjo-danger hover:bg-ondjo-danger-soft hover:text-ondjo-danger"
                   aria-haspopup="dialog"
                   aria-label="Limpar todos os imóveis guardados"
                 >
-                  <Trash2 size={13} aria-hidden="true" />
-                  <span>Limpar lista</span>
-                </button>
+                  Limpar lista
+                </Button>
               </div>
             </div>
           )}
@@ -275,10 +283,10 @@ export function FavoritesPage() {
           {/* Barra de Filtros e Pesquisa */}
           <section
             aria-label="Filtros e ordenação dos imóveis guardados"
-            className="mt-4 rounded-2xl border border-ondjo-border bg-white p-3.5 sm:mt-6 sm:p-4 shadow-xs"
+            className="mt-4 rounded-2xl ondjo-border-surface bg-white p-3.5 sm:mt-6 sm:p-4 shadow-xs"
           >
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              {/* Campo de Busca com acessibilidade */}
+              {/* Campo de Busca com shadcn Input */}
               <div className="relative flex-1 md:max-w-md">
                 <label htmlFor={searchInputId} className="sr-only">
                   Pesquisar por título, bairro ou cidade
@@ -288,13 +296,13 @@ export function FavoritesPage() {
                   className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ondjo-muted"
                   aria-hidden="true"
                 />
-                <input
+                <Input
                   id={searchInputId}
                   type="search"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Filtrar por nome, bairro, cidade..."
-                  className="focus-ring min-h-11 w-full rounded-xl border border-ondjo-border bg-ondjo-bg/60 pl-10 pr-10 text-xs sm:text-sm text-ondjo-ink placeholder:text-ondjo-muted transition focus:bg-white"
+                  className="bg-ondjo-bg/60 pl-10 pr-10 text-xs sm:text-sm focus-visible:bg-white"
                   aria-label="Filtrar imóveis guardados por texto"
                 />
                 {query && (
@@ -309,54 +317,51 @@ export function FavoritesPage() {
                 )}
               </div>
 
-              {/* Ordenação e Alternador de Vista (Grelha / Lista) */}
+              {/* Ordenação (Select) e Alternador de Vista (Tabs) */}
               <div className="flex items-center justify-between gap-2.5 sm:justify-end">
-                <div className="relative flex min-h-11 items-center rounded-xl border border-ondjo-border bg-white px-3 transition-colors focus-within:border-ondjo-blue">
-                  <label htmlFor={sortSelectId} className="sr-only">
-                    Ordenar imóveis
-                  </label>
-                  <ArrowUpDown size={14} className="text-ondjo-muted shrink-0 mr-2" aria-hidden="true" />
-                  <select
+                <Select
+                  value={sort}
+                  onValueChange={(val) => setSort((val ?? "saved") as SortOption)}
+                >
+                  <SelectTrigger
                     id={sortSelectId}
-                    value={sort}
-                    onChange={(e) => setSort(e.target.value as SortOption)}
-                    className="cursor-pointer bg-transparent py-2.5 text-xs font-semibold text-ondjo-ink outline-none"
+                    aria-label="Ordenar imóveis"
+                    className="ondjo-border-interactive h-11 rounded-xl bg-white px-3 text-xs font-semibold text-ondjo-ink"
                   >
-                    <option value="saved">Mais recentes</option>
-                    <option value="price-low">Menor preço</option>
-                    <option value="price-high">Maior preço</option>
-                    <option value="area">Maior área (m²)</option>
-                  </select>
-                </div>
+                    <ArrowUpDown size={14} className="text-ondjo-muted shrink-0" aria-hidden="true" />
+                    <SelectValue>{SORT_LABELS[sort]}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent align="end">
+                    <SelectItem value="saved">Mais recentes</SelectItem>
+                    <SelectItem value="price-low">Menor preço</SelectItem>
+                    <SelectItem value="price-high">Maior preço</SelectItem>
+                    <SelectItem value="area">Maior área (m²)</SelectItem>
+                  </SelectContent>
+                </Select>
 
-                <div className="flex items-center rounded-xl border border-ondjo-border bg-ondjo-bg/80 p-1">
-                  <button
-                    type="button"
-                    onClick={() => setViewMode("grid")}
-                    className={`grid size-9 place-items-center rounded-lg transition cursor-pointer ${
-                      viewMode === "grid"
-                        ? "bg-white text-ondjo-blue shadow-xs font-bold"
-                        : "text-ondjo-muted hover:text-ondjo-ink"
-                    }`}
-                    title="Visualizar em grelha"
-                    aria-label="Visualizar em grelha"
-                  >
-                    <LayoutGrid size={16} aria-hidden="true" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setViewMode("list")}
-                    className={`grid size-9 place-items-center rounded-lg transition cursor-pointer ${
-                      viewMode === "list"
-                        ? "bg-white text-ondjo-blue shadow-xs font-bold"
-                        : "text-ondjo-muted hover:text-ondjo-ink"
-                    }`}
-                    title="Visualizar em lista"
-                    aria-label="Visualizar em lista"
-                  >
-                    <List size={16} aria-hidden="true" />
-                  </button>
-                </div>
+                <Tabs
+                  value={viewMode}
+                  onValueChange={(val) => setViewMode(String(val) as ViewMode)}
+                >
+                  <TabsList className="ondjo-border-surface h-11 rounded-xl bg-ondjo-bg/80 p-1">
+                    <TabsTrigger
+                      value="grid"
+                      title="Visualizar em grelha"
+                      aria-label="Visualizar em grelha"
+                      className="size-9 rounded-lg px-0 data-active:bg-white data-active:text-ondjo-blue data-active:shadow-xs"
+                    >
+                      <LayoutGrid size={16} aria-hidden="true" />
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="list"
+                      title="Visualizar em lista"
+                      aria-label="Visualizar em lista"
+                      className="size-9 rounded-lg px-0 data-active:bg-white data-active:text-ondjo-blue data-active:shadow-xs"
+                    >
+                      <List size={16} aria-hidden="true" />
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
               </div>
             </div>
 
@@ -524,7 +529,6 @@ export function FavoritesPage() {
 
                   <div className="flex items-center gap-1.5 sm:gap-2">
                     <button
-                      ref={compareTriggerRef}
                       type="button"
                       onClick={() => setShowComparisonModal(true)}
                       disabled={selectedForCompare.length < 2}
@@ -554,260 +558,188 @@ export function FavoritesPage() {
             )}
           </AnimatePresence>
 
-          {/* MODAL RESPONSIVO DE COMPARAÇÃO */}
-          <AnimatePresence>
-            {showComparisonModal && compareProperties.length >= 2 && (
-              <div
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby={modalTitleId}
-                className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 lg:p-6"
-              >
-                <m.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.14 }}
+          {/* MODAL RESPONSIVO DE COMPARAÇÃO (shadcn Dialog) */}
+          <Dialog
+            open={showComparisonModal && compareProperties.length >= 2}
+            onOpenChange={setShowComparisonModal}
+          >
+            <DialogContent className="flex max-h-[90vh] w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-5xl">
+              <DialogHeader className="px-4 py-4 pr-14 sm:px-6 sm:py-5">
+                <DialogTitle className="text-lg font-black text-ondjo-navy sm:text-xl">
+                  Comparação Lado a Lado
+                </DialogTitle>
+                <DialogDescription className="text-xs text-ondjo-muted">
+                  {compareProperties.length} opções em análise
+                </DialogDescription>
+              </DialogHeader>
+
+              <Separator className="bg-ondjo-border-hairline" />
+
+              <div className="flex-1 overflow-x-auto overflow-y-auto p-4 sm:p-6">
+                <table className="w-full min-w-145 border-collapse text-left text-xs sm:text-sm" aria-label="Tabela de comparação de características">
+                  <thead>
+                    <tr>
+                      <th scope="col" className="w-36 pb-4 pt-1 font-bold uppercase tracking-wider text-ondjo-muted sm:w-44">
+                        Imóvel
+                      </th>
+                      {compareProperties.map((p) => (
+                        <th key={p.id} scope="col" className="px-3 pb-4 pt-1">
+                          <div className="ondjo-border-surface relative overflow-hidden rounded-xl bg-white shadow-2xs">
+                            <img
+                              src={p.images[0]}
+                              alt=""
+                              className="h-32 w-full object-cover sm:h-40"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => toggleCompare(p.id)}
+                              className="focus-ring absolute right-2 top-2 grid size-8 place-items-center rounded-full bg-slate-900/75 text-white backdrop-blur-xs transition hover:bg-ondjo-danger cursor-pointer"
+                              aria-label={`Remover ${p.title} da comparação`}
+                            >
+                              <X size={14} aria-hidden="true" />
+                            </button>
+                            <div className="p-2.5">
+                              <p className="line-clamp-2 text-xs font-bold leading-snug text-ondjo-ink">
+                                {p.title}
+                              </p>
+                            </div>
+                          </div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-ondjo-border">
+                    <tr>
+                      <th scope="row" className="py-3 font-semibold text-ondjo-muted">Preço</th>
+                      {compareProperties.map((p) => (
+                        <td key={p.id} className="px-3 py-3 font-black text-sm text-ondjo-green sm:text-base">
+                          {formatKz(p.price)}
+                        </td>
+                      ))}
+                    </tr>
+                    <tr>
+                      <th scope="row" className="py-3 font-semibold text-ondjo-muted">Tipo</th>
+                      {compareProperties.map((p) => (
+                        <td key={p.id} className="px-3 py-3 font-medium text-ondjo-ink">
+                          {p.type}
+                        </td>
+                      ))}
+                    </tr>
+                    <tr>
+                      <th scope="row" className="py-3 font-semibold text-ondjo-muted">Localização</th>
+                      {compareProperties.map((p) => (
+                        <td key={p.id} className="px-3 py-3 text-ondjo-ink">
+                          <span className="font-semibold">{p.neighborhood}</span>, {p.city}
+                        </td>
+                      ))}
+                    </tr>
+                    <tr>
+                      <th scope="row" className="py-3 font-semibold text-ondjo-muted">Quartos</th>
+                      {compareProperties.map((p) => (
+                        <td key={p.id} className="px-3 py-3 font-medium text-ondjo-ink">
+                          {p.bedrooms ? `${p.bedrooms} quartos` : "—"}
+                        </td>
+                      ))}
+                    </tr>
+                    <tr>
+                      <th scope="row" className="py-3 font-semibold text-ondjo-muted">Casas de banho</th>
+                      {compareProperties.map((p) => (
+                        <td key={p.id} className="px-3 py-3 font-medium text-ondjo-ink">
+                          {p.bathrooms ? `${p.bathrooms} casas de banho` : "—"}
+                        </td>
+                      ))}
+                    </tr>
+                    <tr>
+                      <th scope="row" className="py-3 font-semibold text-ondjo-muted">Área total</th>
+                      {compareProperties.map((p) => (
+                        <td key={p.id} className="px-3 py-3 font-medium text-ondjo-ink">
+                          {p.area} m²
+                        </td>
+                      ))}
+                    </tr>
+                    <tr>
+                      <th scope="row" className="py-3 font-semibold text-ondjo-muted">Estacionamento</th>
+                      {compareProperties.map((p) => (
+                        <td key={p.id} className="px-3 py-3 font-medium text-ondjo-ink">
+                          {p.parking ? `${p.parking} lugares` : "—"}
+                        </td>
+                      ))}
+                    </tr>
+                    <tr>
+                      <th scope="row" className="py-4 font-semibold text-ondjo-muted">Ação</th>
+                      {compareProperties.map((p) => (
+                        <td key={p.id} className="px-3 py-4">
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            fullWidth
+                            leftIcon={<Eye size={14} />}
+                            onClick={() => {
+                              setShowComparisonModal(false);
+                              navigate(`imovel/${p.id}`);
+                            }}
+                            className="cursor-pointer"
+                          >
+                            Ver imóvel
+                          </Button>
+                        </td>
+                      ))}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-ondjo-border-hairline bg-slate-50 px-4 py-3 sm:px-6 sm:py-3.5">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearCompare}
+                  className="text-ondjo-danger hover:bg-ondjo-danger-soft hover:text-ondjo-danger"
+                >
+                  Limpar seleção
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={() => setShowComparisonModal(false)}
-                  className="fixed inset-0 bg-slate-950/55"
-                  aria-hidden="true"
-                />
-
-                <m.div
-                  initial={{ opacity: 0, y: 16, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 16, scale: 0.98 }}
-                  transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-                  className="relative z-10 flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-t-3xl border border-ondjo-border bg-white shadow-2xl sm:rounded-3xl sm:max-h-[88vh]"
                 >
-                  <div className="border-b border-ondjo-border px-4 py-3.5 sm:px-6 sm:py-5">
-                    <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-slate-200 sm:hidden" aria-hidden="true" />
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h2 id={modalTitleId} className="text-lg font-black text-ondjo-navy sm:text-xl">
-                          Comparação Lado a Lado
-                        </h2>
-                        <p className="mt-0.5 text-xs text-ondjo-muted">
-                          {compareProperties.length} opções em análise
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={clearCompare}
-                          className="focus-ring hidden rounded-lg px-2.5 py-1 text-xs font-semibold text-ondjo-muted hover:text-ondjo-danger sm:block cursor-pointer"
-                        >
-                          Limpar seleção
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setShowComparisonModal(false)}
-                          className="focus-ring grid size-10 place-items-center rounded-xl text-ondjo-muted hover:bg-slate-100 hover:text-ondjo-ink cursor-pointer"
-                          aria-label="Fechar janela de comparação"
-                        >
-                          <X size={18} aria-hidden="true" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex-1 overflow-y-auto overflow-x-auto p-4 sm:p-6">
-                    <table className="w-full min-w-145 border-collapse text-left text-xs sm:text-sm" aria-label="Tabela de comparação de características">
-                      <thead>
-                        <tr>
-                          <th scope="col" className="w-36 pb-4 pt-1 font-bold uppercase tracking-wider text-ondjo-muted sm:w-44">
-                            Imóvel
-                          </th>
-                          {compareProperties.map((p) => (
-                            <th key={p.id} scope="col" className="px-3 pb-4 pt-1">
-                              <div className="relative overflow-hidden rounded-xl border border-ondjo-border bg-white shadow-2xs">
-                                <img
-                                  src={p.images[0]}
-                                  alt=""
-                                  className="h-32 w-full object-cover sm:h-40"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => toggleCompare(p.id)}
-                                  className="focus-ring absolute right-2 top-2 grid size-8 place-items-center rounded-full bg-slate-900/75 text-white backdrop-blur-xs transition hover:bg-ondjo-danger cursor-pointer"
-                                  aria-label={`Remover ${p.title} da comparação`}
-                                >
-                                  <X size={14} aria-hidden="true" />
-                                </button>
-                                <div className="p-2.5">
-                                  <p className="line-clamp-2 text-xs font-bold leading-snug text-ondjo-ink">
-                                    {p.title}
-                                  </p>
-                                </div>
-                              </div>
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-ondjo-border">
-                        <tr>
-                          <th scope="row" className="py-3 font-semibold text-ondjo-muted">Preço</th>
-                          {compareProperties.map((p) => (
-                            <td key={p.id} className="px-3 py-3 font-black text-sm text-ondjo-green sm:text-base">
-                              {formatKz(p.price)}
-                            </td>
-                          ))}
-                        </tr>
-                        <tr>
-                          <th scope="row" className="py-3 font-semibold text-ondjo-muted">Tipo</th>
-                          {compareProperties.map((p) => (
-                            <td key={p.id} className="px-3 py-3 font-medium text-ondjo-ink">
-                              {p.type}
-                            </td>
-                          ))}
-                        </tr>
-                        <tr>
-                          <th scope="row" className="py-3 font-semibold text-ondjo-muted">Localização</th>
-                          {compareProperties.map((p) => (
-                            <td key={p.id} className="px-3 py-3 text-ondjo-ink">
-                              <span className="font-semibold">{p.neighborhood}</span>, {p.city}
-                            </td>
-                          ))}
-                        </tr>
-                        <tr>
-                          <th scope="row" className="py-3 font-semibold text-ondjo-muted">Quartos</th>
-                          {compareProperties.map((p) => (
-                            <td key={p.id} className="px-3 py-3 font-medium text-ondjo-ink">
-                              {p.bedrooms ? `${p.bedrooms} quartos` : "—"}
-                            </td>
-                          ))}
-                        </tr>
-                        <tr>
-                          <th scope="row" className="py-3 font-semibold text-ondjo-muted">Casas de banho</th>
-                          {compareProperties.map((p) => (
-                            <td key={p.id} className="px-3 py-3 font-medium text-ondjo-ink">
-                              {p.bathrooms ? `${p.bathrooms} casas de banho` : "—"}
-                            </td>
-                          ))}
-                        </tr>
-                        <tr>
-                          <th scope="row" className="py-3 font-semibold text-ondjo-muted">Área total</th>
-                          {compareProperties.map((p) => (
-                            <td key={p.id} className="px-3 py-3 font-medium text-ondjo-ink">
-                              {p.area} m²
-                            </td>
-                          ))}
-                        </tr>
-                        <tr>
-                          <th scope="row" className="py-3 font-semibold text-ondjo-muted">Estacionamento</th>
-                          {compareProperties.map((p) => (
-                            <td key={p.id} className="px-3 py-3 font-medium text-ondjo-ink">
-                              {p.parking ? `${p.parking} lugares` : "—"}
-                            </td>
-                          ))}
-                        </tr>
-                        <tr>
-                          <th scope="row" className="py-4 font-semibold text-ondjo-muted">Ação</th>
-                          {compareProperties.map((p) => (
-                            <td key={p.id} className="px-3 py-4">
-                              <Button
-                                variant="primary"
-                                size="sm"
-                                fullWidth
-                                leftIcon={<Eye size={14} />}
-                                onClick={() => {
-                                  setShowComparisonModal(false);
-                                  navigate(`imovel/${p.id}`);
-                                }}
-                                className="cursor-pointer"
-                              >
-                                Ver imóvel
-                              </Button>
-                            </td>
-                          ))}
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div className="flex items-center justify-between border-t border-ondjo-border bg-slate-50 px-4 py-3 sm:px-6 sm:py-3.5">
-                    <button
-                      type="button"
-                      onClick={clearCompare}
-                      className="focus-ring text-xs font-semibold text-ondjo-danger hover:underline sm:hidden cursor-pointer"
-                    >
-                      Limpar seleção
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowComparisonModal(false)}
-                      className="focus-ring ml-auto inline-flex min-h-11 items-center justify-center rounded-xl border border-ondjo-border bg-white px-5 text-xs font-bold text-ondjo-ink transition hover:bg-slate-100 cursor-pointer"
-                    >
-                      Fechar
-                    </button>
-                  </div>
-                </m.div>
+                  Fechar
+                </Button>
               </div>
-            )}
-          </AnimatePresence>
+            </DialogContent>
+          </Dialog>
 
-          {/* DIÁLOGO DE CONFIRMAÇÃO DE LIMPEZA */}
-          <AnimatePresence>
-            {confirmClearOpen && (
-              <div
-                role="alertdialog"
-                aria-modal="true"
-                aria-labelledby={clearDialogTitleId}
-                className="fixed inset-0 z-50 flex items-center justify-center p-4"
-              >
-                <m.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.14 }}
-                  onClick={() => setConfirmClearOpen(false)}
-                  className="fixed inset-0 bg-slate-950/55"
-                  aria-hidden="true"
-                />
-
-                <m.div
-                  initial={{ opacity: 0, scale: 0.96, y: 8 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.96, y: 8 }}
-                  transition={{ duration: 0.14, ease: "easeOut" }}
-                  className="relative z-10 w-full max-w-md rounded-2xl border border-ondjo-border bg-white p-5 shadow-2xl sm:rounded-3xl sm:p-6"
+          {/* DIÁLOGO DE CONFIRMAÇÃO DE LIMPEZA (shadcn AlertDialog) */}
+          <AlertDialog open={confirmClearOpen} onOpenChange={setConfirmClearOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogMedia className="rounded-2xl bg-ondjo-danger-soft text-ondjo-danger size-12">
+                  <Trash2 size={22} />
+                </AlertDialogMedia>
+                <AlertDialogTitle className="text-lg font-black text-ondjo-navy">
+                  Limpar todos os favoritos?
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-xs leading-5 text-ondjo-muted sm:text-sm sm:leading-6">
+                  Esta ação irá remover todos os <strong className="font-semibold text-ondjo-ink">{favoriteCount}</strong> imóveis guardados neste navegador. Esta ação é irreversível.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="mx-0 mb-0 rounded-none border-t border-ondjo-border-hairline bg-transparent px-0 pt-4 pb-0">
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  variant="destructive"
+                  onClick={() => {
+                    clearFavorites();
+                    setSelectedForCompare([]);
+                    setConfirmClearOpen(false);
+                  }}
                 >
-                  <div className="grid size-12 place-items-center rounded-2xl bg-ondjo-danger-soft text-ondjo-danger" aria-hidden="true">
-                    <Trash2 size={22} />
-                  </div>
-
-                  <h3 id={clearDialogTitleId} className="mt-4 text-lg font-black text-ondjo-navy">
-                    Limpar todos os favoritos?
-                  </h3>
-                  <p className="mt-2 text-xs leading-5 text-ondjo-muted sm:text-sm sm:leading-6">
-                    Esta ação irá remover todos os <strong className="font-semibold text-ondjo-ink">{favoriteCount}</strong> imóveis guardados neste navegador. Esta ação é irreversível.
-                  </p>
-
-                  <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
-                    <button
-                      type="button"
-                      onClick={() => setConfirmClearOpen(false)}
-                      className="focus-ring inline-flex min-h-11 items-center justify-center rounded-xl border border-ondjo-border bg-white px-4 text-xs font-bold text-ondjo-ink transition hover:bg-slate-100 cursor-pointer"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        clearFavorites();
-                        setSelectedForCompare([]);
-                        setConfirmClearOpen(false);
-                      }}
-                      className="focus-ring inline-flex min-h-11 items-center justify-center rounded-xl bg-ondjo-danger px-4 text-xs font-bold text-white transition hover:opacity-90 cursor-pointer"
-                    >
-                      Sim, remover todos
-                    </button>
-                  </div>
-                </m.div>
-              </div>
-            )}
-          </AnimatePresence>
+                  Sim, remover todos
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </>
       ) : (
         /* Empty State */

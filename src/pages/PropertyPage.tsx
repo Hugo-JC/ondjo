@@ -38,7 +38,7 @@ import {
   Zap,
 } from "lucide-react";
 import { AnimatePresence, m } from "framer-motion";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { properties } from "../data/properties";
 import { formatKz } from "../utils/format";
@@ -50,10 +50,28 @@ import { ScheduleVisitPanel } from "../components/ScheduleVisitPanel";
 import { PropertyMap } from "../components/PropertyMap";
 import { getOptimizedImageUrl } from "../utils/images";
 import { usePropertyByIdQuery } from "../hooks/usePropertiesQuery";
-import { PropertyPageSkeleton } from "../components/ui/Skeleton";
+import { PropertyPageSkeleton } from "../components/ui/ondjo-skeletons";
+import {
+  Badge,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  RadioGroup,
+  RadioGroupItem,
+  Separator,
+  Textarea,
+} from "../components/ui";
+import { cn } from "../lib/utils";
 
-// Mapeamento semântico de ícones de comodidades locais em Angola
-function getFeatureIcon(featureName: string) {
+// Mapeamento semântico e colorido de ícones de comodidades locais em Angola
+function getFeatureVisual(featureName: string): {
+  icon: ReactNode;
+  badgeClass: string;
+} {
   const lower = featureName.toLowerCase();
   if (
     lower.includes("gerador") ||
@@ -61,10 +79,16 @@ function getFeatureIcon(featureName: string) {
     lower.includes("luz") ||
     lower.includes("pt")
   ) {
-    return <Zap size={16} className="text-amber-500" aria-hidden="true" />;
+    return {
+      icon: <Zap size={15} aria-hidden="true" />,
+      badgeClass: "bg-amber-50 text-amber-600",
+    };
   }
   if (lower.includes("piscina")) {
-    return <Waves size={16} className="text-cyan-600" aria-hidden="true" />;
+    return {
+      icon: <Waves size={15} aria-hidden="true" />,
+      badgeClass: "bg-cyan-50 text-cyan-600",
+    };
   }
   if (
     lower.includes("água") ||
@@ -73,7 +97,10 @@ function getFeatureIcon(featureName: string) {
     lower.includes("electrobomba") ||
     lower.includes("cisterna")
   ) {
-    return <Droplets size={16} className="text-sky-500" aria-hidden="true" />;
+    return {
+      icon: <Droplets size={15} aria-hidden="true" />,
+      badgeClass: "bg-sky-50 text-sky-600",
+    };
   }
   if (
     lower.includes("ar condicionado") ||
@@ -82,17 +109,26 @@ function getFeatureIcon(featureName: string) {
     lower.includes("climatiz") ||
     lower.includes("split")
   ) {
-    return <Wind size={16} className="text-teal-600" aria-hidden="true" />;
+    return {
+      icon: <Wind size={15} aria-hidden="true" />,
+      badgeClass: "bg-teal-50 text-teal-600",
+    };
   }
   if (lower.includes("cozinha")) {
-    return <UtensilsCrossed size={16} className="text-orange-500" aria-hidden="true" />;
+    return {
+      icon: <UtensilsCrossed size={15} aria-hidden="true" />,
+      badgeClass: "bg-orange-50 text-orange-600",
+    };
   }
   if (
     lower.includes("lavar") ||
     lower.includes("máquina") ||
     lower.includes("lavandaria")
   ) {
-    return <Shirt size={16} className="text-blue-500" aria-hidden="true" />;
+    return {
+      icon: <Shirt size={15} aria-hidden="true" />,
+      badgeClass: "bg-blue-50 text-blue-600",
+    };
   }
   if (
     lower.includes("segurança") ||
@@ -103,7 +139,10 @@ function getFeatureIcon(featureName: string) {
     lower.includes("cctv") ||
     lower.includes("vigilância")
   ) {
-    return <ShieldCheck size={16} className="text-emerald-600" aria-hidden="true" />;
+    return {
+      icon: <ShieldCheck size={15} aria-hidden="true" />,
+      badgeClass: "bg-emerald-50 text-emerald-600",
+    };
   }
   if (
     lower.includes("garagem") ||
@@ -111,7 +150,10 @@ function getFeatureIcon(featureName: string) {
     lower.includes("vaga") ||
     lower.includes("parqueamento")
   ) {
-    return <CarFront size={16} className="text-blue-600" aria-hidden="true" />;
+    return {
+      icon: <CarFront size={15} aria-hidden="true" />,
+      badgeClass: "bg-blue-50 text-blue-600",
+    };
   }
   if (
     lower.includes("wi-fi") ||
@@ -119,35 +161,59 @@ function getFeatureIcon(featureName: string) {
     lower.includes("internet") ||
     lower.includes("fibra")
   ) {
-    return <Wifi size={16} className="text-indigo-600" aria-hidden="true" />;
+    return {
+      icon: <Wifi size={15} aria-hidden="true" />,
+      badgeClass: "bg-indigo-50 text-indigo-600",
+    };
   }
   if (lower.includes("varanda") || lower.includes("terraço")) {
-    return <Maximize2 size={16} className="text-rose-500" aria-hidden="true" />;
+    return {
+      icon: <Maximize2 size={15} aria-hidden="true" />,
+      badgeClass: "bg-rose-50 text-rose-500",
+    };
   }
   if (
     lower.includes("mobil") ||
     lower.includes("mobiliado") ||
     lower.includes("mobilado")
   ) {
-    return <Armchair size={16} className="text-amber-700" aria-hidden="true" />;
+    return {
+      icon: <Armchair size={15} aria-hidden="true" />,
+      badgeClass: "bg-amber-50 text-amber-700",
+    };
   }
   if (lower.includes("elevador")) {
-    return <ArrowUpDown size={16} className="text-slate-600" aria-hidden="true" />;
+    return {
+      icon: <ArrowUpDown size={15} aria-hidden="true" />,
+      badgeClass: "bg-slate-100 text-slate-600",
+    };
   }
   if (
     lower.includes("ginásio") ||
     lower.includes("ginasio") ||
     lower.includes("fitness")
   ) {
-    return <Dumbbell size={16} className="text-red-500" aria-hidden="true" />;
+    return {
+      icon: <Dumbbell size={15} aria-hidden="true" />,
+      badgeClass: "bg-red-50 text-red-500",
+    };
   }
   if (lower.includes("quintal") || lower.includes("jardim")) {
-    return <Trees size={16} className="text-emerald-600" aria-hidden="true" />;
+    return {
+      icon: <Trees size={15} aria-hidden="true" />,
+      badgeClass: "bg-emerald-50 text-emerald-600",
+    };
   }
   if (lower.includes("gás") || lower.includes("fogão") || lower.includes("aquec")) {
-    return <Flame size={16} className="text-orange-500" aria-hidden="true" />;
+    return {
+      icon: <Flame size={15} aria-hidden="true" />,
+      badgeClass: "bg-orange-50 text-orange-500",
+    };
   }
-  return <Check size={16} className="text-ondjo-green" aria-hidden="true" />;
+  return {
+    icon: <Check size={15} aria-hidden="true" />,
+    badgeClass: "bg-ondjo-green-soft text-ondjo-green",
+  };
 }
 
 
@@ -280,21 +346,6 @@ export function PropertyPage({ id }: { id: string }) {
     [id, property?.neighborhood, property?.type],
   );
 
-  // Fechar modal de denúncia com Escape e bloquear scroll
-  useEffect(() => {
-    if (!reportOpen) return;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setReportOpen(false);
-    };
-    window.addEventListener("keydown", handleEsc);
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      window.removeEventListener("keydown", handleEsc);
-    };
-  }, [reportOpen]);
-
   // Acessibilidade por teclado na Lightbox (Escape, Setas)
   useEffect(() => {
     if (!lightboxOpen) return;
@@ -341,12 +392,16 @@ export function PropertyPage({ id }: { id: string }) {
         <p className="mt-2 text-sm text-ondjo-muted">
           O imóvel que procura pode ter sido retirado do mercado ou o endereço está incorreto.
         </p>
-        <button
+        <Button
+          type="button"
+          variant="primary"
+          size="md"
+          leftIcon={<ArrowLeft size={16} />}
           onClick={() => navigate("pesquisar")}
-          className="focus-ring mt-6 inline-flex items-center gap-2 rounded-full bg-ondjo-blue px-6 py-3 text-sm font-bold text-white shadow-sm hover:bg-ondjo-blue-dark active:scale-95 transition cursor-pointer"
+          className="mt-6"
         >
-          <ArrowLeft size={16} /> Voltar à pesquisa de imóveis
-        </button>
+          Voltar à pesquisa de imóveis
+        </Button>
       </main>
     );
   }
@@ -546,22 +601,23 @@ export function PropertyPage({ id }: { id: string }) {
             ========================================================= */}
         <div className="mt-3.5 sm:mt-5">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-full border border-ondjo-navy bg-ondjo-navy px-3 py-1 text-xs font-semibold text-white">
+            <Badge variant="navy">
               {isArrendamento ? "Arrendamento" : "Venda"}
-            </span>
+            </Badge>
 
             {property.verified && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-ondjo-success-border bg-ondjo-green-soft px-2.5 py-1 text-xs font-semibold text-ondjo-green">
-                <ShieldCheck size={14} className="text-ondjo-green" />
-                <span>Verificado ONDJO</span>
-              </span>
+              <Badge variant="verified">
+                Verificado ONDJO
+              </Badge>
             )}
 
             {property.featured && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-ondjo-blue bg-ondjo-blue px-2.5 py-1 text-xs font-semibold text-white shadow-ondjo-pill">
-                <Sparkles size={14} className="text-ondjo-blue-soft" />
-                <span>Destaque</span>
-              </span>
+              <Badge
+                variant="featured"
+                icon={<Sparkles size={13} className="text-ondjo-blue-soft" aria-hidden="true" />}
+              >
+                Destaque
+              </Badge>
             )}
 
             <span className="ml-auto text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-400">
@@ -714,7 +770,7 @@ export function PropertyPage({ id }: { id: string }) {
             {/* 1. Linha de Factos Essenciais (T2 · 2 WC · 80 m² · 1 vaga) */}
             <section
               aria-label="Resumo das características principais"
-              className="rounded-3xl border border-ondjo-border/80 bg-white p-4 sm:p-5 shadow-2xs"
+              className="rounded-3xl ondjo-border-surface bg-white p-4 sm:p-5 shadow-2xs"
             >
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
                 <div className="flex items-center gap-3 p-2 sm:px-3">
@@ -778,7 +834,7 @@ export function PropertyPage({ id }: { id: string }) {
             {/* 2. Descrição Completa do Imóvel */}
             <section
               aria-labelledby="section-desc-title"
-              className="rounded-3xl border border-ondjo-border/80 bg-white p-6 sm:p-7 shadow-2xs"
+              className="rounded-3xl ondjo-border-surface bg-white p-6 sm:p-7 shadow-2xs"
             >
               <h2
                 id="section-desc-title"
@@ -803,10 +859,10 @@ export function PropertyPage({ id }: { id: string }) {
               </div>
             </section>
 
-            {/* 3. O que este imóvel oferece (Comodidades compactas e responsivas) */}
+            {/* 3. O que este imóvel oferece (Comodidades compactas com ícones coloridos) */}
             <section
               aria-labelledby="section-amenities-title"
-              className="rounded-3xl border border-ondjo-border/80 bg-white p-5 sm:p-6 shadow-2xs"
+              className="rounded-3xl ondjo-border-surface bg-white p-5 sm:p-6 shadow-2xs"
             >
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <div>
@@ -823,23 +879,35 @@ export function PropertyPage({ id }: { id: string }) {
               </div>
 
               <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-2.5">
-                {property.features.map((feature) => (
-                  <div
-                    key={feature}
-                    className="flex items-center gap-2.5 rounded-xl border border-slate-200/75 bg-slate-50/70 px-3 py-2.5 text-xs sm:text-[13px] font-semibold text-ondjo-ink"
-                  >
-                    <span className="shrink-0">{getFeatureIcon(feature)}</span>
-                    <span className="leading-snug">{feature}</span>
-                  </div>
-                ))}
+                {property.features.map((feature) => {
+                  const visual = getFeatureVisual(feature);
+                  return (
+                    <div
+                      key={feature}
+                      className="ondjo-border-hairline flex items-center gap-2.5 rounded-xl bg-slate-50/75 px-3 py-2.5 text-xs sm:text-[13px] font-semibold text-ondjo-ink"
+                    >
+                      <span
+                        className={cn(
+                          "grid size-7 shrink-0 place-items-center rounded-lg",
+                          visual.badgeClass,
+                        )}
+                        aria-hidden="true"
+                      >
+                        {visual.icon}
+                      </span>
+                      <span className="leading-snug">{feature}</span>
+                    </div>
+                  );
+                })}
 
                 {property.parking > 0 && (
-                  <div className="flex items-center gap-2.5 rounded-xl border border-slate-200/75 bg-slate-50/70 px-3 py-2.5 text-xs sm:text-[13px] font-semibold text-ondjo-ink">
-                    <CarFront
-                      size={16}
-                      className="shrink-0 text-blue-600"
+                  <div className="ondjo-border-hairline flex items-center gap-2.5 rounded-xl bg-slate-50/75 px-3 py-2.5 text-xs sm:text-[13px] font-semibold text-ondjo-ink">
+                    <span
+                      className="grid size-7 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-600"
                       aria-hidden="true"
-                    />
+                    >
+                      <CarFront size={15} />
+                    </span>
                     <span className="leading-snug">
                       {property.parking}{" "}
                       {property.parking === 1 ? "vaga privativa" : "vagas privativas"}
@@ -852,7 +920,7 @@ export function PropertyPage({ id }: { id: string }) {
             {/* 4. Localização & Enquadramento na Zona */}
             <section
               aria-labelledby="section-location-title"
-              className="rounded-3xl border border-ondjo-border/80 bg-white p-6 sm:p-7 shadow-2xs"
+              className="rounded-3xl ondjo-border-surface bg-white p-6 sm:p-7 shadow-2xs"
             >
               <h2
                 id="section-location-title"
@@ -861,7 +929,7 @@ export function PropertyPage({ id }: { id: string }) {
                 Localização em {property.neighborhood}
               </h2>
 
-              <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-2xl bg-ondjo-blue-50/50 p-4 sm:p-5 border border-ondjo-blue-soft/80">
+              <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-2xl bg-ondjo-blue-50/50 p-4 sm:p-5 ondjo-border-featured">
                 <div className="flex items-center gap-3.5">
                   <div className="grid size-12 place-items-center rounded-2xl bg-ondjo-blue text-white shadow-xs shrink-0">
                     <MapPin size={22} />
@@ -878,7 +946,7 @@ export function PropertyPage({ id }: { id: string }) {
 
                 <a
                   href={`#/pesquisar?location=${encodeURIComponent(property.neighborhood)}`}
-                  className="focus-ring inline-flex items-center justify-center gap-1.5 rounded-full border border-ondjo-blue bg-white px-4 py-2 text-xs font-bold text-ondjo-blue shadow-2xs hover:bg-ondjo-blue-50 active:scale-95 transition shrink-0"
+                  className="focus-ring inline-flex items-center justify-center gap-1.5 rounded-full ondjo-border-featured bg-white px-4 py-2 text-xs font-bold text-ondjo-blue shadow-2xs hover:bg-ondjo-blue-50 active:scale-95 transition shrink-0"
                 >
                   <span>Explorar {property.neighborhood}</span>
                   <ExternalLink size={13} />
@@ -896,7 +964,7 @@ export function PropertyPage({ id }: { id: string }) {
             {/* 5. "Antes de Avançar" — Checklist de Segurança e Transparência ONDJO */}
             <section
               aria-labelledby="safety-checklist-title"
-              className="rounded-3xl border border-slate-200 bg-slate-50/80 p-6 sm:p-7 shadow-2xs"
+              className="rounded-3xl ondjo-border-surface bg-slate-50/80 p-6 sm:p-7 shadow-2xs"
             >
               <div className="flex items-center gap-2 text-ondjo-navy">
                 <ShieldAlert size={20} className="text-ondjo-blue shrink-0" />
@@ -950,7 +1018,7 @@ export function PropertyPage({ id }: { id: string }) {
 
           {/* ==================== COLUNA LATERAL (STICKY 370PX) ==================== */}
           <aside className="lg:block">
-            <div className="sticky top-24 rounded-3xl border border-ondjo-border/80 bg-white p-6 shadow-ondjo-card">
+            <div className="sticky top-24 rounded-3xl ondjo-border-surface bg-white p-6 shadow-ondjo-card">
               {/* Preço Oficial em Kwanzas (Kz) */}
               <div className="border-b border-slate-100 pb-5">
                 <div className="flex items-center justify-between">
@@ -1300,139 +1368,107 @@ export function PropertyPage({ id }: { id: string }) {
           document.body,
         )}
 
-      {/* Modal de Denúncia de Anúncio */}
-      {typeof document !== "undefined" &&
-        createPortal(
-          <AnimatePresence>
-            {reportOpen && (
-              <div
-                role="dialog"
-                aria-modal="true"
-                aria-label="Denunciar anúncio"
-                className="fixed inset-0 z-100 flex items-center justify-center p-4"
-              >
-                <m.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.12 }}
-                  onClick={() => setReportOpen(false)}
-                  className="fixed inset-0 bg-ondjo-navy/50"
-                  aria-hidden="true"
-                />
-                <m.div
-                  initial={{ opacity: 0, scale: 0.96, y: 8 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.96, y: 8 }}
-                  transition={{ duration: 0.14, ease: "easeOut" }}
-                  className="relative z-10 w-full max-w-md rounded-2xl border border-ondjo-border bg-white p-5 sm:p-6 shadow-2xl"
-                >
-                  <div className="flex items-center justify-between pb-3 border-b border-ondjo-border">
-                    <div className="flex items-center gap-2 text-ondjo-danger">
-                      <ShieldAlert size={18} aria-hidden="true" />
-                      <h2 className="text-base font-black text-ondjo-navy">
-                        Denunciar anúncio
-                      </h2>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setReportOpen(false)}
-                      className="focus-ring rounded-lg p-1.5 text-ondjo-muted hover:bg-ondjo-bg hover:text-ondjo-ink cursor-pointer"
-                      aria-label="Fechar denúncia"
-                    >
-                      <X size={18} />
-                    </button>
-                  </div>
+      {/* Modal de Denúncia de Anúncio (shadcn Dialog + RadioGroup + Textarea) */}
+      <Dialog open={reportOpen} onOpenChange={setReportOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader className="pb-1">
+            <div className="flex items-center gap-2 text-ondjo-danger">
+              <ShieldAlert size={18} aria-hidden="true" />
+              <DialogTitle className="text-base font-black text-ondjo-navy">
+                Denunciar anúncio
+              </DialogTitle>
+            </div>
+            <DialogDescription className="text-xs text-ondjo-muted">
+              Selecione o motivo para ajudar a manter a plataforma segura em Angola.
+            </DialogDescription>
+          </DialogHeader>
 
-                  {reportSubmitted ? (
-                    <div className="py-6 text-center">
-                      <Check size={32} className="mx-auto text-ondjo-green" />
-                      <p className="mt-3 text-sm font-bold text-ondjo-navy">
-                        Denúncia registada
-                      </p>
-                      <p className="mt-1.5 text-xs text-ondjo-muted leading-relaxed">
-                        A equipa de auditoria ONDJO irá analisar a referência{" "}
-                        <strong>{propertyRef}</strong> e contactar o anunciante se necessário.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => setReportOpen(false)}
-                        className="focus-ring mt-5 inline-flex min-h-10 w-full items-center justify-center rounded-xl bg-ondjo-blue px-4 text-xs font-bold text-white hover:bg-ondjo-blue-dark transition-colors cursor-pointer"
-                      >
-                        Fechar
-                      </button>
-                    </div>
-                  ) : (
-                    <form
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        setReportSubmitted(true);
-                      }}
-                      className="mt-4 space-y-3.5"
-                    >
-                      <p className="text-xs text-ondjo-muted">
-                        Selecione o motivo para ajudar a manter a plataforma segura em Angola:
-                      </p>
+          <Separator className="bg-ondjo-border-hairline" />
 
-                      <div className="space-y-2">
-                        {REPORT_REASONS.map((reason) => (
-                          <label
-                            key={reason}
-                            className={`flex items-center gap-2.5 rounded-xl border p-3 text-xs font-semibold cursor-pointer transition-colors duration-150 ${
-                              reportReason === reason
-                                ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-navy"
-                                : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50"
-                            }`}
-                          >
-                            <input
-                              type="radio"
-                              name="reportReason"
-                              value={reason}
-                              checked={reportReason === reason}
-                              onChange={() => setReportReason(reason)}
-                              className="text-ondjo-blue focus:ring-ondjo-blue"
-                            />
-                            <span>{reason}</span>
-                          </label>
-                        ))}
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold text-ondjo-ink mb-1">
-                          Detalhes adicionais (opcional)
-                        </label>
-                        <textarea
-                          rows={2}
-                          value={reportNotes}
-                          onChange={(e) => setReportNotes(e.target.value)}
-                          placeholder="Descreva brevemente o ocorrido..."
-                          className="filter-input min-h-18 resize-none py-2 text-xs"
-                        />
-                      </div>
-
-                      <div className="flex justify-end gap-2 pt-1">
-                        <button
-                          type="button"
-                          onClick={() => setReportOpen(false)}
-                          className="focus-ring rounded-xl border border-ondjo-border px-4 py-2 text-xs font-bold text-ondjo-ink hover:bg-ondjo-bg cursor-pointer"
-                        >
-                          Cancelar
-                        </button>
-                        <button
-                          type="submit"
-                          className="focus-ring rounded-xl bg-ondjo-danger px-4 py-2 text-xs font-bold text-white hover:opacity-90 cursor-pointer"
-                        >
-                          Enviar denúncia
-                        </button>
-                      </div>
-                    </form>
-                  )}
-                </m.div>
+          {reportSubmitted ? (
+            <div className="py-5 text-center">
+              <div className="mx-auto grid size-11 place-items-center rounded-2xl bg-ondjo-green-soft text-ondjo-green">
+                <Check size={24} />
               </div>
-            )}
-          </AnimatePresence>,
-          document.body,
-        )}
+              <p className="mt-3 text-sm font-bold text-ondjo-navy">
+                Denúncia registada
+              </p>
+              <p className="mt-1.5 text-xs text-ondjo-muted leading-relaxed">
+                A equipa de auditoria ONDJO irá analisar a referência{" "}
+                <strong>{propertyRef}</strong> e contactar o anunciante se necessário.
+              </p>
+              <Button
+                type="button"
+                variant="primary"
+                fullWidth
+                onClick={() => setReportOpen(false)}
+                className="mt-5"
+              >
+                Fechar
+              </Button>
+            </div>
+          ) : (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setReportSubmitted(true);
+              }}
+              className="space-y-4"
+            >
+              <RadioGroup
+                value={reportReason}
+                onValueChange={(val) => setReportReason(String(val))}
+                className="gap-2"
+              >
+                {REPORT_REASONS.map((reason) => {
+                  const selected = reportReason === reason;
+                  return (
+                    <label
+                      key={reason}
+                      className={cn(
+                        "flex items-center gap-2.5 rounded-xl p-3 text-xs font-semibold cursor-pointer select-none has-focus-visible:ring-3 has-focus-visible:ring-ondjo-blue/25",
+                        selected
+                          ? "ondjo-border-selected bg-ondjo-blue-50/75 text-ondjo-navy"
+                          : "ondjo-border-interactive bg-white text-ondjo-ink hover:bg-slate-50",
+                      )}
+                    >
+                      <RadioGroupItem value={reason} />
+                      <span>{reason}</span>
+                    </label>
+                  );
+                })}
+              </RadioGroup>
+
+              <div>
+                <label className="block text-xs font-bold text-ondjo-ink mb-1.5">
+                  Detalhes adicionais (opcional)
+                </label>
+                <Textarea
+                  rows={2}
+                  value={reportNotes}
+                  onChange={(e) => setReportNotes(e.target.value)}
+                  placeholder="Descreva brevemente o ocorrido..."
+                  className="min-h-18 resize-none text-xs"
+                />
+              </div>
+
+              <DialogFooter className="mx-0 mb-0 rounded-none border-t border-ondjo-border-hairline bg-transparent px-0 pt-3 pb-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setReportOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" variant="destructive" size="sm">
+                  Enviar denúncia
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Painel de Agendamento de Visita */}
       <ScheduleVisitPanel

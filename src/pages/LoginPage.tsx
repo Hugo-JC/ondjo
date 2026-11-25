@@ -1,8 +1,20 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { Eye, EyeOff, LockKeyhole, Mail, ArrowRight, CheckCircle2, X } from "lucide-react";
-import { m, AnimatePresence } from "framer-motion";
+import { Eye, EyeOff, LockKeyhole, Mail, ArrowRight, CheckCircle2 } from "lucide-react";
+import { m } from "framer-motion";
 import AuthInput from "../components/auth/AuthInput";
 import AuthLayout from "../components/auth/AuthLayout";
+import {
+  Button,
+  Checkbox,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Separator,
+} from "../components/ui";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -14,6 +26,7 @@ export default function LoginPage() {
   const [forgotSubmitted, setForgotSubmitted] = useState(false);
 
   const passwordId = useId();
+  const rememberId = useId();
   const loginTimerRef = useRef<number | null>(null);
   const forgotTimerRef = useRef<number | null>(null);
 
@@ -23,15 +36,6 @@ export default function LoginPage() {
       if (forgotTimerRef.current !== null) window.clearTimeout(forgotTimerRef.current);
     };
   }, []);
-
-  useEffect(() => {
-    if (!showForgotModal) return;
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setShowForgotModal(false);
-    };
-    window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
-  }, [showForgotModal]);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -66,7 +70,7 @@ export default function LoginPage() {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             role="status"
-            className="flex items-start gap-3 rounded-2xl border border-ondjo-blue/30 bg-ondjo-blue-soft/60 p-4 text-sm text-ondjo-navy shadow-xs"
+            className="ondjo-border-featured flex items-start gap-3 rounded-2xl bg-ondjo-blue-soft/60 p-4 text-sm text-ondjo-navy shadow-xs"
           >
             <CheckCircle2 className="size-5 shrink-0 text-ondjo-blue mt-0.5" />
             <div>
@@ -103,8 +107,11 @@ export default function LoginPage() {
               </label>
               <button
                 type="button"
-                onClick={() => setShowForgotModal(true)}
-                className="focus-ring rounded-lg text-xs font-bold text-ondjo-blue hover:text-ondjo-blue-dark transition-colors"
+                onClick={() => {
+                  setForgotSubmitted(false);
+                  setShowForgotModal(true);
+                }}
+                className="focus-ring rounded-lg text-xs font-bold text-ondjo-blue hover:text-ondjo-blue-dark transition-colors cursor-pointer"
               >
                 Esqueci-me da palavra-passe
               </button>
@@ -114,20 +121,20 @@ export default function LoginPage() {
               <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ondjo-muted">
                 <LockKeyhole className="size-4" />
               </span>
-              <input
+              <Input
                 id={passwordId}
                 name="password"
                 type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
                 required
                 placeholder="A sua palavra-passe"
-                className="focus-ring min-h-12 w-full rounded-xl border border-ondjo-border bg-white pl-10 pr-12 text-sm text-ondjo-ink placeholder:text-ondjo-muted/60 transition-shadow outline-none"
+                className="h-12 rounded-xl ondjo-border-interactive bg-white pl-10 pr-12 text-sm text-ondjo-ink placeholder:text-slate-400"
               />
               <button
                 type="button"
                 aria-label={showPassword ? "Ocultar palavra-passe" : "Mostrar palavra-passe"}
                 onClick={() => setShowPassword((v) => !v)}
-                className="focus-ring absolute right-2.5 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-ondjo-muted hover:bg-ondjo-bg hover:text-ondjo-ink transition-colors"
+                className="focus-ring absolute right-2.5 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-ondjo-muted hover:bg-ondjo-bg hover:text-ondjo-ink transition-colors cursor-pointer"
               >
                 {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
               </button>
@@ -135,37 +142,37 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Lembrar-me */}
+        {/* Lembrar-me (shadcn Checkbox) */}
         <div className="flex items-center justify-between pt-1">
-          <label className="flex items-center gap-2.5 cursor-pointer select-none">
-            <input
-              type="checkbox"
+          <label
+            htmlFor={rememberId}
+            className="flex items-center gap-2.5 cursor-pointer select-none"
+          >
+            <Checkbox
+              id={rememberId}
               checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-              className="size-4 rounded border-ondjo-border text-ondjo-blue focus:ring-ondjo-blue"
+              onCheckedChange={(checked) => setRememberMe(Boolean(checked))}
             />
-            <span className="text-sm font-medium text-ondjo-muted">Lembrar-me neste dispositivo</span>
+            <span className="text-sm font-medium text-ondjo-muted">
+              Lembrar-me neste dispositivo
+            </span>
           </label>
         </div>
 
-        {/* Botão Entrar */}
-        <button
+        {/* Botão Entrar (shadcn Button) */}
+        <Button
           type="submit"
-          disabled={isLoading}
-          className="focus-ring flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-ondjo-blue px-5 text-sm font-bold text-white shadow-sm transition-[background-color,transform] duration-150 hover:bg-ondjo-blue-dark active:scale-[0.99] disabled:opacity-60 cursor-pointer"
+          variant="primary"
+          fullWidth
+          isLoading={isLoading}
+          rightIcon={!isLoading ? <ArrowRight className="size-4" /> : undefined}
+          className="min-h-12 rounded-xl text-sm font-bold shadow-sm"
         >
-          {isLoading ? (
-            <span className="inline-block size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-          ) : (
-            <>
-              Entrar
-              <ArrowRight className="size-4" />
-            </>
-          )}
-        </button>
+          Entrar
+        </Button>
 
         {/* Rodapé de cadastro */}
-        <div className="rounded-2xl border border-ondjo-border/80 bg-ondjo-bg/60 p-4 text-center">
+        <div className="ondjo-border-surface rounded-2xl bg-ondjo-bg/60 p-4 text-center">
           <p className="text-sm text-ondjo-muted">
             Ainda não tem uma conta?{" "}
             <a
@@ -178,85 +185,56 @@ export default function LoginPage() {
         </div>
       </form>
 
-      {/* Modal de recuperação de palavra-passe */}
-      <AnimatePresence>
-        {showForgotModal && (
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label="Recuperar palavra-passe"
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          >
-            <m.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.14 }}
-              className="fixed inset-0 bg-ondjo-navy/50"
-              onClick={() => setShowForgotModal(false)}
-            />
-            <m.div
-              initial={{ opacity: 0, scale: 0.96, y: 8 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 8 }}
-              transition={{ duration: 0.14, ease: "easeOut" }}
-              className="relative w-full max-w-md rounded-2xl border border-ondjo-border bg-white p-6 shadow-2xl z-10"
-            >
-              <div className="flex items-center justify-between pb-3 border-b border-ondjo-border">
-                <h3 className="text-lg font-bold text-ondjo-navy">Recuperar palavra-passe</h3>
-                <button
-                  type="button"
-                  onClick={() => setShowForgotModal(false)}
-                  className="rounded-lg p-1 text-ondjo-muted hover:bg-ondjo-bg hover:text-ondjo-ink"
-                >
-                  <X className="size-5" />
-                </button>
-              </div>
+      {/* Modal de recuperação de palavra-passe (shadcn Dialog) */}
+      <Dialog open={showForgotModal} onOpenChange={setShowForgotModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold text-ondjo-navy">
+              Recuperar palavra-passe
+            </DialogTitle>
+            <DialogDescription className="text-xs leading-relaxed text-ondjo-muted">
+              Introduza o email associado à sua conta ONDJO para receber as instruções de recuperação.
+            </DialogDescription>
+          </DialogHeader>
 
-              {forgotSubmitted ? (
-                <div className="py-6 text-center space-y-2">
-                  <CheckCircle2 className="size-10 text-ondjo-success mx-auto" />
-                  <p className="font-bold text-ondjo-navy">Instruções enviadas!</p>
-                  <p className="text-xs text-ondjo-muted">
-                    Se o email existir, receberá um link seguro para redefinir a palavra-passe.
-                  </p>
-                </div>
-              ) : (
-                <form onSubmit={handleForgotSubmit} className="mt-4 space-y-4">
-                  <p className="text-xs leading-relaxed text-ondjo-muted">
-                    Introduza o email associado à sua conta ONDJO para receber as instruções de recuperação.
-                  </p>
-                  <AuthInput
-                    id="forgot-email"
-                    label="Email da conta"
-                    type="email"
-                    required
-                    value={forgotEmail}
-                    onChange={(e) => setForgotEmail(e.target.value)}
-                    placeholder="exemplo@email.com"
-                    icon={<Mail className="size-4" />}
-                  />
-                  <div className="flex gap-2 justify-end pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowForgotModal(false)}
-                      className="px-4 py-2 rounded-xl border border-ondjo-border text-sm font-semibold text-ondjo-ink hover:bg-ondjo-bg"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-5 py-2 rounded-xl bg-ondjo-blue text-sm font-bold text-white hover:bg-ondjo-blue-dark"
-                    >
-                      Enviar link
-                    </button>
-                  </div>
-                </form>
-              )}
-            </m.div>
-          </div>
-        )}
-      </AnimatePresence>
+          <Separator className="bg-ondjo-border-hairline" />
+
+          {forgotSubmitted ? (
+            <div className="py-6 text-center space-y-2">
+              <CheckCircle2 className="size-10 text-ondjo-success mx-auto" />
+              <p className="font-bold text-ondjo-navy">Instruções enviadas!</p>
+              <p className="text-xs text-ondjo-muted">
+                Se o email existir, receberá um link seguro para redefinir a palavra-passe.
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleForgotSubmit} className="space-y-4">
+              <AuthInput
+                id="forgot-email"
+                label="Email da conta"
+                type="email"
+                required
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                placeholder="exemplo@email.com"
+                icon={<Mail className="size-4" />}
+              />
+              <DialogFooter className="mx-0 mb-0 rounded-none border-t border-ondjo-border-hairline bg-transparent px-0 pt-3 pb-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowForgotModal(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" variant="primary">
+                  Enviar link
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </AuthLayout>
   );
 }

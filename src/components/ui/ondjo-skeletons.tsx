@@ -1,93 +1,6 @@
-import React from "react";
-import { cn } from "../../utils/cn";
-
-export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: "text" | "rect" | "card" | "avatar" | "image" | "pill";
-  width?: string | number;
-  height?: string | number;
-}
-
-export const Skeleton: React.FC<SkeletonProps> = ({
-  variant = "rect",
-  width,
-  height,
-  className = "",
-  style,
-  ...props
-}) => {
-  const baseClasses = "ondjo-skeleton";
-
-  if (variant === "avatar") {
-    return (
-      <div
-        aria-hidden="true"
-        className={cn("rounded-full shrink-0", baseClasses, className)}
-        style={{
-          width: width ?? "2.5rem",
-          height: height ?? "2.5rem",
-          ...style,
-        }}
-        {...props}
-      />
-    );
-  }
-
-  if (variant === "pill") {
-    return (
-      <div
-        aria-hidden="true"
-        className={cn("rounded-full", baseClasses, className)}
-        style={{
-          width: width ?? "5rem",
-          height: height ?? "2rem",
-          ...style,
-        }}
-        {...props}
-      />
-    );
-  }
-
-  if (variant === "text") {
-    return (
-      <div
-        aria-hidden="true"
-        className={cn("h-4 rounded-md", baseClasses, className)}
-        style={{ width: width ?? "100%", height, ...style }}
-        {...props}
-      />
-    );
-  }
-
-  if (variant === "card") {
-    return (
-      <div
-        aria-hidden="true"
-        className={cn(
-          "flex flex-col gap-3 rounded-2xl border border-ondjo-border bg-white p-3 shadow-ondjo-card",
-          className,
-        )}
-        style={{ width, height, ...style }}
-        {...props}
-      >
-        <div className={cn("aspect-4/3 w-full rounded-xl", baseClasses)} />
-        <div className="flex flex-col gap-2 p-1">
-          <div className={cn("h-5 w-1/3 rounded-md", baseClasses)} />
-          <div className={cn("h-4 w-4/5 rounded-md", baseClasses)} />
-          <div className={cn("h-3 w-1/2 rounded-md", baseClasses)} />
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div
-      aria-hidden="true"
-      className={cn("rounded-xl", baseClasses, className)}
-      style={{ width, height, ...style }}
-      {...props}
-    />
-  );
-};
+import { Skeleton } from "./skeleton";
+export type { SkeletonProps } from "./skeleton";
+export { Skeleton };
 
 export function PropertyGridCardSkeleton() {
   return (
@@ -333,18 +246,18 @@ export function PropertyPageSkeleton() {
               <Skeleton variant="text" className="mt-2 h-3.5 w-36" />
             </div>
 
-            {/* 3. Comodidades (2 colunas) */}
-            <div className="rounded-3xl border border-ondjo-border/80 bg-white p-6 sm:p-7 shadow-2xs">
+            {/* 3. Comodidades (2/3 colunas compactas) */}
+            <div className="rounded-3xl ondjo-border-surface bg-white p-5 sm:p-6 shadow-2xs">
               <Skeleton className="h-6 w-52 rounded-lg" />
               <Skeleton variant="text" className="mt-2 h-3.5 w-72" />
-              <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-2.5">
                 {Array.from({ length: 6 }).map((_, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/60 p-3.5"
+                    className="flex items-center gap-2.5 rounded-xl ondjo-border-hairline bg-slate-50/70 px-3 py-2.5"
                   >
-                    <Skeleton className="size-9 rounded-xl shrink-0" />
-                    <Skeleton variant="text" className="h-4 w-36" />
+                    <Skeleton className="size-6.5 rounded-lg shrink-0" />
+                    <Skeleton variant="text" className="h-3.5 w-24" />
                   </div>
                 ))}
               </div>
