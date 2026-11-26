@@ -1,4 +1,4 @@
-import { ArrowRight, MapPin } from "lucide-react";
+import { ArrowRight, ArrowUpRight, MapPin } from "lucide-react";
 import { m, useReducedMotion } from "framer-motion";
 import { useMemo, useRef, useState } from "react";
 
@@ -12,7 +12,13 @@ import {
   type SearchFilters,
 } from "../components/SearchBar";
 import { Footer } from "../components/Footer";
-import { Button, Card, CardContent, buttonVariants } from "../components/ui";
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  buttonVariants,
+} from "../components/ui";
 import { cn } from "../lib/utils";
 import { formatKz } from "../utils/format";
 import { getImageSrcSet, getOptimizedImageUrl } from "../utils/images";
@@ -221,53 +227,77 @@ export function Home() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4">
-              {activeZones.map((zone) => (
-                <a
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 sm:gap-5">
+              {activeZones.map((zone, index) => (
+                <m.a
                   key={zone.name}
                   href={`#/pesquisar?location=${encodeURIComponent(zone.name)}`}
+                  aria-label={`Explorar ${formatCount(zone.count)} em ${zone.name}${zone.minPrice !== null ? `, desde ${formatKz(zone.minPrice)}` : ""}`}
+                  initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{
+                    duration: 0.24,
+                    delay: reduceMotion ? 0 : index * 0.05,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
                   className="focus-ring group block rounded-2xl"
                 >
-                  <Card className="h-full ondjo-border-interactive bg-white py-0 shadow-2xs transition-[box-shadow,border-color,transform] duration-150 hover:-translate-y-0.5 hover:shadow-ondjo-pill">
-                    <CardContent className="flex h-full flex-col justify-between p-4 sm:p-5">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-1.5 text-ondjo-navy">
+                  <Card className="h-full border-slate-200/80 bg-white py-0 shadow-[0_1px_2px_rgba(16,42,67,0.04)] transition-all duration-200 ease-out group-hover:-translate-y-1 group-hover:border-ondjo-blue/35 group-hover:shadow-[0_14px_28px_-10px_rgba(16,42,67,0.12)] group-active:translate-y-0">
+                    <CardContent className="flex h-full flex-col justify-between gap-5 p-5">
+                      <div className="space-y-3.5">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-ondjo-blue-50 text-ondjo-blue transition-colors duration-200 group-hover:bg-ondjo-blue group-hover:text-white">
                             <MapPin
-                              size={15}
-                              className="text-ondjo-blue shrink-0"
+                              size={18}
+                              strokeWidth={2.2}
                               aria-hidden="true"
                             />
-                            <h3 className="truncate text-base font-bold tracking-tight">
-                              {zone.name}
-                            </h3>
-                          </div>
-                          <p className="mt-0.5 text-xs text-ondjo-muted">
-                            {zone.municipality ? `Município de ${zone.municipality}` : "Luanda"}
-                          </p>
+                          </span>
+
+                          <span
+                            aria-hidden="true"
+                            className="grid size-8 shrink-0 place-items-center rounded-full bg-ondjo-bg text-ondjo-muted transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:bg-ondjo-blue-50 group-hover:text-ondjo-blue"
+                          >
+                            <ArrowUpRight size={15} />
+                          </span>
                         </div>
 
-                        <span className="grid size-8 shrink-0 place-items-center rounded-full ondjo-border-surface bg-ondjo-bg text-ondjo-muted transition-colors group-hover:border-ondjo-border-accent group-hover:bg-ondjo-blue-50 group-hover:text-ondjo-blue">
-                          <ArrowRight size={14} aria-hidden="true" />
-                        </span>
+                        <div className="min-w-0">
+                          <h3 className="truncate text-base sm:text-lg font-bold tracking-tight text-ondjo-navy transition-colors duration-200 group-hover:text-ondjo-blue">
+                            {zone.name}
+                          </h3>
+                          <p className="mt-0.5 truncate text-xs text-ondjo-muted">
+                            {zone.municipality
+                              ? `Município de ${zone.municipality}`
+                              : "Luanda"}
+                          </p>
+                        </div>
                       </div>
 
-                      <div className="mt-4 flex items-center justify-between border-t border-ondjo-border-hairline pt-3 text-xs">
-                        <span className="font-semibold text-ondjo-ink">
+                      <div className="flex items-center justify-between gap-2 rounded-xl bg-ondjo-bg px-3 py-2.5 transition-colors duration-200 group-hover:bg-ondjo-blue-50/60">
+                        <Badge
+                          variant="info"
+                          size="xs"
+                          className="border-blue-200/70 bg-white font-semibold text-ondjo-blue shadow-[0_1px_2px_rgba(16,42,67,0.03)]"
+                        >
                           {formatCount(zone.count)}
-                        </span>
+                        </Badge>
+
                         {zone.minPrice !== null && (
-                          <span className="text-ondjo-muted tabular-nums">
-                            Desde{" "}
-                            <strong className="font-bold text-ondjo-navy">
+                          <div className="text-right leading-tight">
+                            <span className="block text-[10px] font-medium uppercase tracking-wider text-ondjo-muted">
+                              Desde
+                            </span>
+                            <strong className="block text-xs font-bold text-ondjo-navy tabular-nums">
                               {formatKz(zone.minPrice)}
                             </strong>
-                          </span>
+                          </div>
                         )}
                       </div>
                     </CardContent>
                   </Card>
-                </a>
+                </m.a>
               ))}
             </div>
           </section>
