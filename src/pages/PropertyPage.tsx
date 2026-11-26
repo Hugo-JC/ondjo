@@ -53,6 +53,8 @@ import {
   Badge,
   Button,
   buttonVariants,
+  Card,
+  CardContent,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -63,6 +65,9 @@ import {
   RadioGroupItem,
   Separator,
   Textarea,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from "../components/ui";
 import { cn } from "../lib/utils";
 
@@ -691,40 +696,49 @@ export function PropertyPage({ id }: { id: string }) {
             {/* Setas de navegação direta */}
             {totalPhotos > 1 && (
               <>
-                <button
+                <Button
                   type="button"
+                  variant="navy"
+                  size="icon"
                   onClick={prevPhoto}
                   aria-label="Foto anterior"
-                  className="focus-ring absolute left-2.5 top-1/2 -translate-y-1/2 z-10 grid size-9 place-items-center rounded-full bg-ondjo-navy text-white shadow-md active:scale-90 cursor-pointer"
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-9 rounded-full shadow-md active:scale-90"
                 >
                   <ChevronLeft size={20} />
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="navy"
+                  size="icon"
                   onClick={nextPhoto}
                   aria-label="Próxima foto"
-                  className="focus-ring absolute right-2.5 top-1/2 -translate-y-1/2 z-10 grid size-9 place-items-center rounded-full bg-ondjo-navy text-white shadow-md active:scale-90 cursor-pointer"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 z-10 size-9 rounded-full shadow-md active:scale-90"
                 >
                   <ChevronRight size={20} />
-                </button>
+                </Button>
               </>
             )}
 
             {/* Contador de fotos no mobile */}
-            <div className="absolute bottom-3 left-3 z-10 inline-flex items-center rounded-full bg-ondjo-navy px-3 py-1 text-[11px] font-bold text-white shadow-sm">
+            <Badge
+              variant="navy"
+              className="absolute bottom-3 left-3 z-10 px-3 py-1 text-[11px] font-bold shadow-sm"
+            >
               {activePhoto + 1} / {totalPhotos}
-            </div>
+            </Badge>
 
             {/* Botão de tela cheia no mobile */}
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="xs"
               onClick={() => setLightboxOpen(true)}
               aria-label="Abrir galeria em ecrã inteiro"
-              className="focus-ring absolute bottom-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-full border border-ondjo-border bg-white px-3 py-1 text-[11px] font-bold text-ondjo-navy shadow-sm active:scale-95 cursor-pointer"
+              leftIcon={<Maximize2 size={12} className="text-ondjo-blue" />}
+              className="absolute bottom-3 right-3 z-10 h-7.5 rounded-full border-ondjo-border bg-white px-3 text-[11px] font-bold text-ondjo-navy shadow-sm active:scale-95"
             >
-              <Maximize2 size={12} className="text-ondjo-blue" />
-              <span>Galeria</span>
-            </button>
+              Galeria
+            </Button>
           </div>
         </section>
 
@@ -735,102 +749,105 @@ export function PropertyPage({ id }: { id: string }) {
           {/* ==================== COLUNA PRINCIPAL ==================== */}
           <div className="space-y-8 sm:space-y-10 min-w-0">
             {/* 1. Linha de Factos Essenciais (T2 · 2 WC · 80 m² · 1 vaga) */}
-            <section
-              aria-label="Resumo das características principais"
-              className="rounded-3xl ondjo-border-surface bg-white p-4 sm:p-5 shadow-2xs"
-            >
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
-                <div className="flex items-center gap-3 p-2 sm:px-3">
-                  <div className="grid size-11 place-items-center rounded-2xl bg-ondjo-blue-50 text-ondjo-blue shrink-0">
-                    <BedDouble size={20} />
-                  </div>
-                  <div>
-                    <strong className="block text-base font-black text-ondjo-navy">
-                      T{property.bedrooms}
-                    </strong>
-                    <span className="text-xs font-semibold text-ondjo-muted">
-                      {property.bedrooms === 1 ? "Quarto" : "Quartos"}
-                    </span>
-                  </div>
-                </div>
+            <Card className="rounded-3xl ondjo-border-surface bg-white py-0 shadow-2xs">
+              <section aria-label="Resumo das características principais">
+                <CardContent className="p-4 sm:p-5">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+                    <div className="flex items-center gap-3 p-2 sm:px-3">
+                      <div className="grid size-11 place-items-center rounded-2xl bg-ondjo-blue-50 text-ondjo-blue shrink-0">
+                        <BedDouble size={20} />
+                      </div>
+                      <div>
+                        <strong className="block text-base font-black text-ondjo-navy">
+                          T{property.bedrooms}
+                        </strong>
+                        <span className="text-xs font-semibold text-ondjo-muted">
+                          {property.bedrooms === 1 ? "Quarto" : "Quartos"}
+                        </span>
+                      </div>
+                    </div>
 
-                <div className="flex items-center gap-3 p-2 sm:px-3 pt-3 sm:pt-2">
-                  <div className="grid size-11 place-items-center rounded-2xl bg-ondjo-blue-50 text-ondjo-blue shrink-0">
-                    <ShowerHead size={20} />
-                  </div>
-                  <div>
-                    <strong className="block text-base font-black text-ondjo-navy">
-                      {property.bathrooms}
-                    </strong>
-                    <span className="text-xs font-semibold text-ondjo-muted">
-                      {property.bathrooms === 1 ? "Banho" : "Casas de banho"}
-                    </span>
-                  </div>
-                </div>
+                    <div className="flex items-center gap-3 p-2 sm:px-3 pt-3 sm:pt-2">
+                      <div className="grid size-11 place-items-center rounded-2xl bg-ondjo-blue-50 text-ondjo-blue shrink-0">
+                        <ShowerHead size={20} />
+                      </div>
+                      <div>
+                        <strong className="block text-base font-black text-ondjo-navy">
+                          {property.bathrooms}
+                        </strong>
+                        <span className="text-xs font-semibold text-ondjo-muted">
+                          {property.bathrooms === 1 ? "Banho" : "Casas de banho"}
+                        </span>
+                      </div>
+                    </div>
 
-                <div className="flex items-center gap-3 p-2 sm:px-3 pt-3 sm:pt-2">
-                  <div className="grid size-11 place-items-center rounded-2xl bg-ondjo-blue-50 text-ondjo-blue shrink-0">
-                    <Ruler size={20} />
-                  </div>
-                  <div>
-                    <strong className="block text-base font-black text-ondjo-navy">
-                      {property.area} m²
-                    </strong>
-                    <span className="text-xs font-semibold text-ondjo-muted">
-                      Área útil
-                    </span>
-                  </div>
-                </div>
+                    <div className="flex items-center gap-3 p-2 sm:px-3 pt-3 sm:pt-2">
+                      <div className="grid size-11 place-items-center rounded-2xl bg-ondjo-blue-50 text-ondjo-blue shrink-0">
+                        <Ruler size={20} />
+                      </div>
+                      <div>
+                        <strong className="block text-base font-black text-ondjo-navy">
+                          {property.area} m²
+                        </strong>
+                        <span className="text-xs font-semibold text-ondjo-muted">
+                          Área útil
+                        </span>
+                      </div>
+                    </div>
 
-                <div className="flex items-center gap-3 p-2 sm:px-3 pt-3 sm:pt-2">
-                  <div className="grid size-11 place-items-center rounded-2xl bg-ondjo-blue-50 text-ondjo-blue shrink-0">
-                    <CarFront size={20} />
+                    <div className="flex items-center gap-3 p-2 sm:px-3 pt-3 sm:pt-2">
+                      <div className="grid size-11 place-items-center rounded-2xl bg-ondjo-blue-50 text-ondjo-blue shrink-0">
+                        <CarFront size={20} />
+                      </div>
+                      <div>
+                        <strong className="block text-base font-black text-ondjo-navy">
+                          {property.parking}
+                        </strong>
+                        <span className="text-xs font-semibold text-ondjo-muted">
+                          {property.parking === 1 ? "Vaga privativa" : "Vagas"}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <strong className="block text-base font-black text-ondjo-navy">
-                      {property.parking}
-                    </strong>
-                    <span className="text-xs font-semibold text-ondjo-muted">
-                      {property.parking === 1 ? "Vaga privativa" : "Vagas"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </section>
+                </CardContent>
+              </section>
+            </Card>
 
             {/* 2. Descrição Completa do Imóvel */}
-            <section
-              aria-labelledby="section-desc-title"
-              className="rounded-3xl ondjo-border-surface bg-white p-6 sm:p-7 shadow-2xs"
-            >
-              <h2
-                id="section-desc-title"
-                className="text-lg sm:text-xl font-black text-ondjo-navy"
-              >
-                Sobre este imóvel
-              </h2>
-
-              <div className="mt-3 text-sm sm:text-base leading-relaxed text-slate-700">
-                <p className={showFullDescription ? "" : "line-clamp-3"}>
-                  {property.description}
-                </p>
-                {property.description.length > 180 && (
-                  <button
-                    type="button"
-                    onClick={() => setShowFullDescription(!showFullDescription)}
-                    className="focus-ring mt-2 inline-flex items-center gap-1 text-xs font-bold text-ondjo-blue hover:underline cursor-pointer"
+            <Card className="rounded-3xl ondjo-border-surface bg-white py-0 shadow-2xs">
+              <section aria-labelledby="section-desc-title">
+                <CardContent className="p-6 sm:p-7">
+                  <h2
+                    id="section-desc-title"
+                    className="text-lg sm:text-xl font-black text-ondjo-navy"
                   >
-                    <span>{showFullDescription ? "Mostrar menos" : "Ler descrição completa"}</span>
-                  </button>
-                )}
-              </div>
-            </section>
+                    Sobre este imóvel
+                  </h2>
+
+                  <div className="mt-3 text-sm sm:text-base leading-relaxed text-slate-700">
+                    <p className={showFullDescription ? "" : "line-clamp-3"}>
+                      {property.description}
+                    </p>
+                    {property.description.length > 180 && (
+                      <Button
+                        type="button"
+                        variant="link"
+                        size="xs"
+                        onClick={() => setShowFullDescription(!showFullDescription)}
+                        className="mt-2 h-auto px-0 text-xs font-bold text-ondjo-blue"
+                      >
+                        {showFullDescription ? "Mostrar menos" : "Ler descrição completa"}
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </section>
+            </Card>
 
             {/* 3. O que este imóvel oferece (Comodidades compactas com ícones coloridos) */}
-            <section
-              aria-labelledby="section-amenities-title"
-              className="rounded-3xl ondjo-border-surface bg-white p-5 sm:p-6 shadow-2xs"
-            >
+            <Card className="rounded-3xl ondjo-border-surface bg-white py-0 shadow-2xs">
+              <section aria-labelledby="section-amenities-title">
+                <CardContent className="p-5 sm:p-6">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <div>
                   <h2
@@ -882,44 +899,50 @@ export function PropertyPage({ id }: { id: string }) {
                   </div>
                 )}
               </div>
-            </section>
+                </CardContent>
+              </section>
+            </Card>
 
             {/* 4. Localização & Enquadramento na Zona */}
-            <section
-              aria-labelledby="section-location-title"
-              className="rounded-3xl ondjo-border-surface bg-white p-6 sm:p-7 shadow-2xs"
-            >
-              <h2
-                id="section-location-title"
-                className="text-lg sm:text-xl font-black text-ondjo-navy"
-              >
-                Localização em {property.neighborhood}
-              </h2>
+            <Card className="rounded-3xl ondjo-border-surface bg-white py-0 shadow-2xs">
+              <section aria-labelledby="section-location-title">
+                <CardContent className="p-6 sm:p-7">
+                  <h2
+                    id="section-location-title"
+                    className="text-lg sm:text-xl font-black text-ondjo-navy"
+                  >
+                    Localização em {property.neighborhood}
+                  </h2>
 
-              <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-2xl bg-ondjo-blue-50/50 p-4 sm:p-5 ondjo-border-featured">
-                <div className="flex items-center gap-3.5">
-                  <div className="grid size-12 place-items-center rounded-2xl bg-ondjo-blue text-white shadow-xs shrink-0">
-                    <MapPin size={22} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-black text-ondjo-navy">
-                      {property.neighborhood}, Município de {property.city}
-                    </h3>
-                    <p className="mt-0.5 text-xs text-ondjo-muted">
-                      Zona valorizada com fácil acesso aos eixos viários e serviços locais.
-                    </p>
-                  </div>
-                </div>
+                  <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-2xl bg-ondjo-blue-50/50 p-4 sm:p-5 ondjo-border-featured">
+                    <div className="flex items-center gap-3.5">
+                      <div className="grid size-12 place-items-center rounded-2xl bg-ondjo-blue text-white shadow-xs shrink-0">
+                        <MapPin size={22} />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-black text-ondjo-navy">
+                          {property.neighborhood}, Município de {property.city}
+                        </h3>
+                        <p className="mt-0.5 text-xs text-ondjo-muted">
+                          Zona valorizada com fácil acesso aos eixos viários e serviços locais.
+                        </p>
+                      </div>
+                    </div>
 
-                <a
-                  href={`#/pesquisar?location=${encodeURIComponent(property.neighborhood)}`}
-                  className="focus-ring inline-flex items-center justify-center gap-1.5 rounded-full ondjo-border-featured bg-white px-4 py-2 text-xs font-bold text-ondjo-blue shadow-2xs hover:bg-ondjo-blue-50 active:scale-95 transition shrink-0"
-                >
-                  <span>Explorar {property.neighborhood}</span>
-                  <ExternalLink size={13} />
-                </a>
-              </div>
-            </section>
+                    <a
+                      href={`#/pesquisar?location=${encodeURIComponent(property.neighborhood)}`}
+                      className={cn(
+                        buttonVariants({ variant: "outline", size: "sm" }),
+                        "h-9 rounded-full ondjo-border-featured bg-white px-4 text-xs font-bold text-ondjo-blue shadow-2xs hover:bg-ondjo-blue-50 shrink-0",
+                      )}
+                    >
+                      <span>Explorar {property.neighborhood}</span>
+                      <ExternalLink size={13} />
+                    </a>
+                  </div>
+                </CardContent>
+              </section>
+            </Card>
 
             {/* Integração Oficial com o OpenStreetMap */}
             <PropertyMap
@@ -929,63 +952,65 @@ export function PropertyPage({ id }: { id: string }) {
             />
 
             {/* 5. "Antes de Avançar" — Checklist de Segurança e Transparência ONDJO */}
-            <section
-              aria-labelledby="safety-checklist-title"
-              className="rounded-3xl ondjo-border-surface bg-slate-50/80 p-6 sm:p-7 shadow-2xs"
-            >
-              <div className="flex items-center gap-2 text-ondjo-navy">
-                <ShieldAlert size={20} className="text-ondjo-blue shrink-0" />
-                <h2
-                  id="safety-checklist-title"
-                  className="text-base sm:text-lg font-black text-ondjo-navy"
-                >
-                  Antes de avançar: recomendações essenciais ONDJO
-                </h2>
-              </div>
-              <p className="mt-1 text-xs text-ondjo-muted">
-                Garantias para a sua tranquilidade e segurança financeira em Angola:
-              </p>
+            <Card className="rounded-3xl ondjo-border-surface bg-slate-50/80 py-0 shadow-2xs">
+              <section aria-labelledby="safety-checklist-title">
+                <CardContent className="p-6 sm:p-7">
+                  <div className="flex items-center gap-2 text-ondjo-navy">
+                    <ShieldAlert size={20} className="text-ondjo-blue shrink-0" />
+                    <h2
+                      id="safety-checklist-title"
+                      className="text-base sm:text-lg font-black text-ondjo-navy"
+                    >
+                      Antes de avançar: recomendações essenciais ONDJO
+                    </h2>
+                  </div>
+                  <p className="mt-1 text-xs text-ondjo-muted">
+                    Garantias para a sua tranquilidade e segurança financeira em Angola:
+                  </p>
 
-              <ul className="mt-4 space-y-2.5 text-xs sm:text-sm text-slate-700">
-                <li className="flex items-start gap-2.5">
-                  <span className="grid size-5 place-items-center rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-black shrink-0 mt-0.5">
-                    1
-                  </span>
-                  <span>
-                    <strong>Visita presencial obrigatória:</strong> visite sempre o imóvel em horário diurno e acompanhado pelo consultor antes de qualquer compromisso.
-                  </span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="grid size-5 place-items-center rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-black shrink-0 mt-0.5">
-                    2
-                  </span>
-                  <span>
-                    <strong>Verificação documental:</strong> solicite a Certidão do Registo Predial e o comprovativo de liquidação do IPU (Imposto Predial).
-                  </span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="grid size-5 place-items-center rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-black shrink-0 mt-0.5">
-                    3
-                  </span>
-                  <span>
-                    <strong>Contrato formal:</strong> exija sempre contrato formal escrito assinado pelas partes titulares antes de pagamentos.
-                  </span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="grid size-5 place-items-center rounded-full bg-red-100 text-red-800 text-[11px] font-black shrink-0 mt-0.5">
-                    !
-                  </span>
-                  <span className="text-red-950 font-medium">
-                    <strong>Alerta de segurança:</strong> nunca faça pagamentos prévios de "reserva", adiantamentos ou sinais sem vistoria presencial do imóvel e conferência do proprietário.
-                  </span>
-                </li>
-              </ul>
-            </section>
+                  <ul className="mt-4 space-y-2.5 text-xs sm:text-sm text-slate-700">
+                    <li className="flex items-start gap-2.5">
+                      <span className="grid size-5 place-items-center rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-black shrink-0 mt-0.5">
+                        1
+                      </span>
+                      <span>
+                        <strong>Visita presencial obrigatória:</strong> visite sempre o imóvel em horário diurno e acompanhado pelo consultor antes de qualquer compromisso.
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <span className="grid size-5 place-items-center rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-black shrink-0 mt-0.5">
+                        2
+                      </span>
+                      <span>
+                        <strong>Verificação documental:</strong> solicite a Certidão do Registo Predial e o comprovativo de liquidação do IPU (Imposto Predial).
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <span className="grid size-5 place-items-center rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-black shrink-0 mt-0.5">
+                        3
+                      </span>
+                      <span>
+                        <strong>Contrato formal:</strong> exija sempre contrato formal escrito assinado pelas partes titulares antes de pagamentos.
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <span className="grid size-5 place-items-center rounded-full bg-red-100 text-red-800 text-[11px] font-black shrink-0 mt-0.5">
+                        !
+                      </span>
+                      <span className="text-red-950 font-medium">
+                        <strong>Alerta de segurança:</strong> nunca faça pagamentos prévios de "reserva", adiantamentos ou sinais sem vistoria presencial do imóvel e conferência do proprietário.
+                      </span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </section>
+            </Card>
           </div>
 
           {/* ==================== COLUNA LATERAL (STICKY 370PX) ==================== */}
           <aside className="lg:block">
-            <div className="sticky top-24 rounded-3xl ondjo-border-surface bg-white p-6 shadow-ondjo-card">
+            <Card className="sticky top-24 rounded-3xl ondjo-border-surface bg-white py-0 shadow-ondjo-card">
+              <CardContent className="p-6">
               {/* Preço Oficial em Kwanzas (Kz) */}
               <div className="border-b border-slate-100 pb-5">
                 <div className="flex items-center justify-between">
@@ -1028,27 +1053,35 @@ export function PropertyPage({ id }: { id: string }) {
                         <span className="font-semibold text-sm text-ondjo-ink">
                           {formatAngolanPhone(property.advertiser.phone)}
                         </span>
-                        <button
-                          type="button"
-                          onClick={handleCopyPhone}
-                          aria-label={
-                            phoneCopyStatus === "copied"
-                              ? "Número copiado"
-                              : "Copiar número de telemóvel"
-                          }
-                          className="focus-ring inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold text-ondjo-blue transition hover:bg-ondjo-blue-soft active:scale-95"
-                        >
-                          {phoneCopyStatus === "copied" ? (
-                            <Check size={17} aria-hidden="true" />
-                          ) : (
-                            <Copy size={17} aria-hidden="true" />
-                          )}
-                          {/* <span>
+                        <Tooltip>
+                          <TooltipTrigger
+                            render={
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={handleCopyPhone}
+                                aria-label={
+                                  phoneCopyStatus === "copied"
+                                    ? "Número copiado"
+                                    : "Copiar número de telemóvel"
+                                }
+                                className="shrink-0 rounded-lg text-ondjo-blue hover:bg-ondjo-blue-soft"
+                              />
+                            }
+                          >
+                            {phoneCopyStatus === "copied" ? (
+                              <Check size={17} aria-hidden="true" />
+                            ) : (
+                              <Copy size={17} aria-hidden="true" />
+                            )}
+                          </TooltipTrigger>
+                          <TooltipContent>
                             {phoneCopyStatus === "copied"
-                              ? "Copiado"
-                              : "Copiar"}
-                          </span> */}
-                        </button>
+                              ? "Número copiado"
+                              : "Copiar número"}
+                          </TooltipContent>
+                        </Tooltip>
                         <span className="sr-only" aria-live="polite">
                           {phoneCopyStatus === "copied"
                             ? "Número copiado para a área de transferência."
@@ -1128,7 +1161,8 @@ export function PropertyPage({ id }: { id: string }) {
                   Consultores verificados com identificação validada e suporte da plataforma ONDJO.
                 </span>
               </div>
-            </div>
+              </CardContent>
+            </Card>
           </aside>
         </div>
 

@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { getZoneSummaries } from "../data/zones";
 import { navigate } from "../hooks/useHashRoute";
 import { ZoneCard } from "./ZoneCard";
+import { Badge, Button } from "@/components/ui";
 
 export function ZoneSection() {
   const zones = useMemo(getZoneSummaries, []);
@@ -15,10 +16,13 @@ export function ZoneSection() {
       {/* Cabeçalho da Secção */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-200/80 bg-blue-50/80 px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-ondjo-blue">
-            <Compass size={16} className="text-ondjo-blue" aria-hidden="true" />
+          <Badge
+            variant="info"
+            icon={<Compass size={14} className="text-ondjo-blue" aria-hidden="true" />}
+            className="px-3 py-1 font-extrabold uppercase tracking-wider"
+          >
             Explore por zona
-          </div>
+          </Badge>
 
           <h2
             id="zonas-titulo"
@@ -34,14 +38,16 @@ export function ZoneSection() {
         </div>
 
         <div className="flex items-center gap-3 self-start sm:self-auto">
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="md"
             onClick={() => navigate("pesquisar")}
-            className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-xl border border-ondjo-border bg-white px-4 text-xs font-bold text-ondjo-blue shadow-2xs transition hover:bg-blue-50/80 active:scale-95"
+            rightIcon={<ArrowRight size={15} />}
+            className="min-h-11 rounded-xl text-xs font-bold text-ondjo-blue hover:bg-ondjo-blue-50"
           >
-            <span>Ver mapa de zonas</span>
-            <ArrowRight size={15} />
-          </button>
+            Ver mapa de zonas
+          </Button>
         </div>
       </div>
 

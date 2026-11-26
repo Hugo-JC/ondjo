@@ -245,14 +245,15 @@ export function SearchBar({
           className="w-full"
         >
           <TabsList
+            variant="pill"
             aria-label="Modalidade de negócio"
-            className="grid w-full grid-cols-2 rounded-2xl border border-ondjo-border bg-slate-100 p-1 shadow-2xs"
+            className="grid w-full grid-cols-2 border border-ondjo-border bg-white p-1 shadow-xs"
           >
             {PURPOSE_OPTIONS.map((opt) => (
               <TabsTrigger
                 key={opt.id}
                 value={opt.id}
-                className="min-h-10 rounded-xl text-xs font-bold"
+                className="h-9.5 rounded-full text-xs font-bold text-ondjo-muted data-active:bg-ondjo-navy data-active:text-white data-active:shadow-xs"
               >
                 {opt.label}
               </TabsTrigger>
@@ -340,13 +341,13 @@ export function SearchBar({
           <TabsList
             variant="pill"
             aria-label="Modalidade de negócio"
-            className="border border-ondjo-border bg-white shadow-2xs"
+            className="inline-grid grid-cols-2 border border-ondjo-border bg-white p-1 shadow-xs"
           >
             {PURPOSE_OPTIONS.map((opt) => (
               <TabsTrigger
                 key={opt.id}
                 value={opt.id}
-                className="min-h-8.5 rounded-full px-4 text-xs font-bold data-active:bg-ondjo-navy data-active:text-white"
+                className="h-8.5 rounded-full px-5 text-xs font-bold text-ondjo-muted data-active:bg-ondjo-navy data-active:text-white data-active:shadow-xs"
               >
                 {opt.label}
               </TabsTrigger>
@@ -1014,7 +1015,7 @@ export function SearchBar({
                     <TabsTrigger
                       key={opt.id}
                       value={opt.id}
-                      className="min-h-10 rounded-lg text-xs font-bold"
+                      className="h-9.5 rounded-lg text-xs font-bold"
                     >
                       {opt.label}
                     </TabsTrigger>
@@ -1049,16 +1050,18 @@ export function SearchBar({
                   className="pl-10 pr-9"
                 />
                 {searchText && (
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="icon-xs"
                     onClick={() =>
                       onChange({ ...value, location: "", query: "" })
                     }
                     aria-label="Limpar localização"
-                    className="absolute right-2.5 p-1 rounded-full text-slate-400 hover:text-ondjo-ink cursor-pointer"
+                    className="absolute right-2 rounded-full text-slate-400 hover:text-ondjo-ink"
                   >
                     <X size={15} />
-                  </button>
+                  </Button>
                 )}
               </div>
 
@@ -1066,9 +1069,11 @@ export function SearchBar({
                 {POPULAR_LOCATIONS.map((loc) => {
                   const isSel = value.location === loc;
                   return (
-                    <button
+                    <Button
                       key={loc}
                       type="button"
+                      variant={isSel ? "navy" : "outline"}
+                      size="sm"
                       onClick={() =>
                         onChange({
                           ...value,
@@ -1076,15 +1081,10 @@ export function SearchBar({
                           query: "",
                         })
                       }
-                      className={cn(
-                        "focus-ring min-h-8.5 rounded-full px-3 py-1 text-xs font-semibold cursor-pointer",
-                        isSel
-                          ? "ondjo-border-selected bg-ondjo-navy text-white"
-                          : "ondjo-border-interactive bg-white text-ondjo-ink hover:bg-slate-50",
-                      )}
+                      className="rounded-full px-3 text-xs font-semibold"
                     >
                       {loc}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
@@ -1101,20 +1101,21 @@ export function SearchBar({
                 {PROPERTY_TYPES.map((t) => {
                   const isSelected = value.type === t.value;
                   return (
-                    <button
+                    <Button
                       key={t.value}
                       type="button"
+                      variant="outline"
                       aria-pressed={isSelected}
                       onClick={() => set("type", t.value)}
                       className={cn(
-                        "focus-ring flex min-h-10.5 items-center justify-center rounded-xl px-3 py-2 text-xs font-semibold cursor-pointer",
+                        "min-h-10.5 rounded-xl px-3 py-2 text-xs font-semibold",
                         isSelected
-                          ? "ondjo-border-selected bg-ondjo-blue-50/75 text-ondjo-blue font-bold"
-                          : "ondjo-border-interactive bg-white text-ondjo-ink hover:bg-slate-50",
+                          ? "ondjo-border-selected bg-ondjo-blue-50/75 text-ondjo-blue font-bold hover:bg-ondjo-blue-50"
+                          : "bg-white text-ondjo-ink hover:bg-slate-50",
                       )}
                     >
                       {t.label}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
@@ -1160,32 +1161,36 @@ export function SearchBar({
                     Quartos
                   </span>
                   <div className="flex items-center gap-2.5">
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
+                      size="icon-sm"
                       onClick={() => {
                         const cur = parseInt(value.bedrooms || "0", 10);
                         const next = Math.max(0, cur - 1);
                         set("bedrooms", next === 0 ? "" : String(next));
                       }}
                       aria-label="Diminuir quartos"
-                      className="focus-ring grid size-8.5 place-items-center rounded-full ondjo-border-interactive bg-white text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue active:scale-90 cursor-pointer"
+                      className="rounded-full"
                     >
                       <Minus size={14} strokeWidth={2.2} />
-                    </button>
+                    </Button>
                     <span className="w-14 text-center text-xs font-bold text-ondjo-navy tabular-nums">
                       {value.bedrooms ? `T${value.bedrooms}` : "Qualquer"}
                     </span>
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
+                      size="icon-sm"
                       onClick={() => {
                         const cur = parseInt(value.bedrooms || "0", 10);
                         set("bedrooms", String(cur + 1));
                       }}
                       aria-label="Aumentar quartos"
-                      className="focus-ring grid size-8.5 place-items-center rounded-full ondjo-border-interactive bg-white text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue active:scale-90 cursor-pointer"
+                      className="rounded-full"
                     >
                       <Plus size={14} strokeWidth={2.2} />
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
@@ -1194,32 +1199,36 @@ export function SearchBar({
                     Casas de banho
                   </span>
                   <div className="flex items-center gap-2.5">
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
+                      size="icon-sm"
                       onClick={() => {
                         const cur = parseInt(value.bathrooms || "0", 10);
                         const next = Math.max(0, cur - 1);
                         set("bathrooms", next === 0 ? "" : String(next));
                       }}
                       aria-label="Diminuir casas de banho"
-                      className="focus-ring grid size-8.5 place-items-center rounded-full ondjo-border-interactive bg-white text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue active:scale-90 cursor-pointer"
+                      className="rounded-full"
                     >
                       <Minus size={14} strokeWidth={2.2} />
-                    </button>
+                    </Button>
                     <span className="w-14 text-center text-xs font-bold text-ondjo-navy tabular-nums">
                       {value.bathrooms ? `${value.bathrooms}+` : "Qualquer"}
                     </span>
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
+                      size="icon-sm"
                       onClick={() => {
                         const cur = parseInt(value.bathrooms || "0", 10);
                         set("bathrooms", String(cur + 1));
                       }}
                       aria-label="Aumentar casas de banho"
-                      className="focus-ring grid size-8.5 place-items-center rounded-full ondjo-border-interactive bg-white text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue active:scale-90 cursor-pointer"
+                      className="rounded-full"
                     >
                       <Plus size={14} strokeWidth={2.2} />
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
@@ -1228,32 +1237,36 @@ export function SearchBar({
                     Estacionamento
                   </span>
                   <div className="flex items-center gap-2.5">
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
+                      size="icon-sm"
                       onClick={() => {
                         const cur = parseInt(value.parking || "0", 10);
                         const next = Math.max(0, cur - 1);
                         set("parking", next === 0 ? "" : String(next));
                       }}
                       aria-label="Diminuir vagas"
-                      className="focus-ring grid size-8.5 place-items-center rounded-full ondjo-border-interactive bg-white text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue active:scale-90 cursor-pointer"
+                      className="rounded-full"
                     >
                       <Minus size={14} strokeWidth={2.2} />
-                    </button>
+                    </Button>
                     <span className="w-14 text-center text-xs font-bold text-ondjo-navy tabular-nums">
                       {value.parking ? `${value.parking}+` : "Qualquer"}
                     </span>
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
+                      size="icon-sm"
                       onClick={() => {
                         const cur = parseInt(value.parking || "0", 10);
                         set("parking", String(cur + 1));
                       }}
                       aria-label="Aumentar vagas"
-                      className="focus-ring grid size-8.5 place-items-center rounded-full ondjo-border-interactive bg-white text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue active:scale-90 cursor-pointer"
+                      className="rounded-full"
                     >
                       <Plus size={14} strokeWidth={2.2} />
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>

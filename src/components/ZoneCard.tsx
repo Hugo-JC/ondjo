@@ -2,6 +2,7 @@ import { ArrowUpRight, Building2, MapPin } from "lucide-react";
 import { formatKz } from "../data/properties";
 import { formatCount, type ZoneSummary } from "../data/zones";
 import { getOptimizedImageUrl, getImageSrcSet } from "../utils/images";
+import { Badge, Card, CardContent } from "@/components/ui";
 
 const ZONE_METADATA: Record<
   string,
@@ -70,20 +71,27 @@ export function ZoneCard({ zone }: { zone: ZoneSummary }) {
 
   if (!hasProperties) {
     return (
-      <div className="flex h-64 sm:h-72 flex-col justify-between overflow-hidden rounded-2xl border border-dashed border-ondjo-border bg-slate-50/70 p-4 sm:p-5 text-slate-500">
-        <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-200/70 px-2.5 py-0.5 text-[10px] font-bold text-slate-600">
-            <Building2 size={12} /> Em breve
-          </span>
-          <h3 className="mt-3 text-lg font-black text-slate-700">{name}</h3>
-          <p className="mt-1 text-xs text-slate-400">
-            Novos imóveis a serem auditados nesta zona.
-          </p>
-        </div>
-        <div className="text-[11px] font-semibold text-slate-400">
-          Sem anúncios ativos
-        </div>
-      </div>
+      <Card className="h-64 sm:h-72 border-dashed border-ondjo-border bg-slate-50/70 py-0 text-slate-500 shadow-none">
+        <CardContent className="flex h-full flex-col justify-between p-4 sm:p-5">
+          <div>
+            <Badge
+              variant="outline"
+              size="xs"
+              icon={<Building2 size={12} />}
+              className="border-slate-200 bg-slate-100 text-slate-600 font-bold"
+            >
+              Em breve
+            </Badge>
+            <h3 className="mt-3 text-lg font-black text-slate-700">{name}</h3>
+            <p className="mt-1 text-xs text-slate-400">
+              Novos imóveis a serem auditados nesta zona.
+            </p>
+          </div>
+          <div className="text-[11px] font-semibold text-slate-400">
+            Sem anúncios ativos
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -114,10 +122,13 @@ export function ZoneCard({ zone }: { zone: ZoneSummary }) {
 
       {/* Topo do Card: Badge de Imóveis + Botão com Seta */}
       <div className="relative z-10 flex items-center justify-between p-4 sm:p-5">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-black/55 px-2.5 py-1 text-xs font-bold text-white">
-          <MapPin size={15} className="text-blue-300" aria-hidden="true" />
-          <span>{formatCount(count)}</span>
-        </span>
+        <Badge
+          variant="navy"
+          icon={<MapPin size={14} className="text-blue-300" aria-hidden="true" />}
+          className="border-white/15 bg-ondjo-navy px-2.5 py-1 text-xs font-bold text-white shadow-xs"
+        >
+          {formatCount(count)}
+        </Badge>
 
         <span
           aria-hidden="true"

@@ -1,4 +1,6 @@
 import React from "react";
+import { Badge } from "./badge";
+import { cn } from "@/lib/utils";
 
 export interface SectionHeaderProps {
   eyebrow?: React.ReactNode;
@@ -21,19 +23,20 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
 }) => {
   return (
     <div
-      className={[
+      className={cn(
         "flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-6 sm:mb-8",
-        align === "center" ? "text-center items-center" : "",
+        align === "center" && "text-center items-center",
         className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      )}
     >
       <div className={align === "center" ? "max-w-2xl mx-auto" : "max-w-2xl"}>
         {eyebrow && (
-          <div className="mb-2 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ondjo-blue">
+          <Badge
+            variant="info"
+            className="mb-2.5 uppercase tracking-wider font-bold"
+          >
             {eyebrow}
-          </div>
+          </Badge>
         )}
         <h2
           id={id}

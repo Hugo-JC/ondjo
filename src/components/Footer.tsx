@@ -1,5 +1,6 @@
 import { Globe } from "lucide-react";
 import { Logo } from "./Logo";
+import { Separator } from "@/components/ui";
 
 export function Footer() {
   return (
@@ -172,7 +173,7 @@ export function Footer() {
         </div>
 
         {/* Linha Divisória */}
-        <div className="my-8 border-t border-slate-100 sm:my-10" />
+        <Separator className="my-8 bg-slate-100 sm:my-10" />
 
         {/* Barra Inferior com Informações de Copyright e Localidade */}
         <div className="flex flex-col items-center justify-between gap-4 text-xs text-ondjo-muted sm:flex-row">

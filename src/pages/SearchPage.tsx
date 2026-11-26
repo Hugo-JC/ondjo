@@ -48,6 +48,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Chip } from "@/components/ui/Chip";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -329,17 +330,17 @@ export function SearchPage() {
               <TabsList
                 variant="pill"
                 aria-label="Finalidade da pesquisa"
-                className="border border-ondjo-border bg-slate-100 p-1"
+                className="inline-grid grid-cols-2 border border-ondjo-border bg-slate-100 p-1"
               >
                 <TabsTrigger
                   value="comprar"
-                  className="min-h-8.5 px-3.5 sm:px-4 rounded-full text-xs font-bold"
+                  className="h-8 px-3.5 sm:px-4 rounded-full text-xs font-bold data-active:bg-ondjo-navy data-active:text-white data-active:shadow-xs"
                 >
                   Comprar
                 </TabsTrigger>
                 <TabsTrigger
                   value="arrendar"
-                  className="min-h-8.5 px-3.5 sm:px-4 rounded-full text-xs font-bold"
+                  className="h-8 px-3.5 sm:px-4 rounded-full text-xs font-bold data-active:bg-ondjo-navy data-active:text-white data-active:shadow-xs"
                 >
                   Arrendar
                 </TabsTrigger>
@@ -743,7 +744,7 @@ export function SearchPage() {
               <TabsList
                 variant="pill"
                 aria-label="Modo de visualização"
-                className="border border-ondjo-border bg-slate-100 p-1"
+                className="inline-grid grid-cols-2 border border-ondjo-border bg-slate-100 p-1"
               >
                 <TabsTrigger
                   value="grid"
@@ -821,31 +822,33 @@ export function SearchPage() {
           </div>
         ) : (
           <div className="mt-8">
-            <div className="rounded-3xl bg-white p-8 sm:p-12 text-center shadow-ondjo-card ondjo-border-surface max-w-2xl mx-auto">
-              <div className="mx-auto mb-4 grid size-14 place-items-center rounded-2xl bg-ondjo-blue-soft text-ondjo-blue">
-                <Search size={28} />
-              </div>
-              <h2 className="text-lg sm:text-xl font-black text-ondjo-navy">
-                Nenhum imóvel corresponde aos seus filtros
-              </h2>
-              <p className="mt-2 text-xs sm:text-sm text-ondjo-muted max-w-md mx-auto leading-relaxed">
-                Não encontramos opções em Luanda com a combinação selecionada.
-                Experimente limpar os filtros ou selecionar uma das sugestões
-                abaixo.
-              </p>
-              <div className="mt-5 flex justify-center">
-                <Button
-                  type="button"
-                  variant="navy"
-                  size="sm"
-                  onClick={clearAllFilters}
-                  leftIcon={<RotateCcw size={14} />}
-                  className="px-5 py-2.5"
-                >
-                  Limpar todos os filtros
-                </Button>
-              </div>
-            </div>
+            <Card className="mx-auto max-w-2xl rounded-3xl ondjo-border-surface bg-white py-0 text-center shadow-ondjo-card">
+              <CardContent className="p-8 sm:p-12">
+                <div className="mx-auto mb-4 grid size-14 place-items-center rounded-2xl bg-ondjo-blue-soft text-ondjo-blue">
+                  <Search size={28} />
+                </div>
+                <h2 className="text-lg sm:text-xl font-black text-ondjo-navy">
+                  Nenhum imóvel corresponde aos seus filtros
+                </h2>
+                <p className="mt-2 text-xs sm:text-sm text-ondjo-muted max-w-md mx-auto leading-relaxed">
+                  Não encontramos opções em Luanda com a combinação selecionada.
+                  Experimente limpar os filtros ou selecionar uma das sugestões
+                  abaixo.
+                </p>
+                <div className="mt-5 flex justify-center">
+                  <Button
+                    type="button"
+                    variant="navy"
+                    size="sm"
+                    onClick={clearAllFilters}
+                    leftIcon={<RotateCcw size={14} />}
+                    className="px-5 py-2.5"
+                  >
+                    Limpar todos os filtros
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
             <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
               <span className="text-xs font-semibold text-ondjo-muted">
@@ -972,13 +975,13 @@ export function SearchPage() {
                 >
                   <TabsTrigger
                     value="comprar"
-                    className="min-h-10 rounded-lg text-xs font-bold"
+                    className="h-9.5 rounded-lg text-xs font-bold"
                   >
                     Comprar
                   </TabsTrigger>
                   <TabsTrigger
                     value="arrendar"
-                    className="min-h-10 rounded-lg text-xs font-bold"
+                    className="h-9.5 rounded-lg text-xs font-bold"
                   >
                     Arrendar
                   </TabsTrigger>
@@ -1006,14 +1009,16 @@ export function SearchPage() {
                     className="pl-10 pr-9"
                   />
                   {filters.location && (
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="icon-xs"
                       onClick={() => setFilterField("location", "")}
                       aria-label="Limpar localização"
-                      className="absolute right-2.5 p-1 rounded-full text-slate-400 hover:text-ondjo-ink cursor-pointer"
+                      className="absolute right-2 rounded-full text-slate-400 hover:text-ondjo-ink"
                     >
                       <X size={15} />
-                    </button>
+                    </Button>
                   )}
                 </div>
               </label>
@@ -1022,21 +1027,18 @@ export function SearchPage() {
                 {POPULAR_NEIGHBORHOODS.map((neigh) => {
                   const isSel = filters.location === neigh;
                   return (
-                    <button
+                    <Button
                       key={neigh}
                       type="button"
+                      variant={isSel ? "navy" : "outline"}
+                      size="sm"
                       onClick={() =>
                         setFilterField("location", isSel ? "" : neigh)
                       }
-                      className={cn(
-                        "focus-ring min-h-8.5 rounded-full px-3 py-1 text-xs font-semibold cursor-pointer",
-                        isSel
-                          ? "ondjo-border-selected bg-ondjo-navy text-white"
-                          : "ondjo-border-interactive bg-white text-ondjo-ink hover:bg-slate-50",
-                      )}
+                      className="rounded-full px-3 text-xs font-semibold"
                     >
                       {neigh}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
@@ -1053,20 +1055,21 @@ export function SearchPage() {
                 {PROPERTY_TYPES.map((pt) => {
                   const isSelected = filters.type === pt.value;
                   return (
-                    <button
+                    <Button
                       key={pt.value}
                       type="button"
+                      variant="outline"
                       aria-pressed={isSelected}
                       onClick={() => setFilterField("type", pt.value)}
                       className={cn(
-                        "focus-ring flex min-h-10.5 items-center justify-center rounded-xl px-3 py-2 text-xs font-semibold cursor-pointer",
+                        "min-h-10.5 rounded-xl px-3 py-2 text-xs font-semibold",
                         isSelected
-                          ? "ondjo-border-selected bg-ondjo-blue-50/75 text-ondjo-blue font-bold"
-                          : "ondjo-border-interactive bg-white text-ondjo-ink hover:bg-slate-50",
+                          ? "ondjo-border-selected bg-ondjo-blue-50/75 text-ondjo-blue font-bold hover:bg-ondjo-blue-50"
+                          : "bg-white text-ondjo-ink hover:bg-slate-50",
                       )}
                     >
                       {pt.label}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
@@ -1110,20 +1113,21 @@ export function SearchPage() {
                   {BEDROOM_OPTIONS.map((bed) => {
                     const isSelected = filters.bedrooms === bed.value;
                     return (
-                      <button
+                      <Button
                         key={bed.value}
                         type="button"
+                        variant="outline"
                         aria-pressed={isSelected}
                         onClick={() => setFilterField("bedrooms", bed.value)}
                         className={cn(
-                          "focus-ring min-h-10 rounded-xl px-2 text-xs font-semibold cursor-pointer",
+                          "min-h-10 rounded-xl px-2 text-xs font-semibold",
                           isSelected
-                            ? "ondjo-border-selected bg-ondjo-blue-50/75 text-ondjo-blue font-bold"
-                            : "ondjo-border-interactive bg-white text-ondjo-ink hover:bg-slate-50",
+                            ? "ondjo-border-selected bg-ondjo-blue-50/75 text-ondjo-blue font-bold hover:bg-ondjo-blue-50"
+                            : "bg-white text-ondjo-ink hover:bg-slate-50",
                         )}
                       >
                         {bed.label}
-                      </button>
+                      </Button>
                     );
                   })}
                 </div>
@@ -1138,20 +1142,21 @@ export function SearchPage() {
                     {["", "1", "2", "3"].map((val) => {
                       const isSelected = filters.bathrooms === val;
                       return (
-                        <button
+                        <Button
                           key={val}
                           type="button"
+                          variant="outline"
                           aria-pressed={isSelected}
                           onClick={() => setFilterField("bathrooms", val)}
                           className={cn(
-                            "focus-ring min-h-10 rounded-xl text-xs font-semibold cursor-pointer",
+                            "min-h-10 rounded-xl text-xs font-semibold",
                             isSelected
-                              ? "ondjo-border-selected bg-ondjo-blue-50/75 text-ondjo-blue font-bold"
-                              : "ondjo-border-interactive bg-white text-ondjo-ink hover:bg-slate-50",
+                              ? "ondjo-border-selected bg-ondjo-blue-50/75 text-ondjo-blue font-bold hover:bg-ondjo-blue-50"
+                              : "bg-white text-ondjo-ink hover:bg-slate-50",
                           )}
                         >
                           {val ? `${val}+` : "Todas"}
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
@@ -1165,20 +1170,21 @@ export function SearchPage() {
                     {["", "1", "2"].map((val) => {
                       const isSelected = filters.parking === val;
                       return (
-                        <button
+                        <Button
                           key={val}
                           type="button"
+                          variant="outline"
                           aria-pressed={isSelected}
                           onClick={() => setFilterField("parking", val)}
                           className={cn(
-                            "focus-ring min-h-10 rounded-xl text-xs font-semibold cursor-pointer",
+                            "min-h-10 rounded-xl text-xs font-semibold",
                             isSelected
-                              ? "ondjo-border-selected bg-ondjo-blue-50/75 text-ondjo-blue font-bold"
-                              : "ondjo-border-interactive bg-white text-ondjo-ink hover:bg-slate-50",
+                              ? "ondjo-border-selected bg-ondjo-blue-50/75 text-ondjo-blue font-bold hover:bg-ondjo-blue-50"
+                              : "bg-white text-ondjo-ink hover:bg-slate-50",
                           )}
                         >
                           {val ? `${val}+` : "Todas"}
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>

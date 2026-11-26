@@ -8,7 +8,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { m, useReducedMotion } from "framer-motion";
-import { Badge } from "./ui";
+import { Badge, Card, CardContent } from "./ui";
 
 interface Pillar {
   icon: LucideIcon;
@@ -82,10 +82,8 @@ export function TrustStrip() {
   const shouldReduceMotion = useReducedMotion();
 
   return (
-    <section
-      aria-labelledby="trust-strip-title"
-      className="relative overflow-hidden rounded-3xl sm:rounded-[28px] border border-ondjo-border bg-white p-5 shadow-[0_16px_50px_rgba(16,24,40,0.05)] sm:p-8 lg:p-10"
-    >
+    <Card className="relative overflow-hidden rounded-3xl sm:rounded-[28px] border-ondjo-border bg-white py-0 shadow-[0_16px_50px_rgba(16,24,40,0.05)]">
+      <section aria-labelledby="trust-strip-title" className="p-5 sm:p-8 lg:p-10">
       {/* Cabeçalho da secção */}
       <div className="relative flex flex-col justify-between gap-4 border-b border-slate-100 pb-6 sm:flex-row sm:items-end sm:pb-8">
         <div className="max-w-2xl">
@@ -111,19 +109,21 @@ export function TrustStrip() {
           </p>
         </div>
 
-        <div className="hidden shrink-0 items-center gap-2 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-3 sm:flex">
-          <div className="grid size-11 place-items-center rounded-xl bg-ondjo-navy text-white shadow-xs">
-            <ShieldCheck size={25} />
-          </div>
-          <div>
-            <span className="block text-lg font-bold text-ondjo-ink">
-              Plataforma Segura
-            </span>
-            <span className="block text-sm text-ondjo-muted">
-              Mercado imobiliário angolano
-            </span>
-          </div>
-        </div>
+        <Card size="sm" className="hidden shrink-0 border-slate-200/80 bg-slate-50/80 py-0 shadow-none sm:flex">
+          <CardContent className="flex items-center gap-2.5 p-3">
+            <div className="grid size-11 place-items-center rounded-xl bg-ondjo-navy text-white shadow-xs">
+              <ShieldCheck size={25} />
+            </div>
+            <div>
+              <span className="block text-lg font-bold text-ondjo-ink">
+                Plataforma Segura
+              </span>
+              <span className="block text-sm text-ondjo-muted">
+                Mercado imobiliário angolano
+              </span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Dica de swipe em ecrãs pequenos */}
@@ -149,48 +149,54 @@ export function TrustStrip() {
               }
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.2, delay: index * 0.04 }}
-              className={`group relative flex w-[78vw] max-w-70 shrink-0 snap-center sm:w-auto sm:max-w-none sm:shrink flex-col justify-between rounded-2xl border border-slate-100 bg-slate-50/70 p-4 sm:p-5 transition-[transform,background-color,box-shadow,border-color] duration-150 hover:-translate-y-0.5 hover:bg-white hover:shadow-lg hover:shadow-slate-200/40 ${style.glow}`}
+              className="flex w-[78vw] max-w-70 shrink-0 snap-center sm:w-auto sm:max-w-none sm:shrink"
             >
-              <div>
-                <div className="flex items-center justify-between gap-2">
-                  <span
-                    aria-hidden="true"
-                    className={`grid size-11 place-items-center rounded-xl border shadow-2xs transition-transform duration-300 group-hover:scale-105 ${style.iconBg}`}
-                  >
-                    <Icon size={20} strokeWidth={2} />
-                  </span>
+              <Card
+                className={`group relative flex w-full flex-col justify-between border-slate-100 bg-slate-50/70 py-0 shadow-none transition-[transform,background-color,box-shadow,border-color] duration-150 hover:-translate-y-0.5 hover:bg-white hover:shadow-lg hover:shadow-slate-200/40 ${style.glow}`}
+              >
+                <CardContent className="flex h-full flex-col justify-between p-4 sm:p-5">
+                  <div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span
+                        aria-hidden="true"
+                        className={`grid size-11 place-items-center rounded-xl border shadow-2xs transition-transform duration-300 group-hover:scale-105 ${style.iconBg}`}
+                      >
+                        <Icon size={20} strokeWidth={2} />
+                      </span>
 
-                  <Badge
-                    variant={
-                      pillar.accent === "green"
-                        ? "verified"
-                        : pillar.accent === "blue"
-                          ? "info"
-                          : "secondary"
-                    }
-                    className="px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide"
-                  >
-                    {pillar.badge}
-                  </Badge>
-                </div>
+                      <Badge
+                        variant={
+                          pillar.accent === "green"
+                            ? "verified"
+                            : pillar.accent === "blue"
+                              ? "info"
+                              : "secondary"
+                        }
+                        className="px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide"
+                      >
+                        {pillar.badge}
+                      </Badge>
+                    </div>
 
-                <h3 className="mt-3.5 text-base font-black tracking-tight text-ondjo-ink">
-                  {pillar.title}
-                </h3>
+                    <h3 className="mt-3.5 text-base font-black tracking-tight text-ondjo-ink">
+                      {pillar.title}
+                    </h3>
 
-                <p className="mt-1.5 text-sm leading-relaxed text-ondjo-muted">
-                  {pillar.description}
-                </p>
-              </div>
+                    <p className="mt-1.5 text-sm leading-relaxed text-ondjo-muted">
+                      {pillar.description}
+                    </p>
+                  </div>
 
-              <div className="mt-4 flex items-center gap-1.5 border-t border-slate-200/60 pt-3 text-sm font-bold text-slate-500">
-                <CheckCircle2
-                  size={15}
-                  className="text-ondjo-green"
-                  aria-hidden="true"
-                />
-                <span>Padrão ONDJO de Qualidade</span>
-              </div>
+                  <div className="mt-4 flex items-center gap-1.5 border-t border-slate-200/60 pt-3 text-sm font-bold text-slate-500">
+                    <CheckCircle2
+                      size={15}
+                      className="text-ondjo-green"
+                      aria-hidden="true"
+                    />
+                    <span>Padrão ONDJO de Qualidade</span>
+                  </div>
+                </CardContent>
+              </Card>
             </m.div>
           );
         })}
@@ -219,6 +225,7 @@ export function TrustStrip() {
           ))}
         </div>
       </div>
-    </section>
+      </section>
+    </Card>
   );
 }

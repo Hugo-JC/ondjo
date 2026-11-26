@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { m } from "framer-motion";
 import { Logo } from "../Logo";
+import { Badge, buttonVariants } from "@/components/ui";
+import { cn } from "@/lib/utils";
 
 type Props = {
   children: ReactNode;
@@ -22,8 +24,8 @@ export default function AuthLayout({
     <main className="min-h-dvh bg-slate-50 text-slate-950">
       <div className="grid min-h-dvh lg:grid-cols-[minmax(320px,0.82fr)_1fr]">
         <aside className="relative hidden overflow-hidden bg-ondjo-navy-deep p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
-          <div className="absolute -left-32 -top-32 h-80 w-80 rounded-full bg-blue-500/20 blur-3xl" />
-          <div className="absolute -bottom-32 -right-20 h-96 w-96 rounded-full bg-cyan-400/10 blur-3xl" />
+          <div className="pointer-events-none absolute -left-24 -top-24 size-72 rounded-full border border-white/10 bg-white/5" />
+          <div className="pointer-events-none absolute -bottom-28 -right-20 size-88 rounded-full border border-white/10 bg-ondjo-blue/15" />
           <div className="relative z-10">
             <a
               href="#/"
@@ -57,7 +59,10 @@ export default function AuthLayout({
           <div className="flex items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
             <a
               href={backHref}
-              className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
+              className={cn(
+                buttonVariants({ variant: "ghost", size: "md" }),
+                "min-h-11 rounded-xl px-3 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-950",
+              )}
             >
               <ArrowLeft className="size-4" />
               Voltar
@@ -78,9 +83,9 @@ export default function AuthLayout({
           >
             <div className="w-full">
               <div className="mb-8 max-w-xl">
-                <p className="mb-2 text-sm font-semibold text-blue-600">
+                <Badge variant="info" className="mb-3 font-bold">
                   {eyebrow}
-                </p>
+                </Badge>
                 <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
                   {title}
                 </h1>

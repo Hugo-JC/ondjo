@@ -16,6 +16,10 @@ import { Logo } from "./Logo";
 import { useFavorites } from "../hooks/useFavorites";
 import { useHashRoute } from "../hooks/useHashRoute";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import {
   Tooltip,
   TooltipContent,
@@ -199,14 +203,16 @@ export default function Sidebar({
               </a>
 
               {/* Botão recolher no desktop */}
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon-sm"
                 onClick={toggleExpanded}
                 aria-label="Recolher menu lateral"
-                className="focus-ring hidden lg:grid size-8.5 place-items-center rounded-xl text-ondjo-muted hover:bg-slate-100 hover:text-ondjo-ink cursor-pointer transition-colors"
+                className="hidden lg:inline-flex rounded-xl text-ondjo-muted hover:bg-slate-100 hover:text-ondjo-ink"
               >
                 <PanelLeftClose size={18} aria-hidden="true" />
-              </button>
+              </Button>
             </div>
           ) : (
             /* Modo Compacto: Marca ONDJO com troca para ícone de expandir no hover */
@@ -245,14 +251,16 @@ export default function Sidebar({
           )}
 
           {/* Botão fechar (Mobile apenas) */}
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => setMobileOpen(false)}
             aria-label="Fechar menu"
-            className="focus-ring grid size-9 place-items-center rounded-xl text-ondjo-muted hover:bg-slate-100 hover:text-ondjo-ink lg:hidden cursor-pointer ml-auto"
+            className="ml-auto size-9 rounded-xl text-ondjo-muted hover:bg-slate-100 hover:text-ondjo-ink lg:hidden"
           >
             <X size={20} aria-hidden="true" />
-          </button>
+          </Button>
         </div>
 
         {/* Corpo com Itens Verticais */}
@@ -305,23 +313,28 @@ export default function Sidebar({
           {/* Card de Anúncio para Proprietários no modo expandido */}
           {sidebarExpanded && (
             <div className="mt-auto pt-4 px-1">
-              <div className="rounded-2xl ondjo-border-featured bg-ondjo-blue-50/60 p-3.5">
-                <p className="text-xs font-bold text-ondjo-navy">
-                  É proprietário ou corretor?
-                </p>
-                <p className="mt-1 text-[11px] leading-relaxed text-ondjo-muted">
-                  Anuncie o seu imóvel e chegue a milhares de compradores em
-                  Angola.
-                </p>
-                <a
-                  href="#/login"
-                  onClick={() => setMobileOpen(false)}
-                  className="focus-ring mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-ondjo-blue py-2 text-xs font-bold text-white shadow-xs hover:bg-ondjo-blue-dark transition-colors"
-                >
-                  <Plus size={14} strokeWidth={2.6} />
-                  <span>Anunciar agora</span>
-                </a>
-              </div>
+              <Card size="sm" className="ondjo-border-featured bg-ondjo-blue-50/75 py-0 shadow-none">
+                <CardContent className="p-3.5">
+                  <p className="text-xs font-bold text-ondjo-navy">
+                    É proprietário ou corretor?
+                  </p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-ondjo-muted">
+                    Anuncie o seu imóvel e chegue a milhares de compradores em
+                    Angola.
+                  </p>
+                  <a
+                    href="#/login"
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      buttonVariants({ variant: "primary", size: "sm" }),
+                      "mt-2.5 w-full rounded-xl text-xs font-bold",
+                    )}
+                  >
+                    <Plus size={14} strokeWidth={2.6} />
+                    <span>Anunciar agora</span>
+                  </a>
+                </CardContent>
+              </Card>
             </div>
           )}
         </nav>
@@ -342,18 +355,19 @@ export default function Sidebar({
           />
 
           {/* Botão de Alternar Largura (Apenas no Desktop) */}
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={toggleExpanded}
             aria-label={
               expanded ? "Recolher menu lateral" : "Expandir menu lateral"
             }
-            className={[
-              "focus-ring hidden lg:flex items-center gap-3 rounded-2xl p-2.5 text-xs font-semibold text-ondjo-muted hover:bg-white hover:text-ondjo-ink hover:shadow-2xs transition-colors duration-150 cursor-pointer",
+            className={cn(
+              "hidden lg:flex items-center gap-3 rounded-2xl text-xs font-semibold text-ondjo-muted hover:bg-white hover:text-ondjo-ink hover:shadow-2xs",
               expanded
-                ? "justify-start w-full px-3"
-                : "justify-center w-full max-w-14 h-12 mx-auto",
-            ].join(" ")}
+                ? "justify-start w-full h-11 px-3"
+                : "justify-center w-full max-w-14 h-12 mx-auto p-2.5",
+            )}
           >
             {expanded ? (
               <>
@@ -363,7 +377,7 @@ export default function Sidebar({
             ) : (
               <PanelLeftOpen size={18} aria-hidden="true" />
             )}
-          </button>
+          </Button>
         </div>
       </aside>
     </>
@@ -423,12 +437,14 @@ function SidebarButton({
 
         {/* Badge flutuante no modo compacto */}
         {!expanded && badgeCount > 0 && (
-          <span
+          <Badge
+            variant="navy"
+            size="xs"
             aria-hidden="true"
-            className="absolute -top-1.5 -right-2 grid min-w-4 h-4 place-items-center rounded-full bg-ondjo-navy px-1 text-[9px] font-black text-white shadow-xs"
+            className="absolute -top-1.5 -right-2 h-4 min-w-4 px-1 text-[9px] font-black shadow-xs"
           >
             {badgeCount > 9 ? "9+" : badgeCount}
-          </span>
+          </Badge>
         )}
       </span>
 
@@ -437,9 +453,13 @@ function SidebarButton({
         <div className="flex flex-1 items-center justify-between min-w-0">
           <span className="truncate">{item.label}</span>
           {badgeCount > 0 && (
-            <span className="grid min-w-5 h-5 place-items-center rounded-full bg-ondjo-blue px-1.5 text-[10px] font-black text-white">
+            <Badge
+              variant="default"
+              size="xs"
+              className="h-5 min-w-5 px-1.5 text-[10px] font-black"
+            >
               {badgeCount}
-            </span>
+            </Badge>
           )}
         </div>
       )}

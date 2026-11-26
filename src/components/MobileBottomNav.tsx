@@ -55,17 +55,17 @@ export function MobileBottomNav() {
   }
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.875rem+env(safe-area-inset-bottom,0px))] z-40 flex justify-center px-4 lg:hidden">
+    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom,0px))] z-40 flex justify-center px-4 lg:hidden">
       <m.nav
         aria-label="Navegação móvel principal"
-        initial={reduceMotion ? false : { opacity: 0, y: 14, scale: 0.96 }}
+        initial={reduceMotion ? false : { opacity: 0, y: 12, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={
           reduceMotion
             ? { duration: 0 }
             : { type: "spring", stiffness: 380, damping: 32, mass: 0.85 }
         }
-        className="pointer-events-auto relative flex items-center gap-1 rounded-full ondjo-border-surface bg-white p-1.5 shadow-ondjo-popover ring-1 ring-ondjo-navy/6"
+        className="pointer-events-auto grid w-full max-w-[332px] grid-cols-5 items-center gap-1 rounded-full border border-ondjo-border-strong bg-white p-1.5 shadow-[0_8px_28px_rgba(16,42,67,0.14)]"
       >
         {MOBILE_NAV_ITEMS.map((item) => {
           const Icon = item.icon;
@@ -84,11 +84,11 @@ export function MobileBottomNav() {
                   : item.label
               }
               className={cn(
-                "focus-ring group relative flex size-12 items-center justify-center rounded-full select-none cursor-pointer",
-                "transition-[color,transform,background-color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-90",
+                "focus-ring group relative flex h-11 w-full items-center justify-center rounded-full select-none cursor-pointer",
+                "transition-[color,transform,background-color] duration-150 ease-out active:scale-92",
                 active
-                  ? "text-ondjo-blue"
-                  : "text-ondjo-muted hover:bg-slate-50/90 hover:text-ondjo-navy",
+                  ? "text-white"
+                  : "text-ondjo-ink/75 hover:bg-slate-100 hover:text-ondjo-navy",
               )}
             >
               {active && (
@@ -105,18 +105,18 @@ export function MobileBottomNav() {
                           mass: 0.78,
                         }
                   }
-                  className="absolute inset-0 rounded-full ondjo-border-featured bg-ondjo-blue-50 shadow-2xs"
+                  className="absolute inset-0 rounded-full bg-ondjo-navy shadow-xs"
                 />
               )}
 
               <span className="relative z-10 inline-flex items-center justify-center">
                 <Icon
                   size={20}
-                  strokeWidth={active ? 2.35 : 1.85}
+                  strokeWidth={active ? 2.3 : 1.9}
                   className={cn(
-                    "transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]",
-                    active ? "scale-[1.06]" : "group-hover:scale-105",
-                    item.id === "favorites" && active && "fill-ondjo-blue/15",
+                    "transition-transform duration-150 ease-out",
+                    active ? "scale-105" : "group-hover:scale-105",
+                    item.id === "favorites" && active && "fill-white/25",
                   )}
                   aria-hidden="true"
                 />
@@ -124,8 +124,10 @@ export function MobileBottomNav() {
                   <span
                     aria-hidden="true"
                     className={cn(
-                      "absolute -top-1.5 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none text-white tabular-nums ring-2 ring-white transition-colors duration-200",
-                      active ? "bg-ondjo-blue" : "bg-ondjo-navy",
+                      "absolute -top-1.5 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none tabular-nums ring-2 transition-colors duration-150",
+                      active
+                        ? "bg-ondjo-blue text-white ring-ondjo-navy"
+                        : "bg-ondjo-blue text-white ring-white",
                     )}
                   >
                     {favoriteCount > 9 ? "9+" : favoriteCount}

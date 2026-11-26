@@ -1,5 +1,7 @@
 import React, { forwardRef } from "react";
 import { X } from "lucide-react";
+import { Button } from "./button";
+import { Badge } from "./badge";
 import { cn } from "@/lib/utils";
 
 export interface ChipProps
@@ -28,17 +30,18 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(
   ) => {
     const activeClasses =
       variant === "solid"
-        ? "bg-ondjo-blue text-white border-ondjo-blue font-semibold shadow-2xs"
-        : "bg-ondjo-blue-50 text-ondjo-blue border-ondjo-blue font-semibold";
+        ? "bg-ondjo-blue text-white border-ondjo-blue font-semibold shadow-2xs hover:bg-ondjo-blue-dark hover:text-white"
+        : "bg-ondjo-blue-50 text-ondjo-blue border-ondjo-border-accent font-semibold hover:bg-ondjo-blue-soft";
 
     const inactiveClasses =
       "bg-white text-ondjo-ink border-ondjo-border hover:border-ondjo-border-strong hover:bg-slate-50";
 
     if (onRemove) {
       return (
-        <span
+        <Badge
+          variant="outline"
           className={cn(
-            "inline-flex items-center gap-1.5 pl-3 pr-1.5 py-1 rounded-full border text-xs sm:text-sm font-medium transition-colors duration-150 select-none min-h-9",
+            "h-9 gap-1.5 rounded-full pl-3.5 pr-1.5 text-xs sm:text-sm font-semibold transition-colors duration-150",
             active ? activeClasses : inactiveClasses,
             className,
           )}
@@ -66,36 +69,38 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(
             )}
           </button>
 
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-xs"
             onClick={(e) => {
               e.stopPropagation();
               onRemove();
             }}
             className={cn(
-              "rounded-full p-1 transition-colors cursor-pointer shrink-0 flex items-center justify-center focus-visible:outline-2 focus-visible:outline-ondjo-blue",
+              "size-6 rounded-full",
               active
-                ? "hover:bg-white/20 text-white"
-                : "hover:bg-slate-200/70 text-ondjo-muted hover:text-ondjo-navy",
+                ? "hover:bg-white/20 text-white hover:text-white"
+                : "text-ondjo-muted hover:bg-slate-200/80 hover:text-ondjo-navy",
             )}
             aria-label={`Remover filtro ${typeof children === "string" ? children : ""}`}
           >
-            <X size={14} aria-hidden="true" />
-          </button>
-        </span>
+            <X size={13} aria-hidden="true" />
+          </Button>
+        </Badge>
       );
     }
 
     return (
-      <button
+      <Button
         ref={ref}
         type="button"
+        variant="outline"
+        size="sm"
         onClick={onClick}
         aria-pressed={active}
         className={cn(
-          "inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border text-xs sm:text-sm font-medium transition-colors duration-150 select-none cursor-pointer",
-          "min-h-9 active:scale-[0.98]",
-          "focus-visible:outline-2 focus-visible:outline-ondjo-blue focus-visible:outline-offset-2",
+          "h-9 rounded-full px-3.5 text-xs sm:text-sm font-semibold",
           active ? activeClasses : inactiveClasses,
           className,
         )}
@@ -116,7 +121,7 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(
             {count}
           </span>
         )}
-      </button>
+      </Button>
     );
   },
 );

@@ -300,7 +300,7 @@ export const PropertyImageCarousel = memo(function PropertyImageCarousel({
               }}
               aria-label={`Abrir galeria de fotos de ${title} (${total} fotos)`}
               title="Abrir galeria completa"
-              className="focus-ring pointer-events-auto inline-flex min-h-7.5 items-center gap-1.5 rounded-full bg-black/70 hover:bg-black/85 active:scale-95 px-2.5 py-1 text-white shadow-md transition-colors duration-150 cursor-pointer"
+              className="focus-ring pointer-events-auto inline-flex min-h-7.5 items-center gap-1.5 rounded-full bg-ondjo-navy hover:bg-ondjo-navy-deep active:scale-95 px-2.5 py-1 text-white shadow-md transition-colors duration-150 cursor-pointer"
             >
               <Maximize2 size={12} aria-hidden="true" className="shrink-0" />
               <span className="text-[11px] font-bold tracking-tight whitespace-nowrap">
@@ -379,7 +379,7 @@ export const PropertyImageCarousel = memo(function PropertyImageCarousel({
                           onClick={prevImage}
                           aria-label={`Ver foto anterior (atual: ${currentIndex + 1} de ${total})`}
                           title="Foto anterior (Seta esquerda)"
-                          className="focus-ring absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 grid size-11 sm:size-12 place-items-center rounded-full bg-black/70 text-white hover:bg-black/90 active:scale-95 shadow-lg transition-colors duration-150 cursor-pointer"
+                          className="focus-ring absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 grid size-11 sm:size-12 place-items-center rounded-full border border-white/20 bg-slate-900 text-white hover:bg-slate-800 active:scale-95 shadow-lg transition-colors duration-150 cursor-pointer"
                         >
                           <ChevronLeft
                             size={24}
@@ -392,7 +392,7 @@ export const PropertyImageCarousel = memo(function PropertyImageCarousel({
                           onClick={nextImage}
                           aria-label={`Ver próxima foto (atual: ${currentIndex + 1} de ${total})`}
                           title="Próxima foto (Seta direita)"
-                          className="focus-ring absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 grid size-11 sm:size-12 place-items-center rounded-full bg-black/70 text-white hover:bg-black/90 active:scale-95 shadow-lg transition-colors duration-150 cursor-pointer"
+                          className="focus-ring absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 grid size-11 sm:size-12 place-items-center rounded-full border border-white/20 bg-slate-900 text-white hover:bg-slate-800 active:scale-95 shadow-lg transition-colors duration-150 cursor-pointer"
                         >
                           <ChevronRight
                             size={24}

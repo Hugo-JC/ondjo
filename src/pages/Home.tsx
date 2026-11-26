@@ -12,7 +12,7 @@ import {
   type SearchFilters,
 } from "../components/SearchBar";
 import { Footer } from "../components/Footer";
-import { Button, buttonVariants } from "../components/ui";
+import { Button, Card, CardContent, buttonVariants } from "../components/ui";
 import { cn } from "../lib/utils";
 import { formatKz } from "../utils/format";
 import { getImageSrcSet, getOptimizedImageUrl } from "../utils/images";
@@ -226,43 +226,47 @@ export function Home() {
                 <a
                   key={zone.name}
                   href={`#/pesquisar?location=${encodeURIComponent(zone.name)}`}
-                  className="focus-ring group flex flex-col justify-between rounded-2xl ondjo-border-interactive bg-white p-4 sm:p-5 shadow-2xs hover:shadow-ondjo-pill"
+                  className="focus-ring group block rounded-2xl"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5 text-ondjo-navy">
-                        <MapPin
-                          size={15}
-                          className="text-ondjo-blue shrink-0"
-                          aria-hidden="true"
-                        />
-                        <h3 className="truncate text-base font-bold tracking-tight">
-                          {zone.name}
-                        </h3>
+                  <Card className="h-full ondjo-border-interactive bg-white py-0 shadow-2xs transition-[box-shadow,border-color,transform] duration-150 hover:-translate-y-0.5 hover:shadow-ondjo-pill">
+                    <CardContent className="flex h-full flex-col justify-between p-4 sm:p-5">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 text-ondjo-navy">
+                            <MapPin
+                              size={15}
+                              className="text-ondjo-blue shrink-0"
+                              aria-hidden="true"
+                            />
+                            <h3 className="truncate text-base font-bold tracking-tight">
+                              {zone.name}
+                            </h3>
+                          </div>
+                          <p className="mt-0.5 text-xs text-ondjo-muted">
+                            {zone.municipality ? `Município de ${zone.municipality}` : "Luanda"}
+                          </p>
+                        </div>
+
+                        <span className="grid size-8 shrink-0 place-items-center rounded-full ondjo-border-surface bg-ondjo-bg text-ondjo-muted transition-colors group-hover:border-ondjo-border-accent group-hover:bg-ondjo-blue-50 group-hover:text-ondjo-blue">
+                          <ArrowRight size={14} aria-hidden="true" />
+                        </span>
                       </div>
-                      <p className="mt-0.5 text-xs text-ondjo-muted">
-                        {zone.municipality ? `Município de ${zone.municipality}` : "Luanda"}
-                      </p>
-                    </div>
 
-                    <span className="grid size-8 shrink-0 place-items-center rounded-full ondjo-border-surface bg-ondjo-bg text-ondjo-muted transition-colors group-hover:border-ondjo-border-accent group-hover:bg-ondjo-blue-50 group-hover:text-ondjo-blue">
-                      <ArrowRight size={14} aria-hidden="true" />
-                    </span>
-                  </div>
-
-                  <div className="mt-4 flex items-center justify-between border-t border-ondjo-border-hairline pt-3 text-xs">
-                    <span className="font-semibold text-ondjo-ink">
-                      {formatCount(zone.count)}
-                    </span>
-                    {zone.minPrice !== null && (
-                      <span className="text-ondjo-muted tabular-nums">
-                        Desde{" "}
-                        <strong className="font-bold text-ondjo-navy">
-                          {formatKz(zone.minPrice)}
-                        </strong>
-                      </span>
-                    )}
-                  </div>
+                      <div className="mt-4 flex items-center justify-between border-t border-ondjo-border-hairline pt-3 text-xs">
+                        <span className="font-semibold text-ondjo-ink">
+                          {formatCount(zone.count)}
+                        </span>
+                        {zone.minPrice !== null && (
+                          <span className="text-ondjo-muted tabular-nums">
+                            Desde{" "}
+                            <strong className="font-bold text-ondjo-navy">
+                              {formatKz(zone.minPrice)}
+                            </strong>
+                          </span>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
                 </a>
               ))}
             </div>

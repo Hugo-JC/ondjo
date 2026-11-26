@@ -11,12 +11,12 @@ import {
   CalendarDays,
   Check,
   CheckCheck,
-  ChevronDown,
+  ChevronRight,
   Clock,
   ExternalLink,
-  Info,
   MapPin,
   MessageSquare,
+  MoreHorizontal,
   RotateCcw,
   Search,
   Send,
@@ -48,17 +48,24 @@ import {
   buttonVariants,
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
   Input,
   Separator,
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   Tabs,
   TabsList,
   TabsTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from "../components/ui";
 
 export type MessageStatus = "pending" | "sent" | "delivered" | "read";
@@ -105,7 +112,8 @@ const DEFAULT_CONVERSATIONS: Conversation[] = [
     id: "conv-1",
     contactName: "Mauro dos Santos",
     role: "Corretor verificado",
-    avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&h=200&q=80",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&h=200&q=80",
     presence: "online",
     verified: true,
     propertyId: "apartamento-t2-talatona",
@@ -187,7 +195,8 @@ const DEFAULT_CONVERSATIONS: Conversation[] = [
     id: "conv-3",
     contactName: "Dona Kátia Silveira",
     role: "Proprietário particular",
-    avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&h=200&q=80",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&h=200&q=80",
     presence: "away",
     verified: true,
     propertyId: "moradia-t4-benfica",
@@ -215,7 +224,8 @@ const DEFAULT_CONVERSATIONS: Conversation[] = [
     id: "conv-4",
     contactName: "Paulo de Carvalho",
     role: "Corretor verificado",
-    avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&h=200&q=80",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&h=200&q=80",
     presence: "offline",
     verified: false,
     propertyId: "casa-t3-maianga",
@@ -234,14 +244,6 @@ const DEFAULT_CONVERSATIONS: Conversation[] = [
   },
 ];
 
-const QUICK_QUESTIONS = [
-  "Ainda está disponível?",
-  "Qual é a caução?",
-  "Agendar visita",
-  "Tem gerador e água?",
-  "Documentação necessária?",
-];
-
 const LOCAL_STORAGE_KEY = "ondjo-chat-conversations-v3";
 const SOUND_STORAGE_KEY = "ondjo-chat-sound-enabled";
 
@@ -252,14 +254,14 @@ function formatTimestamp(): string {
   }).format(new Date());
 }
 
-// Síntese sutil de som de notificação (sem depender de assets externos)
 function playNotificationChime() {
   if (typeof window === "undefined") return;
 
   try {
     const AudioContextClass =
       window.AudioContext ||
-      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      (window as unknown as { webkitAudioContext?: typeof AudioContext })
+        .webkitAudioContext;
 
     if (!AudioContextClass) return;
 
@@ -268,9 +270,8 @@ function playNotificationChime() {
     const gain = ctx.createGain();
 
     osc.type = "sine";
-    // Acorde duplo suave tipo mensagem
-    osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-    osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1); // A5
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+    osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1);
 
     gain.gain.setValueAtTime(0.12, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
@@ -280,7 +281,7 @@ function playNotificationChime() {
 
     osc.start();
     osc.stop(ctx.currentTime + 0.36);
-  } catch (e) {
+  } catch {
     // Silencioso se navegador bloquear autoplay de áudio
   }
 }
@@ -294,27 +295,37 @@ export function ChatPage() {
       if (!stored) return DEFAULT_CONVERSATIONS;
 
       const parsed = JSON.parse(stored);
-      return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_CONVERSATIONS;
+      return Array.isArray(parsed) && parsed.length > 0
+        ? parsed
+        : DEFAULT_CONVERSATIONS;
     } catch (e) {
       console.error("Falha ao ler conversas salvas:", e);
       return DEFAULT_CONVERSATIONS;
     }
   });
 
-  const [activeChatId, setActiveChatId] = useState<string>(() => DEFAULT_CONVERSATIONS[0]?.id ?? "");
+  const [activeChatId, setActiveChatId] = useState<string>(
+    () => DEFAULT_CONVERSATIONS[0]?.id ?? "",
+  );
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"all" | "agent" | "owner" | "assistant" | "unread">("all");
+  const [activeTab, setActiveTab] = useState<
+    "all" | "agent" | "owner" | "assistant" | "unread"
+  >("all");
   const [inputText, setInputText] = useState("");
-  const [propertyDrawerOpen, setPropertyDrawerOpen] = useState(false);
+  const [propertySheetOpen, setPropertySheetOpen] = useState(false);
   const [mobileView, setMobileView] = useState<"list" | "chat">("list");
-  const [notification, setNotification] = useState<InAppNotification | null>(null);
+  const [notification, setNotification] = useState<InAppNotification | null>(
+    null,
+  );
 
   const [confirmResetOpen, setConfirmResetOpen] = useState(false);
   const [notifBannerDismissed, setNotifBannerDismissed] = useState(false);
   const [statusFeedback, setStatusFeedback] = useState<string | null>(null);
   const [isDesktop, setIsDesktop] = useState(() =>
-    typeof window !== "undefined" ? window.matchMedia("(min-width: 1024px)").matches : true,
+    typeof window !== "undefined"
+      ? window.matchMedia("(min-width: 1024px)").matches
+      : true,
   );
   const timeoutsRef = useRef<number[]>([]);
 
@@ -347,7 +358,6 @@ export function ChatPage() {
     };
   }, [clearScheduledTimeouts]);
 
-  // Som de novas mensagens
   const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
     if (typeof window === "undefined") return true;
 
@@ -359,7 +369,7 @@ export function ChatPage() {
     }
   });
 
-  // Ligar conversa ao imóvel passado pela rota (ex: #/mensagens?property=...) sem efeitos colaterais no updater
+  // Ligar conversa ao imóvel passado pela rota (ex: #/chat?property=...)
   useEffect(() => {
     const hash = window.location.hash;
     const queryPart = hash.includes("?") ? hash.split("?")[1] : "";
@@ -407,13 +417,14 @@ export function ChatPage() {
     );
     setActiveChatId(newConv.id);
     setMobileView("chat");
-    // Apenas na montagem inicial quando abre conversa via link direto do imóvel
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Estado da permissão nativa do navegador
-  const isNotificationSupported = typeof window !== "undefined" && "Notification" in window;
-  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | "unsupported">(() => {
+  const isNotificationSupported =
+    typeof window !== "undefined" && "Notification" in window;
+  const [notificationPermission, setNotificationPermission] = useState<
+    NotificationPermission | "unsupported"
+  >(() => {
     if (typeof window !== "undefined" && "Notification" in window) {
       return Notification.permission;
     }
@@ -436,45 +447,45 @@ export function ChatPage() {
     activeChatIdRef.current = activeChatId;
   }, [activeChatId]);
 
-  // Guardar preferências de som
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     try {
-      window.localStorage.setItem(SOUND_STORAGE_KEY, JSON.stringify(soundEnabled));
+      window.localStorage.setItem(
+        SOUND_STORAGE_KEY,
+        JSON.stringify(soundEnabled),
+      );
     } catch {
       // Ignorar
     }
   }, [soundEnabled]);
 
-  // Sincronizar conversas com localStorage
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     try {
-      window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(conversations));
+      window.localStorage.setItem(
+        LOCAL_STORAGE_KEY,
+        JSON.stringify(conversations),
+      );
     } catch (e) {
       console.error("Falha ao guardar conversas:", e);
     }
   }, [conversations]);
 
-  // Conversa ativa selecionada
   const activeChat = useMemo(() => {
     return conversations.find((c) => c.id === activeChatId) || conversations[0];
   }, [conversations, activeChatId]);
 
-  // Imóvel associado à conversa ativa
   const activeProperty = useMemo<Property | undefined>(() => {
     if (!activeChat || !activeChat.propertyId) return undefined;
     return properties.find((p) => p.id === activeChat.propertyId);
   }, [activeChat]);
 
-  // Total de mensagens não lidas globais
   const totalUnreadCount = useMemo(() => {
     return conversations.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
   }, [conversations]);
 
-  // Total de não lidas fora da conversa ativa (para badge no botão de voltar mobile)
   const otherUnreadCount = useMemo(() => {
     return conversations
       .filter((c) => c.id !== activeChatId)
@@ -493,7 +504,6 @@ export function ChatPage() {
     [reduceMotion],
   );
 
-  // Manter o histórico visível no contentor — sem scrollIntoView (evita saltos na página)
   useEffect(() => {
     const messageCount = activeChat?.messages.length ?? 0;
     const isTyping = Boolean(activeChat?.isTyping);
@@ -523,7 +533,6 @@ export function ChatPage() {
     scrollMessagesToBottom,
   ]);
 
-  // Selecionar conversa e marcar como lida
   const selectConversation = useCallback((id: string) => {
     setActiveChatId(id);
     setMobileView("chat");
@@ -531,17 +540,15 @@ export function ChatPage() {
       prev.map((c) => {
         if (c.id !== id) return c;
         const updatedMsgs = c.messages.map((m) =>
-          m.sender !== "user" ? { ...m, status: "read" as MessageStatus } : m
+          m.sender !== "user" ? { ...m, status: "read" as MessageStatus } : m,
         );
         return { ...c, unreadCount: 0, messages: updatedMsgs };
-      })
+      }),
     );
   }, []);
 
-  // Disparo de notificação nativa no navegador com clique direto para a conversa
   const triggerBrowserNotification = useCallback(
     (convId: string, senderName: string, text: string) => {
-      // Som suave se ativado
       if (soundEnabled) {
         playNotificationChime();
       }
@@ -550,16 +557,16 @@ export function ChatPage() {
         return;
       }
 
-      // Disparar se a janela estiver minimizada/em segundo plano ou se for outra conversa
       const shouldNotify =
-        (typeof document !== "undefined" && document.hidden) || activeChatIdRef.current !== convId;
+        (typeof document !== "undefined" && document.hidden) ||
+        activeChatIdRef.current !== convId;
       if (!shouldNotify) return;
 
       try {
         const notif = new Notification(`ONDJO: Mensagem de ${senderName}`, {
           body: text,
           icon: "/icon.png",
-          tag: `ondjo-conv-${convId}`, // evita acumular duplicadas da mesma conversa
+          tag: `ondjo-conv-${convId}`,
         });
 
         notif.onclick = () => {
@@ -571,13 +578,14 @@ export function ChatPage() {
         console.warn("Falha ao criar notificação do navegador:", err);
       }
     },
-    [isNotificationSupported, selectConversation, soundEnabled]
+    [isNotificationSupported, selectConversation, soundEnabled],
   );
 
-  // Solicitar permissão de notificações do navegador (sem window.alert)
   async function requestNotificationPermission() {
     if (!isNotificationSupported) {
-      setStatusFeedback("O seu navegador não suporta notificações de área de trabalho.");
+      setStatusFeedback(
+        "O seu navegador não suporta notificações de área de trabalho.",
+      );
       scheduleTimeout(() => setStatusFeedback(null), 4000);
       return;
     }
@@ -606,7 +614,6 @@ export function ChatPage() {
     }
   }
 
-  // Filtragem e pesquisa de conversas
   const filteredConversations = useMemo(() => {
     return conversations.filter((conv) => {
       const q = searchQuery.toLowerCase().trim();
@@ -623,23 +630,29 @@ export function ChatPage() {
       return conv.category === activeTab;
     });
   }, [conversations, searchQuery, activeTab]);
-  // Atalhos de teclado globais (/ ou Ctrl+K para pesquisar, Esc para fechar gaveta do imóvel)
+
   useEffect(() => {
     function handleGlobalKeyDown(e: KeyboardEvent) {
       const target = e.target as HTMLElement;
-      const isInput = target.tagName === "INPUT" || target.tagName === "TEXTAREA";
+      const isInput =
+        target.tagName === "INPUT" || target.tagName === "TEXTAREA";
 
-      if ((e.key === "/" && !isInput) || ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k")) {
+      if (
+        (e.key === "/" && !isInput) ||
+        ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k")
+      ) {
         e.preventDefault();
-        const searchInput = document.getElementById(conversationSearchId) as HTMLInputElement | null;
+        const searchInput = document.getElementById(
+          conversationSearchId,
+        ) as HTMLInputElement | null;
         searchInput?.focus();
         searchInput?.select();
         return;
       }
 
       if (e.key === "Escape") {
-        if (propertyDrawerOpen) {
-          setPropertyDrawerOpen(false);
+        if (propertySheetOpen) {
+          setPropertySheetOpen(false);
         } else if (isInput) {
           target.blur();
         }
@@ -648,9 +661,8 @@ export function ChatPage() {
 
     window.addEventListener("keydown", handleGlobalKeyDown);
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
-  }, [propertyDrawerOpen, conversationSearchId]);
+  }, [propertySheetOpen, conversationSearchId]);
 
-  // Navegação por teclado na lista de conversas (Setas, Home, End)
   const handleConversationKeyDown = useCallback(
     (e: React.KeyboardEvent, index: number) => {
       if (!filteredConversations.length) return;
@@ -660,35 +672,47 @@ export function ChatPage() {
         const nextIndex = (index + 1) % filteredConversations.length;
         const nextConv = filteredConversations[nextIndex];
         selectConversation(nextConv.id);
-        const buttons = conversationListRef.current?.querySelectorAll<HTMLButtonElement>('button[role="option"]');
+        const buttons =
+          conversationListRef.current?.querySelectorAll<HTMLButtonElement>(
+            'button[role="option"]',
+          );
         buttons?.[nextIndex]?.focus();
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        const prevIndex = (index - 1 + filteredConversations.length) % filteredConversations.length;
+        const prevIndex =
+          (index - 1 + filteredConversations.length) %
+          filteredConversations.length;
         const prevConv = filteredConversations[prevIndex];
         selectConversation(prevConv.id);
-        const buttons = conversationListRef.current?.querySelectorAll<HTMLButtonElement>('button[role="option"]');
+        const buttons =
+          conversationListRef.current?.querySelectorAll<HTMLButtonElement>(
+            'button[role="option"]',
+          );
         buttons?.[prevIndex]?.focus();
       } else if (e.key === "Home") {
         e.preventDefault();
         const firstConv = filteredConversations[0];
         selectConversation(firstConv.id);
-        const buttons = conversationListRef.current?.querySelectorAll<HTMLButtonElement>('button[role="option"]');
+        const buttons =
+          conversationListRef.current?.querySelectorAll<HTMLButtonElement>(
+            'button[role="option"]',
+          );
         buttons?.[0]?.focus();
       } else if (e.key === "End") {
         e.preventDefault();
         const lastIndex = filteredConversations.length - 1;
         const lastConv = filteredConversations[lastIndex];
         selectConversation(lastConv.id);
-        const buttons = conversationListRef.current?.querySelectorAll<HTMLButtonElement>('button[role="option"]');
+        const buttons =
+          conversationListRef.current?.querySelectorAll<HTMLButtonElement>(
+            'button[role="option"]',
+          );
         buttons?.[lastIndex]?.focus();
       }
     },
-    [filteredConversations, selectConversation]
+    [filteredConversations, selectConversation],
   );
 
-
-  // Enviar mensagem pelo usuário com simulação de leitura em tempo real
   function handleSendMessage(textToSend?: string) {
     const text = (textToSend || inputText).trim();
     if (!text || !activeChat) return;
@@ -699,7 +723,6 @@ export function ChatPage() {
     const currentSenderName = activeChat.contactName;
     const currentCategory = activeChat.category;
 
-    // 1. Mensagem começa com estado "pending"
     const userMessage: ChatMessage = {
       id: messageId,
       sender: "user",
@@ -717,13 +740,12 @@ export function ChatPage() {
               lastActive: "Agora",
               presence: "online",
             }
-          : c
-      )
+          : c,
+      ),
     );
     setInputText("");
     requestAnimationFrame(() => scrollMessagesToBottom("smooth"));
 
-    // 2. Transição para "sent"
     scheduleTimeout(() => {
       setConversations((prev) =>
         prev.map((c) => {
@@ -731,14 +753,13 @@ export function ChatPage() {
           return {
             ...c,
             messages: c.messages.map((m) =>
-              m.id === messageId ? { ...m, status: "sent" } : m
+              m.id === messageId ? { ...m, status: "sent" } : m,
             ),
           };
-        })
+        }),
       );
     }, 350);
 
-    // 3. Transição para "delivered"
     scheduleTimeout(() => {
       setConversations((prev) =>
         prev.map((c) => {
@@ -746,14 +767,13 @@ export function ChatPage() {
           return {
             ...c,
             messages: c.messages.map((m) =>
-              m.id === messageId ? { ...m, status: "delivered" } : m
+              m.id === messageId ? { ...m, status: "delivered" } : m,
             ),
           };
-        })
+        }),
       );
     }, 850);
 
-    // 4. Corretor abre a mensagem ("read") e inicia digitação
     scheduleTimeout(() => {
       setConversations((prev) =>
         prev.map((c) => {
@@ -763,24 +783,32 @@ export function ChatPage() {
             presence: "online",
             isTyping: true,
             messages: c.messages.map((m) =>
-              m.id === messageId ? { ...m, status: "read" } : m
+              m.id === messageId ? { ...m, status: "read" } : m,
             ),
           };
-        })
+        }),
       );
     }, 1500);
 
-    // 5. Resposta do corretor/assistente
     scheduleTimeout(() => {
       let replyText = "";
       if (currentCategory === "assistant") {
-        if (text.toLowerCase().includes("ipu") || text.toLowerCase().includes("imposto")) {
+        if (
+          text.toLowerCase().includes("ipu") ||
+          text.toLowerCase().includes("imposto")
+        ) {
           replyText =
             "O IPU (Imposto Predial Urbano) é anual e incide sobre o rendimento das rendas (habitualmente taxa efetiva entre 10% a 15%) ou sobre o valor patrimonial. Exija sempre o DAR liquidado pelo senhorio na AGT.";
-        } else if (text.toLowerCase().includes("visita") || text.toLowerCase().includes("agendar")) {
+        } else if (
+          text.toLowerCase().includes("visita") ||
+          text.toLowerCase().includes("agendar")
+        ) {
           replyText =
             "Pode solicitar visitas diretamente nesta janela a qualquer corretor verificado do ONDJO. Não há cobrança de taxas de agendamento na nossa plataforma.";
-        } else if (text.toLowerCase().includes("talatona") || text.toLowerCase().includes("zona")) {
+        } else if (
+          text.toLowerCase().includes("talatona") ||
+          text.toLowerCase().includes("zona")
+        ) {
           replyText =
             "Talatona e Benfica concentram grande procura residencial em Luanda, com forte segurança e autonomia de água e luz. Para T2, os valores situam-se em média entre 120.000 e 220.000 Kz/mês.";
         } else {
@@ -788,7 +816,10 @@ export function ChatPage() {
             "Informação registada! O assistente ONDJO recomenda sempre formalizar contratos por escrito e verificar a Certidão do Registo Predial antes de adiantar qualquer montante de caução.";
         }
       } else {
-        if (text.toLowerCase().includes("disponível") || text.toLowerCase().includes("disponivel")) {
+        if (
+          text.toLowerCase().includes("disponível") ||
+          text.toLowerCase().includes("disponivel")
+        ) {
           replyText =
             "Olá! Sim, confirmo que o imóvel continua totalmente disponível e vago para ocupação imediata. Tem disponibilidade para uma visita presencial nos próximos dias?";
         } else if (
@@ -807,7 +838,11 @@ export function ChatPage() {
         ) {
           replyText =
             "O imóvel tem total autonomia: gerador automático para as áreas privativas e tanque de água subterrâneo de alta capacidade com bomba automática.";
-        } else if (text.toLowerCase().includes("visita") || text.toLowerCase().includes("sábado") || text.toLowerCase().includes("agenda")) {
+        } else if (
+          text.toLowerCase().includes("visita") ||
+          text.toLowerCase().includes("sábado") ||
+          text.toLowerCase().includes("agenda")
+        ) {
           replyText =
             "Excelente! Fica pré-agendado. Envio-lhe a localização em tempo real e a confirmação para a portaria 1 hora antes da visita.";
         } else {
@@ -834,19 +869,19 @@ export function ChatPage() {
                 lastActive: "Agora",
                 messages: [...c.messages, agentReply],
               }
-            : c
-        )
+            : c,
+        ),
       );
 
-      // Disparar Notificação Nativa do Navegador se a página estiver em segundo plano
       triggerBrowserNotification(currentConvId, currentSenderName, replyText);
     }, 2800);
   }
 
-  // Simular recebimento de mensagem em tempo real de outro corretor (demonstração interativa)
   function handleTriggerIncomingSimulation() {
     const candidateConvs = conversations.filter((c) => c.id !== activeChatId);
-    const target = candidateConvs[Math.floor(Math.random() * candidateConvs.length)] || conversations[0];
+    const target =
+      candidateConvs[Math.floor(Math.random() * candidateConvs.length)] ||
+      conversations[0];
     if (!target) return;
 
     const sampleIncomingMessages = [
@@ -855,7 +890,10 @@ export function ChatPage() {
       "Confirmamos a documentação predial aprovada para visita amanhã à tarde. Gostaria de confirmar presença?",
       "Olá! Um senhorio acabou de baixar a renda mensal em 15.000 Kz. Tem interesse em ver os detalhes?",
     ];
-    const chosenText = sampleIncomingMessages[Math.floor(Math.random() * sampleIncomingMessages.length)];
+    const chosenText =
+      sampleIncomingMessages[
+        Math.floor(Math.random() * sampleIncomingMessages.length)
+      ];
 
     const newMsg: ChatMessage = {
       id: `m-sim-${Date.now()}`,
@@ -875,13 +913,11 @@ export function ChatPage() {
           presence: "online",
           messages: [...c.messages, newMsg],
         };
-      })
+      }),
     );
 
-    // Disparar Notificação Nativa no Navegador
     triggerBrowserNotification(target.id, target.contactName, chosenText);
 
-    // Notificação in-app se for outra conversa
     if (target.id !== activeChatId) {
       setNotification({
         id: `notif-${Date.now()}`,
@@ -890,14 +926,14 @@ export function ChatPage() {
         text: chosenText,
       });
 
-      // Auto-fechar toast após 5s
       scheduleTimeout(() => {
-        setNotification((curr) => (curr?.conversationId === target.id ? null : curr));
+        setNotification((curr) =>
+          curr?.conversationId === target.id ? null : curr,
+        );
       }, 5000);
     }
   }
 
-  // Confirmar proposta de visita
   function handleConfirmVisit(messageId: string) {
     if (!activeChat) return;
     setConversations((prev) =>
@@ -925,11 +961,10 @@ export function ChatPage() {
             },
           ],
         };
-      })
+      }),
     );
   }
 
-  // Restaurar dados originais de simulação (com modal in-app sem window.confirm)
   function handleResetConversations() {
     setConfirmResetOpen(true);
   }
@@ -948,7 +983,6 @@ export function ChatPage() {
     setConfirmResetOpen(false);
   }
 
-  // Renderizar ícone de status de leitura da mensagem
   function renderMessageStatusIcon(status?: MessageStatus) {
     if (!status) return null;
     switch (status) {
@@ -973,48 +1007,73 @@ export function ChatPage() {
       case "read":
         return (
           <span title="Lida pelo destinatário">
-            <CheckCheck size={13} className="text-ondjo-blue-soft" />
+            <CheckCheck size={13} className="text-sky-200" />
           </span>
         );
     }
   }
 
-  // Renderizar indicador de presença no avatar
   function renderPresenceBadge(presence: PresenceState) {
-    switch (presence) {
-      case "online":
-        return (
-          <span
-            title="Online agora"
-            className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-white bg-ondjo-green"
-          />
-        );
-      case "away":
-        return (
-          <span
-            title="Ausente temporariamente"
-            className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-white bg-amber-400"
-          />
-        );
-      case "offline":
-      default:
-        return (
-          <span
-            title="Offline"
-            className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-white bg-slate-400"
-          />
-        );
+    const colorClass =
+      presence === "online"
+        ? "bg-emerald-500"
+        : presence === "away"
+          ? "bg-amber-400"
+          : "bg-slate-400";
+    const label =
+      presence === "online"
+        ? "Online agora"
+        : presence === "away"
+          ? "Ausente"
+          : "Offline";
+
+    return (
+      <span
+        title={label}
+        aria-label={label}
+        className={cn(
+          "absolute -bottom-0.5 -right-0.5 size-3 rounded-full ring-2 ring-white",
+          colorClass,
+        )}
+      />
+    );
+  }
+
+  function renderAvatar(conv: Conversation, sizeClass = "size-11") {
+    if (conv.category === "assistant") {
+      return (
+        <div
+          className={cn(
+            "grid place-items-center rounded-full bg-ondjo-navy text-white",
+            sizeClass,
+          )}
+        >
+          <Bot size={sizeClass.includes("10") ? 18 : 20} aria-hidden="true" />
+        </div>
+      );
     }
+
+    return (
+      <Avatar className={sizeClass}>
+        {conv.avatarUrl && (
+          <AvatarImage src={conv.avatarUrl} alt={conv.contactName} />
+        )}
+        <AvatarFallback className="bg-ondjo-blue-soft text-ondjo-blue font-bold text-sm">
+          {conv.contactName.charAt(0)}
+        </AvatarFallback>
+      </Avatar>
+    );
   }
 
   if (!activeChat) return null;
 
   return (
-    <div className="flex flex-1 min-h-0 flex-col overflow-hidden bg-ondjo-bg p-0 sm:p-4 lg:p-6">
+    <div className="flex flex-1 min-h-0 w-full flex-col overflow-hidden bg-ondjo-bg">
+      {/* Feedback de estado discreto */}
       {statusFeedback && (
         <div
           role="status"
-          className="mx-3 mt-2 sm:mx-auto sm:mt-0 mb-2 sm:mb-3 flex w-auto sm:w-full max-w-7xl items-center justify-between gap-3 rounded-xl border border-ondjo-warning-border bg-ondjo-warning-soft px-4 py-2 text-xs font-semibold text-ondjo-warning shadow-2xs"
+          className="flex shrink-0 items-center justify-between gap-3 bg-ondjo-warning-soft px-4 py-2 text-xs font-semibold text-ondjo-warning"
         >
           <span>{statusFeedback}</span>
           <Button
@@ -1029,76 +1088,33 @@ export function ChatPage() {
         </div>
       )}
 
-      {/* Banner compacto de notificações do navegador */}
-      {isNotificationSupported &&
-        notificationPermission === "default" &&
-        !notifBannerDismissed && (
-          <div className="mx-3 mt-2 sm:mx-auto sm:mt-0 mb-2 sm:mb-3 w-auto sm:w-full max-w-7xl shrink-0">
-            <div className="flex items-center justify-between gap-3 rounded-xl border border-ondjo-border-accent bg-ondjo-blue-50 px-3.5 py-2.5 text-xs">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="grid size-8 shrink-0 place-items-center rounded-lg bg-ondjo-blue text-white">
-                  <Bell size={15} />
-                </div>
-                <div className="min-w-0">
-                  <p className="font-bold text-ondjo-navy truncate">
-                    Ativar notificações de mensagens
-                  </p>
-                  <p className="hidden sm:block text-ondjo-muted truncate">
-                    Receba alertas quando os corretores responderem ou propuserem visitas.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <Button
-                  type="button"
-                  variant="primary"
-                  size="xs"
-                  onClick={requestNotificationPermission}
-                  className="rounded-lg px-3"
-                >
-                  Ativar
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-xs"
-                  onClick={() => setNotifBannerDismissed(true)}
-                  aria-label="Dispensar aviso de notificações"
-                >
-                  <X size={14} />
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
       {/* Notificação In-App de Nova Mensagem em Tempo Real */}
       <AnimatePresence>
         {notification && (
           <m.div
-            initial={{ opacity: 0, y: -12, scale: 0.97 }}
+            initial={reduceMotion ? false : { opacity: 0, y: -12, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -12, scale: 0.97 }}
-            transition={{ duration: 0.14, ease: "easeOut" }}
-            className="fixed top-18 right-4 z-50 max-w-sm w-[calc(100%-2rem)] rounded-2xl border border-ondjo-blue/30 bg-white p-3.5 shadow-xl"
+            transition={{ duration: 0.16, ease: "easeOut" }}
+            className="fixed top-18 right-4 z-50 w-[calc(100%-2rem)] max-w-sm rounded-2xl bg-white p-4 shadow-ondjo-popover ring-1 ring-ondjo-navy/10"
           >
             <div className="flex items-start gap-3">
-              <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-ondjo-blue text-white shadow-xs">
-                <BellRing size={17} />
+              <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-ondjo-blue text-white">
+                <BellRing size={18} />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs font-bold text-ondjo-navy truncate">
+                  <p className="truncate text-sm font-bold text-ondjo-navy">
                     {notification.senderName}
                   </p>
                   <Badge variant="info" size="xs">
                     Agora
                   </Badge>
                 </div>
-                <p className="mt-1 text-xs text-ondjo-ink line-clamp-2">
+                <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-ondjo-muted">
                   {notification.text}
                 </p>
-                <div className="mt-2.5 flex items-center gap-2">
+                <div className="mt-3 flex items-center gap-2">
                   <Button
                     type="button"
                     variant="primary"
@@ -1107,6 +1123,7 @@ export function ChatPage() {
                       selectConversation(notification.conversationId);
                       setNotification(null);
                     }}
+                    className="h-8 rounded-lg px-3"
                   >
                     Abrir conversa
                   </Button>
@@ -1115,6 +1132,7 @@ export function ChatPage() {
                     variant="ghost"
                     size="xs"
                     onClick={() => setNotification(null)}
+                    className="h-8 rounded-lg px-2.5"
                   >
                     Ignorar
                   </Button>
@@ -1134,569 +1152,589 @@ export function ChatPage() {
         )}
       </AnimatePresence>
 
-      {/* Janela principal de chat */}
-      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col overflow-hidden bg-white sm:rounded-2xl sm:border sm:border-ondjo-border sm:shadow-xs">
-        <header className="shrink-0 border-b border-ondjo-border bg-white px-3.5 py-2.5 sm:px-5 sm:py-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
-              <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-ondjo-blue-50 text-ondjo-blue">
-                <MessageSquare size={18} aria-hidden="true" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
-                  <h1 className="truncate text-base font-black tracking-tight text-ondjo-navy sm:text-lg">
-                    Mensagens
-                  </h1>
-                  {totalUnreadCount > 0 && (
-                    <Badge
-                      variant="info"
-                      size="xs"
-                      className="shrink-0 border-transparent bg-ondjo-blue text-white"
-                      aria-label={`${totalUnreadCount} não lida${totalUnreadCount > 1 ? "s" : ""}`}
-                    >
-                      <span>{totalUnreadCount}</span>
-                      <span className="hidden sm:inline">
-                        não lida{totalUnreadCount > 1 ? "s" : ""}
-                      </span>
-                    </Badge>
-                  )}
-                </div>
-                <p className="hidden sm:block text-xs text-ondjo-muted truncate">
-                  Corretores verificados, proprietários e assistente ONDJO
-                </p>
-              </div>
-            </div>
-
-            <div
-              className="flex items-center gap-1.5 shrink-0"
-              role="toolbar"
-              aria-label="Preferências do chat"
-            >
-              {isNotificationSupported && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={requestNotificationPermission}
-                  aria-label={
-                    notificationPermission === "granted"
-                      ? "Notificações do navegador ativas"
-                      : notificationPermission === "denied"
-                        ? "Notificações bloqueadas no navegador"
-                        : "Ativar notificações no navegador"
-                  }
-                  className={cn(
-                    "h-9 rounded-xl px-2.5",
-                    notificationPermission === "granted"
-                      ? "border-ondjo-success-border bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
-                      : notificationPermission === "denied"
-                        ? "border-ondjo-danger-border bg-rose-50 text-rose-700 hover:bg-rose-100"
-                        : "border-ondjo-border bg-white text-ondjo-muted hover:text-ondjo-blue",
-                  )}
-                >
-                  {notificationPermission === "granted" ? (
-                    <BellRing size={15} aria-hidden="true" />
-                  ) : notificationPermission === "denied" ? (
-                    <BellOff size={15} aria-hidden="true" />
-                  ) : (
-                    <Bell size={15} aria-hidden="true" />
-                  )}
-                  <span className="hidden sm:inline">
-                    {notificationPermission === "denied" ? "Bloqueadas" : "Alertas"}
-                  </span>
-                </Button>
-              )}
-
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setSoundEnabled(!soundEnabled)}
-                aria-pressed={soundEnabled}
-                aria-label={
-                  soundEnabled
-                    ? "Desativar som de novas mensagens"
-                    : "Ativar som de novas mensagens"
-                }
-                className="h-9 rounded-xl border-ondjo-border bg-white px-2.5 text-ondjo-muted hover:text-ondjo-ink"
-              >
-                {soundEnabled ? (
-                  <Volume2 size={15} className="text-ondjo-blue" aria-hidden="true" />
-                ) : (
-                  <VolumeX size={15} aria-hidden="true" />
+      {/* Workspace Full-Bleed respeitando Sidebar & Header */}
+      <div className="flex min-h-0 flex-1 w-full overflow-hidden">
+        {/* =========================================================
+            PAINEL ESQUERDO: Lista de Conversas
+            ========================================================= */}
+        <aside
+          aria-label="Lista de conversas"
+          className={cn(
+            "flex min-h-0 w-full flex-col bg-white lg:w-[340px] xl:w-[376px] lg:shrink-0 lg:border-r lg:border-ondjo-border/60",
+            mobileView === "chat" ? "hidden lg:flex" : "flex",
+          )}
+        >
+          {/* Cabeçalho Limpo da Lista */}
+          <div className="shrink-0 px-4 pt-4 pb-3 space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <h1 className="text-xl font-bold tracking-tight text-ondjo-navy">
+                  Mensagens
+                </h1>
+                {totalUnreadCount > 0 && (
+                  <Badge
+                    variant="default"
+                    size="xs"
+                    className="h-5 min-w-5 px-1.5 tabular-nums"
+                  >
+                    {totalUnreadCount}
+                  </Badge>
                 )}
-                <span className="hidden md:inline">{soundEnabled ? "Som" : "Mudo"}</span>
-              </Button>
+              </div>
 
+              {/* Menu Unificado de Preferências & Demo */}
               <DropdownMenu>
                 <DropdownMenuTrigger
                   render={
                     <Button
                       type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-9 rounded-xl border-ondjo-border bg-slate-50 px-2.5 text-xs font-semibold text-ondjo-ink"
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Opções de mensagens e notificações"
+                      className="size-10 rounded-xl bg-ondjo-bg text-ondjo-navy hover:bg-ondjo-blue-50 hover:text-ondjo-blue"
                     />
                   }
                 >
-                  <Sparkles size={14} className="text-ondjo-blue" aria-hidden="true" />
-                  <span>Demo</span>
-                  <ChevronDown size={14} className="opacity-60" aria-hidden="true" />
+                  <MoreHorizontal size={18} aria-hidden="true" />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" sideOffset={6} className="w-56">
-                  <DropdownMenuItem onClick={handleTriggerIncomingSimulation}>
-                    <Zap size={14} className="text-ondjo-blue" aria-hidden="true" />
-                    <span>Simular mensagem recebida</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleResetConversations}>
-                    <RotateCcw size={14} className="text-ondjo-muted" aria-hidden="true" />
-                    <span>Restaurar conversas demo</span>
-                  </DropdownMenuItem>
+                <DropdownMenuContent align="end" sideOffset={6} className="w-60">
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel className="text-[11px] uppercase tracking-wider text-ondjo-muted">
+                      Preferências
+                    </DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => setSoundEnabled(!soundEnabled)}>
+                      {soundEnabled ? (
+                        <Volume2 size={15} className="text-ondjo-blue" />
+                      ) : (
+                        <VolumeX size={15} className="text-ondjo-muted" />
+                      )}
+                      <span>
+                        {soundEnabled ? "Desativar som" : "Ativar som"}
+                      </span>
+                    </DropdownMenuItem>
+                    {isNotificationSupported && (
+                      <DropdownMenuItem onClick={requestNotificationPermission}>
+                        {notificationPermission === "granted" ? (
+                          <BellRing size={15} className="text-ondjo-green" />
+                        ) : notificationPermission === "denied" ? (
+                          <BellOff size={15} className="text-ondjo-danger" />
+                        ) : (
+                          <Bell size={15} className="text-ondjo-blue" />
+                        )}
+                        <span>
+                          {notificationPermission === "granted"
+                            ? "Alertas ativos"
+                            : notificationPermission === "denied"
+                              ? "Alertas bloqueados"
+                              : "Ativar alertas"}
+                        </span>
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuGroup>
+
+                  <DropdownMenuSeparator />
+
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel className="text-[11px] uppercase tracking-wider text-ondjo-muted">
+                      Demonstração
+                    </DropdownMenuLabel>
+                    <DropdownMenuItem onClick={handleTriggerIncomingSimulation}>
+                      <Zap size={15} className="text-ondjo-blue" />
+                      <span>Simular nova mensagem</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleResetConversations}>
+                      <RotateCcw size={15} className="text-ondjo-muted" />
+                      <span>Restaurar conversas</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-          </div>
-        </header>
 
-        <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-12">
-          {/* ========================================================= */}
-          {/* COLUNA 1: Lista de Chats (Master)                         */}
-          {/* ========================================================= */}
-          <aside
-            aria-label="Lista de conversas"
-            className={cn(
-              "flex min-h-0 flex-col border-r border-ondjo-border bg-white lg:col-span-4 xl:col-span-4",
-              mobileView === "chat" ? "hidden lg:flex" : "flex",
-            )}
-          >
-            <div className="shrink-0 border-b border-ondjo-border/80 p-3 space-y-2.5">
-              <label htmlFor={conversationSearchId} className="sr-only">
-                Pesquisar conversas por nome ou imóvel
-              </label>
-              <div className="relative flex items-center">
-                <Search
-                  size={15}
-                  className="pointer-events-none absolute left-3 text-ondjo-muted"
-                  aria-hidden="true"
-                />
-                <Input
-                  id={conversationSearchId}
-                  type="search"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Pesquisar conversas..."
-                  className="h-10 rounded-xl border-ondjo-border bg-slate-50 pl-9 pr-8 text-sm"
-                />
-                {searchQuery && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-xs"
-                    onClick={() => setSearchQuery("")}
-                    aria-label="Limpar pesquisa"
-                    className="absolute right-1.5 rounded-full text-ondjo-muted"
-                  >
-                    <X size={14} />
-                  </Button>
-                )}
-              </div>
-
-              <Tabs
-                value={activeTab}
-                onValueChange={(val) =>
-                  setActiveTab(
-                    String(val) as "all" | "agent" | "owner" | "assistant" | "unread",
-                  )
-                }
-              >
-                <TabsList
-                  variant="pill"
-                  aria-label="Filtrar conversas"
-                  className="h-auto w-full flex-wrap justify-start gap-1 rounded-2xl border border-ondjo-border bg-slate-100 p-1"
-                >
-                  {(
-                    [
-                      { id: "all", label: "Todas" },
-                      { id: "agent", label: "Corretores" },
-                      { id: "owner", label: "Proprietários" },
-                      { id: "assistant", label: "Assistente" },
-                      { id: "unread", label: "Não lidas" },
-                    ] as const
-                  ).map((tab) => (
-                    <TabsTrigger
-                      key={tab.id}
-                      value={tab.id}
-                      className="min-h-7.5 flex-none rounded-full px-2.5 text-[11px] font-bold data-active:bg-ondjo-navy data-active:text-white"
-                    >
-                      {tab.label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
-            </div>
-
-            {/* Lista com scroll das conversas */}
-            <div
-              ref={conversationListRef}
-              role="listbox"
-              aria-label="Conversas disponíveis"
-              className="min-h-0 flex-1 overflow-y-auto p-2 space-y-1 scrollbar-subtle"
-            >
-              {filteredConversations.length === 0 ? (
-                <div className="p-8 text-center">
-                  <MessageSquare size={32} className="mx-auto text-ondjo-muted/60" />
-                  <p className="mt-2 text-sm font-semibold text-ondjo-navy">
-                    Nenhuma conversa encontrada
-                  </p>
-                  <p className="mt-1 text-xs text-ondjo-muted">
-                    Experimente limpar o filtro ou a barra de pesquisa.
-                  </p>
-                </div>
-              ) : (
-                filteredConversations.map((conv, index) => {
-                  const isCurrent = conv.id === activeChat.id;
-                  const lastMessage = conv.messages[conv.messages.length - 1];
-                  const linkedProp = conv.propertyId
-                    ? properties.find((p) => p.id === conv.propertyId)
-                    : undefined;
-
-                  return (
-                    <button
-                      key={conv.id}
+            {/* Banner compacto opcional de alertas se ainda não decidido */}
+            {isNotificationSupported &&
+              notificationPermission === "default" &&
+              !notifBannerDismissed && (
+                <div className="flex items-center justify-between gap-2.5 rounded-xl bg-ondjo-blue-50 px-3 py-2.5 text-xs">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Bell size={15} className="shrink-0 text-ondjo-blue" />
+                    <span className="truncate font-semibold text-ondjo-navy">
+                      Ativar alertas de respostas
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button
                       type="button"
-                      role="option"
-                      aria-selected={isCurrent}
-                      tabIndex={isCurrent ? 0 : -1}
-                      onKeyDown={(e) => handleConversationKeyDown(e, index)}
-                      onClick={() => selectConversation(conv.id)}
-                      className={cn(
-                        "focus-ring w-full text-left rounded-xl p-3 transition-colors flex items-start gap-3 relative cursor-pointer",
-                        isCurrent
-                          ? "bg-ondjo-blue-50 ring-1 ring-inset ring-ondjo-blue/25"
-                          : "hover:bg-slate-50",
-                      )}
+                      variant="primary"
+                      size="xs"
+                      onClick={requestNotificationPermission}
+                      className="h-7 rounded-lg px-2.5"
                     >
-                      {/* Avatar shadcn e Indicador de Presença */}
-                      <div className="relative shrink-0">
-                        {conv.category === "assistant" ? (
-                          <div className="grid size-11 place-items-center rounded-full bg-linear-to-br from-ondjo-navy to-ondjo-blue text-white shadow-2xs">
-                            <Sparkles size={18} />
-                          </div>
-                        ) : (
-                          <Avatar className="size-11 ring-1 ring-ondjo-border">
-                            {conv.avatarUrl && (
-                              <AvatarImage src={conv.avatarUrl} alt={conv.contactName} />
-                            )}
-                            <AvatarFallback className="bg-ondjo-blue-soft text-ondjo-blue font-bold text-sm">
-                              {conv.contactName.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
-                        )}
+                      Ativar
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      onClick={() => setNotifBannerDismissed(true)}
+                      aria-label="Dispensar aviso"
+                      className="size-7 text-ondjo-muted"
+                    >
+                      <X size={13} />
+                    </Button>
+                  </div>
+                </div>
+              )}
 
-                        {renderPresenceBadge(conv.presence)}
-                      </div>
-
-                      {/* Informações da conversa */}
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-1.5 truncate">
-                            <span className="truncate text-xs sm:text-sm font-bold text-ondjo-navy">
-                              {conv.contactName}
-                            </span>
-                            {conv.verified && (
-                              <span title="Corretor verificado com licença ONDJO">
-                                <ShieldCheck size={14} className="shrink-0 text-ondjo-green" />
-                              </span>
-                            )}
-                          </div>
-                          <span className="shrink-0 text-[11px] font-medium text-ondjo-muted tabular-nums">
-                            {lastMessage ? lastMessage.timestamp : conv.lastActive}
-                          </span>
-                        </div>
-
-                        {linkedProp && (
-                          <div className="mt-0.5 flex items-center gap-1 text-[11px] font-semibold text-ondjo-blue truncate">
-                            <Building2 size={11} className="shrink-0" />
-                            <span className="truncate">{linkedProp.title}</span>
-                          </div>
-                        )}
-
-                        <div className="mt-1 flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-1 min-w-0 truncate text-xs text-ondjo-muted">
-                            {conv.isTyping ? (
-                              <span className="text-ondjo-blue font-semibold">
-                                A escrever...
-                              </span>
-                            ) : (
-                              <>
-                                {lastMessage?.sender === "user" && (
-                                  <span className="shrink-0 text-ondjo-muted">
-                                    {lastMessage.status === "read" ? (
-                                      <CheckCheck size={13} className="text-ondjo-blue inline" />
-                                    ) : lastMessage.status === "delivered" ? (
-                                      <CheckCheck size={13} className="text-ondjo-muted inline" />
-                                    ) : lastMessage.status === "sent" ? (
-                                      <Check size={13} className="text-ondjo-muted inline" />
-                                    ) : (
-                                      <Clock size={11} className="text-ondjo-muted inline" />
-                                    )}
-                                  </span>
-                                )}
-                                <span className="truncate">
-                                  {lastMessage?.text || "Sem mensagens anteriores."}
-                                </span>
-                              </>
-                            )}
-                          </div>
-
-                          {conv.unreadCount > 0 && (
-                            <Badge
-                              variant="info"
-                              size="xs"
-                              className="h-5 min-w-5 justify-center bg-ondjo-blue text-white border-transparent px-1.5"
-                            >
-                              {conv.unreadCount}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })
+            {/* Pesquisa Tonal (sem bordas pesadas) */}
+            <div className="relative flex items-center">
+              <label htmlFor={conversationSearchId} className="sr-only">
+                Pesquisar conversas por nome ou mensagem
+              </label>
+              <Search
+                size={16}
+                className="pointer-events-none absolute left-3.5 text-ondjo-muted"
+                aria-hidden="true"
+              />
+              <Input
+                id={conversationSearchId}
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Pesquisar contacto ou assunto..."
+                className="h-10.5 rounded-xl border-transparent bg-ondjo-bg pl-10 pr-9 text-sm text-ondjo-ink placeholder:text-ondjo-muted focus-visible:border-ondjo-blue focus-visible:bg-white"
+              />
+              {searchQuery && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  onClick={() => setSearchQuery("")}
+                  aria-label="Limpar pesquisa"
+                  className="absolute right-1.5 rounded-full text-ondjo-muted"
+                >
+                  <X size={14} />
+                </Button>
               )}
             </div>
 
-            {/* Rodapé da lista */}
-            <div className="hidden sm:block shrink-0 border-t border-ondjo-border/80 p-3 bg-slate-50/70">
-              <div className="flex items-center gap-2 rounded-xl border border-ondjo-border bg-white p-2.5 text-[11px] text-ondjo-muted">
-                <ShieldCheck size={15} className="shrink-0 text-ondjo-green" />
-                <span>
-                  <strong className="text-ondjo-navy">Garantia ONDJO:</strong> Histórico e propostas protegidos na plataforma.
-                </span>
+            {/* Filtro de Conversas em linha única fluida (shadcn Tabs) */}
+            <Tabs
+              value={activeTab}
+              onValueChange={(val) =>
+                setActiveTab(
+                  String(val) as
+                    | "all"
+                    | "agent"
+                    | "owner"
+                    | "assistant"
+                    | "unread",
+                )
+              }
+            >
+              <TabsList
+                aria-label="Filtrar conversas"
+                className="flex w-full justify-start gap-1 overflow-x-auto no-scrollbar rounded-xl border-0 bg-ondjo-bg p-1"
+              >
+                {(
+                  [
+                    { id: "all", label: "Todas" },
+                    { id: "agent", label: "Corretores" },
+                    { id: "owner", label: "Proprietários" },
+                    { id: "assistant", label: "Assistente" },
+                    { id: "unread", label: "Não lidas" },
+                  ] as const
+                ).map((tab) => (
+                  <TabsTrigger
+                    key={tab.id}
+                    value={tab.id}
+                    className="h-8.5 flex-none rounded-lg px-3 text-xs font-semibold data-active:bg-ondjo-navy data-active:text-white data-active:shadow-xs"
+                  >
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
+
+          {/* Lista com Scroll Respirável */}
+          <div
+            ref={conversationListRef}
+            role="listbox"
+            aria-label="Conversas disponíveis"
+            className="min-h-0 flex-1 overflow-y-auto px-2.5 pb-4 space-y-1 scrollbar-subtle"
+          >
+            {filteredConversations.length === 0 ? (
+              <div className="px-6 py-12 text-center">
+                <div className="mx-auto grid size-12 place-items-center rounded-2xl bg-ondjo-bg text-ondjo-muted">
+                  <MessageSquare size={22} />
+                </div>
+                <p className="mt-3 text-sm font-bold text-ondjo-navy">
+                  Nenhuma conversa encontrada
+                </p>
+                <p className="mt-1 text-xs text-ondjo-muted">
+                  Limpe o filtro ou tente outro termo de pesquisa.
+                </p>
+              </div>
+            ) : (
+              filteredConversations.map((conv, index) => {
+                const isCurrent = conv.id === activeChat.id;
+                const lastMessage = conv.messages[conv.messages.length - 1];
+
+                return (
+                  <button
+                    key={conv.id}
+                    type="button"
+                    role="option"
+                    aria-selected={isCurrent}
+                    tabIndex={isCurrent ? 0 : -1}
+                    onKeyDown={(e) => handleConversationKeyDown(e, index)}
+                    onClick={() => selectConversation(conv.id)}
+                    className={cn(
+                      "focus-ring flex w-full items-center gap-3.5 rounded-2xl p-3 text-left transition-colors duration-150 cursor-pointer",
+                      isCurrent
+                        ? "bg-ondjo-blue-50"
+                        : "hover:bg-slate-50 active:bg-slate-100/80",
+                    )}
+                  >
+                    <div className="relative shrink-0">
+                      {renderAvatar(conv, "size-12")}
+                      {renderPresenceBadge(conv.presence)}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span
+                            className={cn(
+                              "truncate text-sm font-bold",
+                              isCurrent ? "text-ondjo-blue" : "text-ondjo-navy",
+                            )}
+                          >
+                            {conv.contactName}
+                          </span>
+                          {conv.verified && (
+                            <ShieldCheck
+                              size={14}
+                              className="shrink-0 text-ondjo-green"
+                              aria-label="Verificado"
+                            />
+                          )}
+                        </div>
+                        <span className="shrink-0 text-[11px] font-medium text-ondjo-muted tabular-nums">
+                          {lastMessage ? lastMessage.timestamp : conv.lastActive}
+                        </span>
+                      </div>
+
+                      <div className="mt-1 flex items-center justify-between gap-2">
+                        <div className="flex min-w-0 flex-1 items-center gap-1 truncate text-xs text-ondjo-muted">
+                          {conv.isTyping ? (
+                            <span className="font-semibold text-ondjo-blue">
+                              A escrever...
+                            </span>
+                          ) : (
+                            <>
+                              {lastMessage?.sender === "user" && (
+                                <span className="shrink-0">
+                                  {lastMessage.status === "read" ? (
+                                    <CheckCheck
+                                      size={13}
+                                      className="inline text-ondjo-blue"
+                                    />
+                                  ) : lastMessage.status === "delivered" ? (
+                                    <CheckCheck
+                                      size={13}
+                                      className="inline text-ondjo-muted"
+                                    />
+                                  ) : lastMessage.status === "sent" ? (
+                                    <Check
+                                      size={13}
+                                      className="inline text-ondjo-muted"
+                                    />
+                                  ) : (
+                                    <Clock
+                                      size={11}
+                                      className="inline text-ondjo-muted"
+                                    />
+                                  )}
+                                </span>
+                              )}
+                              <span
+                                className={cn(
+                                  "truncate",
+                                  conv.unreadCount > 0 &&
+                                    "font-semibold text-ondjo-navy",
+                                )}
+                              >
+                                {lastMessage?.text || "Sem mensagens."}
+                              </span>
+                            </>
+                          )}
+                        </div>
+
+                        {conv.unreadCount > 0 && (
+                          <Badge
+                            variant="default"
+                            size="xs"
+                            className="h-5 min-w-5 shrink-0 justify-center px-1.5 tabular-nums"
+                          >
+                            {conv.unreadCount}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </aside>
+
+        {/* =========================================================
+            PAINEL DIREITO: Conversa Ativa (Full-Height)
+            ========================================================= */}
+        <main
+          aria-label="Diálogo ativo"
+          className={cn(
+            "flex min-h-0 flex-1 flex-col overflow-hidden bg-ondjo-bg",
+            mobileView === "list" ? "hidden lg:flex" : "flex",
+          )}
+        >
+          {/* Cabeçalho do Interlocutor — Limpo, Visível e Sem Poluição */}
+          <header className="shrink-0 flex items-center justify-between gap-3 bg-white px-3.5 py-3 sm:px-6 border-b border-ondjo-border/50">
+            <div className="flex min-w-0 items-center gap-3">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setMobileView("list")}
+                className="h-10 rounded-xl bg-ondjo-bg px-2.5 text-xs font-bold text-ondjo-navy hover:bg-ondjo-blue-soft lg:hidden"
+                aria-label="Voltar para a lista de conversas"
+              >
+                <ArrowLeft size={16} />
+                {otherUnreadCount > 0 && (
+                  <Badge variant="default" size="xs" className="h-4.5 min-w-4.5 px-1">
+                    {otherUnreadCount}
+                  </Badge>
+                )}
+              </Button>
+
+              <div className="relative shrink-0">
+                {renderAvatar(activeChat, "size-10 sm:size-11")}
+                {renderPresenceBadge(activeChat.presence)}
+              </div>
+
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <h2 className="truncate text-sm sm:text-base font-bold text-ondjo-navy">
+                    {activeChat.contactName}
+                  </h2>
+                  {activeChat.verified && (
+                    <Tooltip>
+                      <TooltipTrigger
+                        render={
+                          <span className="inline-flex shrink-0 items-center text-ondjo-green" />
+                        }
+                      >
+                        <ShieldCheck size={16} aria-hidden="true" />
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        Identidade verificada ONDJO
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                </div>
+
+                <p className="flex items-center gap-1.5 truncate text-xs text-ondjo-muted">
+                  <span className="truncate">{activeChat.role}</span>
+                  <span aria-hidden="true">·</span>
+                  {activeChat.isTyping ? (
+                    <span className="font-semibold text-ondjo-blue">
+                      A escrever...
+                    </span>
+                  ) : activeChat.presence === "online" ? (
+                    <span className="font-semibold text-ondjo-green">
+                      Online agora
+                    </span>
+                  ) : activeChat.presence === "away" ? (
+                    <span className="font-medium text-amber-600">Ausente</span>
+                  ) : (
+                    <span>{activeChat.lastActive}</span>
+                  )}
+                </p>
               </div>
             </div>
-          </aside>
 
-          {/* ========================================================= */}
-          {/* COLUNA 2: Diálogo Ativo (Detail)                          */}
-          {/* ========================================================= */}
-          <main
-            aria-label="Diálogo ativo"
-            className={cn(
-              "flex min-h-0 flex-col bg-white overflow-hidden",
-              propertyDrawerOpen
-                ? "lg:col-span-5 xl:col-span-5"
-                : "lg:col-span-8 xl:col-span-8",
-              mobileView === "list" ? "hidden lg:flex" : "flex",
-            )}
-          >
-            {/* Topbar da Janela Ativa */}
-            <div className="shrink-0 flex items-center justify-between gap-2 sm:gap-3 border-b border-ondjo-border px-3.5 py-2.5 sm:px-5 sm:py-3 bg-white">
-              <div className="flex items-center gap-2.5 min-w-0">
+            {/* Ação Discreta de Imóvel Associado (ou Badge Assistente) */}
+            <div className="flex items-center gap-2 shrink-0">
+              {activeProperty ? (
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
-                  onClick={() => setMobileView("list")}
-                  className="h-9 rounded-xl border-ondjo-border bg-slate-50 px-2.5 text-xs font-bold text-ondjo-navy lg:hidden"
-                  aria-label="Voltar para a lista de conversas"
+                  onClick={() => setPropertySheetOpen(true)}
+                  className="h-10 gap-2 rounded-xl border-0 bg-ondjo-blue-50 px-2.5 sm:px-3.5 text-ondjo-navy hover:bg-ondjo-blue-soft"
+                  aria-label={`Ver detalhes do imóvel: ${activeProperty.title}`}
                 >
-                  <ArrowLeft size={15} />
-                  <span>Chats</span>
-                  {otherUnreadCount > 0 && (
-                    <Badge variant="info" size="xs" className="bg-ondjo-blue text-white border-transparent px-1.5">
-                      {otherUnreadCount}
-                    </Badge>
-                  )}
-                </Button>
-
-                <div className="relative shrink-0">
-                  {activeChat.category === "assistant" ? (
-                    <div className="grid size-9 sm:size-10 place-items-center rounded-full bg-linear-to-br from-ondjo-navy to-ondjo-blue text-white shadow-2xs">
-                      <Bot size={18} />
-                    </div>
-                  ) : (
-                    <Avatar className="size-9 sm:size-10 ring-1 ring-ondjo-border">
-                      {activeChat.avatarUrl && (
-                        <AvatarImage src={activeChat.avatarUrl} alt={activeChat.contactName} />
-                      )}
-                      <AvatarFallback className="bg-ondjo-blue-soft text-ondjo-blue font-bold">
-                        {activeChat.contactName.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-
-                  {renderPresenceBadge(activeChat.presence)}
-                </div>
-
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <h2 className="truncate text-xs sm:text-sm font-bold text-ondjo-navy">
-                      {activeChat.contactName}
-                    </h2>
-                    {activeChat.verified && (
-                      <Badge variant="verified" size="xs" className="hidden sm:inline-flex">
-                        Verificado
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="flex items-center gap-1.5 text-[11px] text-ondjo-muted truncate">
-                    <span className="truncate">{activeChat.role}</span>
-                    <span className="text-ondjo-border">•</span>
-                    {activeChat.isTyping ? (
-                      <span className="text-ondjo-blue font-bold">A escrever...</span>
-                    ) : activeChat.presence === "online" ? (
-                      <span className="text-ondjo-green font-medium">Online agora</span>
-                    ) : activeChat.presence === "away" ? (
-                      <span className="text-amber-600 font-medium">Ausente</span>
-                    ) : (
-                      <span>{activeChat.lastActive}</span>
-                    )}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1.5 shrink-0">
-                {activeProperty && (
-                  <Button
-                    type="button"
-                    variant={propertyDrawerOpen ? "secondary" : "outline"}
-                    size="sm"
-                    onClick={() => setPropertyDrawerOpen(!propertyDrawerOpen)}
-                    className="h-9 rounded-xl px-2.5 text-xs font-semibold"
-                    title="Detalhes do imóvel associado"
-                  >
-                    <Info size={15} />
-                    <span className="hidden sm:inline">Imóvel</span>
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            {/* Faixa de Contexto do Imóvel */}
-            {activeProperty && (
-              <div className="shrink-0 flex items-center justify-between gap-3 border-b border-ondjo-border/80 bg-slate-50 px-3.5 py-2 sm:px-5">
-                <div className="flex items-center gap-2.5 min-w-0">
                   <img
                     src={activeProperty.images[0]}
-                    alt={activeProperty.title}
-                    className="size-9 sm:size-10 rounded-lg object-cover ring-1 ring-ondjo-border shrink-0"
+                    alt=""
+                    aria-hidden="true"
+                    className="size-6.5 rounded-lg object-cover shrink-0"
                   />
-                  <div className="min-w-0">
-                    <p className="truncate text-xs font-bold text-ondjo-navy">
-                      {activeProperty.title}
-                    </p>
-                    <p className="text-[11px] font-semibold text-ondjo-ink truncate">
+                  <div className="hidden sm:flex flex-col items-start text-left leading-tight">
+                    <span className="max-w-36 truncate text-xs font-bold text-ondjo-navy">
+                      {activeProperty.neighborhood} · {activeProperty.type}
+                    </span>
+                    <span className="text-[11px] font-semibold text-ondjo-blue tabular-nums">
                       {formatKz(activeProperty.price, {
                         perMonth: activeProperty.purpose === "arrendamento",
                       })}
-                      <span className="font-normal text-ondjo-muted">
-                        {" "}
-                        • {activeProperty.neighborhood}, {activeProperty.city}
-                      </span>
-                    </p>
+                    </span>
                   </div>
-                </div>
-
-                <a
-                  href={`#/imovel/${activeProperty.id}`}
-                  className={cn(
-                    buttonVariants({ variant: "outline", size: "xs" }),
-                    "shrink-0 rounded-lg border-ondjo-border bg-white font-bold text-ondjo-blue",
-                  )}
-                >
-                  <span>Anúncio</span>
-                  <ExternalLink size={12} />
-                </a>
-              </div>
-            )}
-
-            {/* Histórico de Mensagens com scroll */}
-            <div
-              ref={messagesScrollRef}
-              className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain p-3.5 sm:p-5 lg:p-6 space-y-3 bg-slate-50/50 scrollbar-subtle"
-            >
-              <div className="relative my-1.5 flex items-center justify-center">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-ondjo-border/70" />
-                </div>
+                  <span className="sm:hidden text-xs font-bold text-ondjo-blue">
+                    Imóvel
+                  </span>
+                  <ChevronRight
+                    size={15}
+                    className="text-ondjo-blue shrink-0"
+                    aria-hidden="true"
+                  />
+                </Button>
+              ) : (
                 <Badge
-                  variant="neutral"
-                  size="xs"
-                  className="relative border-ondjo-border bg-white px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ondjo-muted"
+                  variant="info"
+                  icon={<Sparkles size={12} aria-hidden="true" />}
+                  className="h-8 rounded-xl border-0 px-3 text-xs font-bold"
                 >
-                  Canal seguro ONDJO Angola
+                  <span className="hidden sm:inline">Apoio oficial</span>
+                  <span className="sm:hidden">Oficial</span>
                 </Badge>
-              </div>
+              )}
+            </div>
+          </header>
 
-              {activeChat.messages.map((message) => {
+          {/* Área de Mensagens com Scroll e Espaço para Respirar */}
+          <div
+            ref={messagesScrollRef}
+            className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-3.5 py-5 sm:px-6 lg:px-10 scrollbar-subtle"
+          >
+            <div className="mx-auto flex w-full max-w-3xl flex-col">
+              {activeChat.messages.map((message, idx) => {
                 const isUser = message.sender === "user";
+                const prevMessage = activeChat.messages[idx - 1];
+                const nextMessage = activeChat.messages[idx + 1];
+                const isFirstInGroup =
+                  !prevMessage || prevMessage.sender !== message.sender;
+                const isLastInGroup =
+                  !nextMessage || nextMessage.sender !== message.sender;
 
                 return (
-                  <div
+                  <m.div
                     key={message.id}
-                    className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}
+                    initial={
+                      reduceMotion
+                        ? false
+                        : { opacity: 0, y: 10, scale: 0.98 }
+                    }
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{
+                      duration: 0.18,
+                      ease: [0.22, 1, 0.36, 1],
+                    }}
+                    className={cn(
+                      "flex items-end gap-2.5",
+                      isUser ? "justify-end" : "justify-start",
+                      isFirstInGroup && idx > 0 ? "mt-4" : idx > 0 ? "mt-1.5" : "",
+                    )}
                   >
+                    {/* Avatar do interlocutor apenas na última mensagem do grupo */}
+                    {!isUser && (
+                      <div className="w-7 shrink-0">
+                        {isLastInGroup ? renderAvatar(activeChat, "size-7") : null}
+                      </div>
+                    )}
+
                     <div
                       className={cn(
-                        "max-w-[88%] sm:max-w-[78%] rounded-2xl p-3 sm:p-3.5 text-xs sm:text-sm leading-relaxed shadow-2xs",
+                        "max-w-[84%] sm:max-w-[74%] px-4 py-2.5 text-sm leading-relaxed",
                         isUser
-                          ? "bg-ondjo-blue text-white rounded-br-xs"
-                          : "bg-white border border-ondjo-border text-ondjo-ink rounded-bl-xs",
+                          ? cn(
+                              "bg-linear-to-br from-ondjo-blue to-ondjo-blue-dark text-white shadow-xs",
+                              "rounded-2xl",
+                              isLastInGroup ? "rounded-br-sm" : "",
+                            )
+                          : cn(
+                              "bg-white text-ondjo-ink shadow-[0_1px_3px_rgba(16,42,67,0.06)]",
+                              "rounded-2xl",
+                              isLastInGroup ? "rounded-bl-sm" : "",
+                            ),
                       )}
                     >
                       <p className="whitespace-pre-line">{message.text}</p>
 
                       {message.visitProposal && (
-                        <div className="mt-3 rounded-xl border border-ondjo-border-accent bg-ondjo-blue-50 p-3 text-ondjo-navy">
+                        <div className="mt-3 rounded-xl bg-ondjo-blue-50 p-3.5 text-ondjo-navy">
                           <div className="flex items-center gap-2 text-xs font-bold text-ondjo-blue">
                             <CalendarDays size={16} />
                             <span>Proposta de Visita ao Imóvel</span>
                           </div>
 
-                          <div className="mt-2 space-y-1 text-xs text-ondjo-ink">
-                            <div className="flex items-center gap-1.5">
-                              <Clock size={13} className="text-ondjo-muted shrink-0" />
-                              <span>
-                                {message.visitProposal.date} às {message.visitProposal.time}
+                          <div className="mt-2.5 space-y-1.5 text-xs text-ondjo-ink">
+                            <div className="flex items-center gap-2">
+                              <Clock
+                                size={14}
+                                className="shrink-0 text-ondjo-blue"
+                              />
+                              <span className="font-medium">
+                                {message.visitProposal.date} às{" "}
+                                {message.visitProposal.time}
                               </span>
                             </div>
-                            <div className="flex items-center gap-1.5">
-                              <MapPin size={13} className="text-ondjo-muted shrink-0" />
-                              <span className="truncate">{message.visitProposal.location}</span>
+                            <div className="flex items-center gap-2">
+                              <MapPin
+                                size={14}
+                                className="shrink-0 text-ondjo-blue"
+                              />
+                              <span className="truncate">
+                                {message.visitProposal.location}
+                              </span>
                             </div>
                           </div>
 
-                          <div className="mt-3 pt-2.5 border-t border-ondjo-border/70 flex flex-wrap items-center gap-2">
+                          <div className="mt-3 flex flex-wrap items-center gap-2 pt-2">
                             {message.visitProposal.confirmed ? (
-                              <div className="flex items-center gap-1.5 text-xs font-bold text-ondjo-green">
-                                <CalendarCheck size={15} />
-                                <span>Visita Confirmada na sua Agenda!</span>
-                              </div>
+                              <Badge
+                                variant="verified"
+                                icon={<CalendarCheck size={14} />}
+                                className="h-8 rounded-lg px-3 text-xs font-bold"
+                              >
+                                Visita confirmada na agenda
+                              </Badge>
                             ) : (
                               <>
                                 <Button
                                   type="button"
                                   variant="primary"
-                                  size="xs"
+                                  size="sm"
                                   onClick={() => handleConfirmVisit(message.id)}
-                                  leftIcon={<Check size={13} />}
-                                  className="h-8 rounded-lg px-3 font-bold"
+                                  leftIcon={<Check size={14} />}
+                                  className="h-9 rounded-xl px-3.5 font-bold"
                                 >
                                   Confirmar visita
                                 </Button>
                                 <Button
                                   type="button"
-                                  variant="outline"
-                                  size="xs"
+                                  variant="ghost"
+                                  size="sm"
                                   onClick={() =>
                                     handleSendMessage(
                                       "Gostaria de propor um horário alternativo para a visita. Seria possível no período da tarde?",
                                     )
                                   }
-                                  className="h-8 rounded-lg border-ondjo-border bg-white px-2.5 font-semibold text-ondjo-ink"
+                                  className="h-9 rounded-xl bg-white px-3 text-xs font-semibold text-ondjo-ink hover:bg-slate-100"
                                 >
-                                  Propor outro horário
+                                  Outro horário
                                 </Button>
                               </>
                             )}
@@ -1706,7 +1744,7 @@ export function ChatPage() {
 
                       <div
                         className={cn(
-                          "mt-1.5 flex items-center justify-end gap-1 text-[10px]",
+                          "mt-1 flex items-center justify-end gap-1 text-[11px] tabular-nums",
                           isUser ? "text-white/80" : "text-ondjo-muted",
                         )}
                       >
@@ -1714,257 +1752,201 @@ export function ChatPage() {
                         {isUser && renderMessageStatusIcon(message.status)}
                       </div>
                     </div>
-                  </div>
+                  </m.div>
                 );
               })}
 
+              {/* Indicador Animado de Digitação */}
               <AnimatePresence>
                 {activeChat.isTyping && (
                   <m.div
-                    initial={{ opacity: 0, y: 4 }}
+                    initial={reduceMotion ? false : { opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 4 }}
-                    transition={{ duration: 0.12 }}
-                    className="flex items-center gap-2 rounded-2xl border border-ondjo-border bg-white px-3.5 py-2 shadow-2xs w-fit"
+                    exit={{ opacity: 0, y: 6 }}
+                    transition={{ duration: 0.14 }}
+                    className="mt-3 flex items-end gap-2.5"
+                    aria-live="polite"
                   >
-                    <span className="text-xs font-semibold text-ondjo-muted">
-                      {activeChat.contactName} está a escrever...
-                    </span>
+                    <div className="w-7 shrink-0">
+                      {renderAvatar(activeChat, "size-7")}
+                    </div>
+                    <div className="inline-flex items-center gap-1.5 rounded-2xl rounded-bl-sm bg-white px-4 py-3 shadow-[0_1px_3px_rgba(16,42,67,0.06)]">
+                      {[0, 1, 2].map((dot) => (
+                        <m.span
+                          key={dot}
+                          aria-hidden="true"
+                          animate={
+                            reduceMotion
+                              ? undefined
+                              : { y: [0, -3, 0], opacity: [0.45, 1, 0.45] }
+                          }
+                          transition={
+                            reduceMotion
+                              ? undefined
+                              : {
+                                  duration: 0.9,
+                                  repeat: Infinity,
+                                  delay: dot * 0.16,
+                                  ease: "easeInOut",
+                                }
+                          }
+                          className="size-1.5 rounded-full bg-ondjo-blue"
+                        />
+                      ))}
+                      <span className="sr-only">
+                        {activeChat.contactName} está a escrever...
+                      </span>
+                    </div>
                   </m.div>
                 )}
               </AnimatePresence>
-
-              <div className="h-px shrink-0" aria-hidden="true" />
             </div>
+          </div>
 
-            {/* Cápsulas de Perguntas Rápidas */}
-            <div className="shrink-0 border-t border-ondjo-border/80 bg-slate-50 px-3 py-2 sm:px-4">
-              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
-                <span className="shrink-0 text-[11px] font-bold text-ondjo-muted flex items-center gap-1 mr-1">
-                  <Sparkles size={12} className="text-ondjo-blue" />
-                  Sugestões:
-                </span>
-                {QUICK_QUESTIONS.map((question, idx) => (
-                  <Button
-                    key={idx}
-                    type="button"
-                    variant="outline"
-                    size="xs"
-                    onClick={() => handleSendMessage(question)}
-                    className="shrink-0 h-8 rounded-full border-ondjo-border bg-white px-3 text-xs font-semibold text-ondjo-ink hover:border-ondjo-blue hover:text-ondjo-blue hover:bg-ondjo-blue-50"
-                  >
-                    {question}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            {/* Barra de Composição e Envio */}
-            <div className="shrink-0 border-t border-ondjo-border p-2.5 sm:p-3.5 bg-white">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleSendMessage();
-                }}
-                className="flex items-center gap-2"
-              >
-                <Input
-                  ref={inputRef}
-                  type="text"
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  placeholder={`Escreva uma mensagem para ${activeChat.contactName}...`}
-                  className="h-11 flex-1 rounded-xl border-ondjo-border bg-slate-50 px-3.5 text-xs sm:text-sm"
-                />
-
-                <Button
-                  type="submit"
-                  variant="primary"
-                  disabled={!inputText.trim()}
-                  className="h-11 min-w-11 rounded-xl px-4 text-xs sm:text-sm font-bold"
-                  aria-label="Enviar mensagem"
-                >
-                  <Send size={16} />
-                  <span className="hidden sm:inline">Enviar</span>
-                </Button>
-              </form>
-            </div>
-          </main>
-
-          {/* ========================================================= */}
-          {/* COLUNA 3: Ficha do Imóvel Associado (Desktop Lateral)     */}
-          {/* ========================================================= */}
-          {activeProperty && propertyDrawerOpen && (
-            <aside
-              aria-label="Ficha do imóvel em negociação"
-              className="hidden lg:block border-l border-ondjo-border bg-slate-50/70 p-4 lg:col-span-3 xl:col-span-3 overflow-y-auto scrollbar-subtle"
+          {/* Barra de Composição Limpa e Moderna (Sem Sugestões nem Bordas Excessivas) */}
+          <div className="shrink-0 bg-white px-3.5 py-3 sm:px-6 sm:py-3.5 border-t border-ondjo-border/50">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSendMessage();
+              }}
+              className="mx-auto flex w-full max-w-3xl items-center gap-2 rounded-2xl bg-ondjo-bg p-1.5 pl-4 transition-shadow duration-150 focus-within:bg-white focus-within:ring-2 focus-within:ring-ondjo-blue/25 focus-within:shadow-xs"
             >
-              <div className="rounded-2xl border border-ondjo-border bg-white p-4 shadow-2xs">
-                <div className="flex items-center justify-between pb-3 border-b border-ondjo-border/70">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-ondjo-navy">
-                    Imóvel em negociação
-                  </h3>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-xs"
-                    onClick={() => setPropertyDrawerOpen(false)}
-                    aria-label="Fechar painel do imóvel"
-                  >
-                    <X size={15} />
-                  </Button>
-                </div>
+              <Input
+                ref={inputRef}
+                type="text"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                placeholder={`Escreva uma mensagem para ${activeChat.contactName}...`}
+                className="h-10 flex-1 border-0 bg-transparent px-0 text-sm text-ondjo-ink shadow-none placeholder:text-ondjo-muted focus-visible:ring-0"
+              />
 
-                <div className="mt-3 overflow-hidden rounded-xl border border-ondjo-border/80">
-                  <img
-                    src={activeProperty.images[0]}
-                    alt={activeProperty.title}
-                    className="aspect-4/3 w-full object-cover"
-                  />
-                </div>
-
-                <div className="mt-3">
-                  <p className="text-lg font-black text-ondjo-navy">
-                    {formatKz(activeProperty.price, {
-                      perMonth: activeProperty.purpose === "arrendamento",
-                    })}
-                  </p>
-                  <h4 className="mt-1 text-sm font-bold text-ondjo-ink line-clamp-2">
-                    {activeProperty.title}
-                  </h4>
-                  <p className="mt-1 flex items-center gap-1 text-xs text-ondjo-muted">
-                    <MapPin size={13} className="shrink-0 text-ondjo-blue" />
-                    <span>
-                      {activeProperty.neighborhood}, {activeProperty.city}
-                    </span>
-                  </p>
-                </div>
-
-                <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl border border-ondjo-border/80 bg-slate-50 p-3 text-xs">
-                  <div>
-                    <span className="text-ondjo-muted block text-[10px] uppercase font-bold">Tipo</span>
-                    <span className="font-bold text-ondjo-navy">{activeProperty.type}</span>
-                  </div>
-                  <div>
-                    <span className="text-ondjo-muted block text-[10px] uppercase font-bold">Área</span>
-                    <span className="font-bold text-ondjo-navy">{activeProperty.area} m²</span>
-                  </div>
-                  <div>
-                    <span className="text-ondjo-muted block text-[10px] uppercase font-bold">Quartos</span>
-                    <span className="font-bold text-ondjo-navy">{activeProperty.bedrooms} Quartos</span>
-                  </div>
-                  <div>
-                    <span className="text-ondjo-muted block text-[10px] uppercase font-bold">Estacionamento</span>
-                    <span className="font-bold text-ondjo-navy">{activeProperty.parking} Vaga(s)</span>
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <p className="text-xs font-bold text-ondjo-navy mb-2">
-                    Comodidades do condomínio
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {activeProperty.features.map((feat) => (
-                      <Badge key={feat} variant="neutral" size="xs">
-                        {feat}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mt-5 pt-3 border-t border-ondjo-border/70">
-                  <a
-                    href={`#/imovel/${activeProperty.id}`}
-                    className={cn(
-                      buttonVariants({ variant: "primary", size: "default" }),
-                      "w-full rounded-xl text-xs font-bold",
-                    )}
-                  >
-                    <span>Ver anúncio completo</span>
-                    <ExternalLink size={14} />
-                  </a>
-                </div>
-              </div>
-            </aside>
-          )}
-        </div>
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={!inputText.trim()}
+                className="h-10 min-w-10 shrink-0 rounded-xl px-4 text-sm font-bold"
+                aria-label="Enviar mensagem"
+              >
+                <Send size={16} aria-hidden="true" />
+                <span className="hidden sm:inline">Enviar</span>
+              </Button>
+            </form>
+          </div>
+        </main>
       </div>
 
-      {/* Bottom Sheet do Imóvel para Telemóveis (shadcn Sheet) */}
-      <Sheet
-        open={Boolean(activeProperty && propertyDrawerOpen && !isDesktop)}
-        onOpenChange={setPropertyDrawerOpen}
-      >
+      {/* Sheet Unificado de Detalhes do Imóvel (Desktop Direita / Mobile Bottom) */}
+      <Sheet open={Boolean(activeProperty && propertySheetOpen)} onOpenChange={setPropertySheetOpen}>
         <SheetContent
-          side="bottom"
-          className="max-h-[85dvh] rounded-t-3xl p-0 pb-safe overflow-hidden lg:hidden"
+          side={isDesktop ? "right" : "bottom"}
+          className={cn(
+            "p-0 overflow-hidden",
+            isDesktop
+              ? "w-full sm:max-w-md"
+              : "max-h-[85dvh] rounded-t-3xl pb-safe",
+          )}
         >
           {activeProperty && (
             <>
               <SheetHeader className="px-5 pt-5 pb-3 pr-14">
                 <div className="flex items-center gap-2">
                   <Building2 size={18} className="text-ondjo-blue" />
-                  <SheetTitle className="text-sm font-bold text-ondjo-navy">
+                  <SheetTitle className="text-base font-bold text-ondjo-navy">
                     Imóvel em negociação
                   </SheetTitle>
                 </div>
+                <SheetDescription className="text-xs text-ondjo-muted">
+                  Resumo rápido do anúncio associado a esta conversa
+                </SheetDescription>
               </SheetHeader>
 
-              <Separator className="bg-ondjo-border" />
+              <Separator className="bg-ondjo-border/60" />
 
-              <div className="overflow-y-auto p-5">
+              <div className="flex-1 overflow-y-auto p-5 space-y-4">
                 <img
                   src={activeProperty.images[0]}
                   alt={activeProperty.title}
-                  className="aspect-video w-full rounded-2xl border border-ondjo-border object-cover"
+                  className="aspect-video w-full rounded-2xl object-cover"
                 />
 
-                <div className="mt-3">
-                  <p className="text-lg font-black text-ondjo-navy">
+                <div>
+                  <p className="text-xl font-black text-ondjo-navy tabular-nums">
                     {formatKz(activeProperty.price, {
                       perMonth: activeProperty.purpose === "arrendamento",
                     })}
                   </p>
-                  <h4 className="text-sm font-bold text-ondjo-ink">{activeProperty.title}</h4>
-                  <p className="mt-1 flex items-center gap-1 text-xs text-ondjo-muted">
-                    <MapPin size={13} className="text-ondjo-blue shrink-0" />
+                  <h3 className="mt-1 text-sm font-bold text-ondjo-ink">
+                    {activeProperty.title}
+                  </h3>
+                  <p className="mt-1 flex items-center gap-1.5 text-xs text-ondjo-muted">
+                    <MapPin size={14} className="shrink-0 text-ondjo-blue" />
                     <span>
                       {activeProperty.neighborhood}, {activeProperty.city}
                     </span>
                   </p>
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl border border-ondjo-border bg-slate-50 p-3 text-xs">
+                <div className="grid grid-cols-2 gap-2.5 rounded-2xl bg-ondjo-bg p-3.5 text-xs">
                   <div>
-                    <span className="text-ondjo-muted block text-[10px] uppercase font-bold">Tipo</span>
-                    <span className="font-bold text-ondjo-navy">{activeProperty.type}</span>
+                    <span className="block text-[10px] font-bold uppercase text-ondjo-muted">
+                      Tipo
+                    </span>
+                    <span className="font-bold text-ondjo-navy">
+                      {activeProperty.type}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-ondjo-muted block text-[10px] uppercase font-bold">Área</span>
-                    <span className="font-bold text-ondjo-navy">{activeProperty.area} m²</span>
+                    <span className="block text-[10px] font-bold uppercase text-ondjo-muted">
+                      Área
+                    </span>
+                    <span className="font-bold text-ondjo-navy tabular-nums">
+                      {activeProperty.area} m²
+                    </span>
                   </div>
                   <div>
-                    <span className="text-ondjo-muted block text-[10px] uppercase font-bold">Quartos</span>
-                    <span className="font-bold text-ondjo-navy">{activeProperty.bedrooms} Quartos</span>
+                    <span className="block text-[10px] font-bold uppercase text-ondjo-muted">
+                      Quartos
+                    </span>
+                    <span className="font-bold text-ondjo-navy tabular-nums">
+                      T{activeProperty.bedrooms}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-ondjo-muted block text-[10px] uppercase font-bold">Vagas</span>
-                    <span className="font-bold text-ondjo-navy">{activeProperty.parking} Vagas</span>
+                    <span className="block text-[10px] font-bold uppercase text-ondjo-muted">
+                      Estacionamento
+                    </span>
+                    <span className="font-bold text-ondjo-navy tabular-nums">
+                      {activeProperty.parking} vaga(s)
+                    </span>
                   </div>
                 </div>
 
-                <div className="mt-5">
-                  <a
-                    href={`#/imovel/${activeProperty.id}`}
-                    className={cn(
-                      buttonVariants({ variant: "primary", size: "md" }),
-                      "w-full rounded-xl text-sm font-bold",
-                    )}
-                  >
-                    <span>Ver anúncio completo</span>
-                    <ExternalLink size={16} />
-                  </a>
-                </div>
+                {activeProperty.features.length > 0 && (
+                  <div>
+                    <p className="mb-2 text-xs font-bold text-ondjo-navy">
+                      Comodidades
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {activeProperty.features.map((feat) => (
+                        <Badge key={feat} variant="secondary" size="xs">
+                          {feat}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <a
+                  href={`#/imovel/${activeProperty.id}`}
+                  className={cn(
+                    buttonVariants({ variant: "primary", size: "md" }),
+                    "w-full rounded-xl text-sm font-bold",
+                  )}
+                >
+                  <span>Ver anúncio completo</span>
+                  <ExternalLink size={15} />
+                </a>
               </div>
             </>
           )}
@@ -1976,18 +1958,26 @@ export function ChatPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <div className="flex items-center gap-2.5 text-ondjo-navy">
-              <RotateCcw size={18} className="text-ondjo-blue" aria-hidden="true" />
+              <RotateCcw
+                size={18}
+                className="text-ondjo-blue"
+                aria-hidden="true"
+              />
               <AlertDialogTitle className="text-base font-black text-ondjo-navy">
                 Restaurar conversas demo?
               </AlertDialogTitle>
             </div>
             <AlertDialogDescription className="text-xs leading-5 text-ondjo-muted">
-              As mensagens enviadas nesta sessão serão substituídas pelas conversas de demonstração padrão do ONDJO.
+              As mensagens enviadas nesta sessão serão substituídas pelas
+              conversas de demonstração padrão do ONDJO.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mx-0 mb-0 rounded-none border-t border-ondjo-border-hairline bg-transparent px-0 pt-4 pb-0">
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction variant="primary" onClick={confirmResetConversations}>
+            <AlertDialogAction
+              variant="primary"
+              onClick={confirmResetConversations}
+            >
               Restaurar
             </AlertDialogAction>
           </AlertDialogFooter>
