@@ -901,59 +901,64 @@ export function SearchBar({
           MOBILE: BARRA TOUCH COMPACTA EM PÍLULA
          ======================================================== */}
       <div className="block md:hidden">
-        <button
+        <Button
           type="button"
+          variant="outline"
           onClick={() => setMobileModalOpen(true)}
-          className="flex min-h-14 w-full items-center gap-3 rounded-2xl ondjo-border-surface bg-white p-2.5 shadow-[0_8px_24px_rgba(16,42,67,0.08)] active:scale-[0.99] transition-[transform,box-shadow] duration-150 cursor-pointer text-left"
           aria-label="Abrir filtros de pesquisa de imóveis"
+          className="flex h-auto min-h-14.5 w-full items-center justify-between gap-3 rounded-full border-ondjo-border bg-white p-2 pr-2.5 text-left whitespace-normal shadow-[0_12px_30px_rgba(16,42,67,0.12)] hover:border-ondjo-border-strong hover:bg-slate-50 active:scale-[0.99]"
         >
-          <div className="flex size-10.5 items-center justify-center rounded-xl bg-ondjo-blue text-white shadow-xs shrink-0">
+          <span className="flex size-10.5 shrink-0 items-center justify-center rounded-full bg-ondjo-blue text-white shadow-xs">
             <Search size={18} aria-hidden="true" />
-          </div>
+          </span>
 
-          <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-bold text-ondjo-ink truncate flex items-center gap-1.5">
+          <span className="flex-1 min-w-0">
+            <span className="flex items-center gap-1.5 truncate text-sm font-bold text-ondjo-navy">
               {searchText ? (
                 <>
-                  <MapPin size={13} className="text-ondjo-blue shrink-0" />
+                  <MapPin size={13} className="shrink-0 text-ondjo-blue" aria-hidden="true" />
                   <span className="truncate">{searchText}</span>
                 </>
               ) : (
                 "Onde quer procurar?"
               )}
-            </h4>
-            <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500 truncate mt-0.5">
+            </span>
+            <span className="mt-0.5 flex items-center gap-1.5 truncate text-xs font-medium text-ondjo-muted">
               <span>{value.type || "Todos os tipos"}</span>
-              <span>·</span>
+              <span aria-hidden="true">·</span>
               <span>{value.bedrooms ? `T${value.bedrooms}` : "Qualquer T"}</span>
               {currentOrigin !== "todos" && (
                 <>
-                  <span>·</span>
-                  <span className="font-bold text-ondjo-blue flex items-center gap-0.5">
+                  <span aria-hidden="true">·</span>
+                  <span className="font-bold text-ondjo-blue">
                     {activeOriginOption.shortLabel}
                   </span>
                 </>
               )}
               {value.maxPrice && (
                 <>
-                  <span>·</span>
-                  <span className="font-bold text-ondjo-navy">
+                  <span aria-hidden="true">·</span>
+                  <span className="font-bold text-ondjo-navy tabular-nums">
                     Até {formatCompactKz(Number(value.maxPrice))}
                   </span>
                 </>
               )}
-            </div>
-          </div>
+            </span>
+          </span>
 
-          <div className="relative flex size-9 items-center justify-center rounded-xl ondjo-border-surface text-slate-600 shrink-0">
-            <SlidersHorizontal size={15} aria-hidden="true" />
+          <span className="relative flex size-10 shrink-0 items-center justify-center rounded-full bg-ondjo-blue-50 text-ondjo-blue">
+            <SlidersHorizontal size={16} aria-hidden="true" />
             {activeFiltersCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 grid size-4 place-items-center rounded-full bg-ondjo-navy text-[9px] font-black text-white shadow-xs">
+              <Badge
+                variant="navy"
+                size="xs"
+                className="absolute -top-1 -right-1 h-4.5 min-w-4.5 justify-center px-1 text-[10px] font-black shadow-xs ring-2 ring-white"
+              >
                 {activeFiltersCount}
-              </span>
+              </Badge>
             )}
-          </div>
-        </button>
+          </span>
+        </Button>
       </div>
 
       {/* ========================================================
