@@ -17,6 +17,7 @@ import {
   type OriginOption,
   type SearchOrigin,
 } from "./FilterControls";
+import { m, useReducedMotion } from "framer-motion";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { locations, properties } from "../data/properties";
 import { filterProperties } from "../utils/filterProperties";
@@ -148,6 +149,38 @@ export function defaultSearchFilters(): SearchFilters {
   return { ...emptyFilters };
 }
 
+function getOriginButtonTokens(id: SearchOrigin) {
+  switch (id) {
+    case "verificados":
+      return {
+        activePillClass: "bg-emerald-50 ring-1 ring-emerald-200/80",
+        activeTextClass:
+          "text-emerald-800 hover:bg-transparent hover:text-emerald-900",
+        activeIconClass: "text-emerald-600",
+      };
+    case "proprietario":
+      return {
+        activePillClass: "bg-ondjo-blue-50 ring-1 ring-ondjo-blue/25",
+        activeTextClass:
+          "text-ondjo-blue hover:bg-transparent hover:text-ondjo-blue",
+        activeIconClass: "text-ondjo-blue",
+      };
+    case "agentes":
+      return {
+        activePillClass: "bg-indigo-50 ring-1 ring-indigo-200/80",
+        activeTextClass:
+          "text-indigo-800 hover:bg-transparent hover:text-indigo-900",
+        activeIconClass: "text-indigo-600",
+      };
+    default:
+      return {
+        activePillClass: "bg-ondjo-navy shadow-xs",
+        activeTextClass: "text-white hover:bg-transparent hover:text-white",
+        activeIconClass: "text-white",
+      };
+  }
+}
+
 type ActiveSegment = "location" | "type" | "amenities" | "price" | null;
 
 export function SearchBar({
@@ -156,6 +189,7 @@ export function SearchBar({
   onSearch,
   compact = false,
 }: SearchBarProps) {
+  const reduceMotion = useReducedMotion();
   const [activeSegment, setActiveSegment] = useState<ActiveSegment>(null);
   const [mobileModalOpen, setMobileModalOpen] = useState(false);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>(
@@ -238,7 +272,7 @@ export function SearchBar({
       {/* ========================================================
           CABEÇALHO DA BUSCA MOBILE (Tabs shadcn + Régua de origem)
          ======================================================== */}
-      <div className="mb-3 flex flex-col gap-2.5 md:hidden">
+      <div className="mb-3.5 flex flex-col gap-2.5 md:hidden">
         <Tabs
           value={currentPurpose}
           onValueChange={(val) => set("purpose", String(val))}
@@ -253,7 +287,7 @@ export function SearchBar({
               <TabsTrigger
                 key={opt.id}
                 value={opt.id}
-                className="h-9.5 rounded-full text-xs font-bold text-ondjo-muted data-active:bg-ondjo-navy data-active:text-white data-active:shadow-xs"
+                className="h-10.5 rounded-full text-xs font-bold text-ondjo-muted data-active:bg-ondjo-navy data-active:text-white data-active:shadow-xs"
               >
                 {opt.label}
               </TabsTrigger>
@@ -261,73 +295,72 @@ export function SearchBar({
           </TabsList>
         </Tabs>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5">
+        <m.div
+          role="group"
+          aria-label="Filtrar por origem do anúncio"
+          initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={
+            reduceMotion
+              ? { duration: 0 }
+              : { duration: 0.28, delay: 0.08, ease: [0.22, 1, 0.36, 1] }
+          }
+          className="flex w-full items-center gap-0.5 overflow-x-auto no-scrollbar scrollbar-none rounded-full border border-ondjo-border bg-white p-1 shadow-xs"
+        >
           {ORIGIN_OPTIONS.map((opt) => {
             const isSelected = currentOrigin === opt.id;
             const Icon = opt.icon;
+            const { activePillClass, activeTextClass, activeIconClass } =
+              getOriginButtonTokens(opt.id);
 
             return (
               <Button
                 key={opt.id}
                 type="button"
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 aria-pressed={isSelected}
                 onClick={() => set("origin", opt.id)}
                 className={cn(
-                  "shrink-0 rounded-full px-3 text-xs font-semibold",
+                  "relative h-10 flex-1 shrink-0 min-w-max rounded-full px-3 text-xs transition-colors duration-150",
                   isSelected
-                    ? opt.id === "verificados"
-                      ? "border-emerald-600/40 bg-emerald-50 text-emerald-900 font-bold hover:bg-emerald-100"
-                      : opt.id === "proprietario"
-                        ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold hover:bg-ondjo-blue-soft"
-                        : opt.id === "agentes"
-                          ? "border-indigo-500/40 bg-indigo-50 text-indigo-900 font-bold hover:bg-indigo-100"
-                          : "border-ondjo-blue bg-ondjo-blue text-white font-bold hover:bg-ondjo-blue-dark hover:text-white"
-                    : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50",
+                    ? cn("font-bold", activeTextClass)
+                    : "font-semibold text-ondjo-muted hover:bg-slate-100/80 hover:text-ondjo-navy",
                 )}
               >
-                <Icon
-                  size={14}
-                  className={cn(
-                    "shrink-0",
-                    isSelected
-                      ? opt.id === "verificados"
-                        ? "text-emerald-700"
-                        : opt.id === "proprietario"
-                          ? "text-ondjo-blue"
-                          : opt.id === "agentes"
-                            ? "text-indigo-700"
-                            : "text-white"
-                      : "text-slate-500",
-                  )}
-                  aria-hidden="true"
-                />
-                <span>{opt.shortLabel}</span>
+                {isSelected && (
+                  <m.span
+                    layoutId="searchbar-origin-pill-mobile"
+                    transition={
+                      reduceMotion
+                        ? { duration: 0 }
+                        : { type: "spring", stiffness: 440, damping: 34 }
+                    }
+                    aria-hidden="true"
+                    className={cn(
+                      "absolute inset-0 rounded-full",
+                      activePillClass,
+                    )}
+                  />
+                )}
+
+                <span className="relative z-10 inline-flex items-center gap-1.5">
+                  <Icon
+                    size={14}
+                    aria-hidden="true"
+                    className={cn(
+                      "shrink-0 transition-colors duration-150",
+                      isSelected
+                        ? activeIconClass
+                        : "text-slate-400 group-hover/button:text-ondjo-navy",
+                    )}
+                  />
+                  <span>{opt.shortLabel}</span>
+                </span>
               </Button>
             );
           })}
-
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setMobileModalOpen(true)}
-            className="shrink-0 rounded-full border-ondjo-border bg-white px-3 text-xs font-bold text-ondjo-ink"
-          >
-            <SlidersHorizontal
-              size={13}
-              className="text-ondjo-blue"
-              aria-hidden="true"
-            />
-            <span>Filtros</span>
-            {activeFiltersCount > 0 && (
-              <Badge variant="navy" size="xs" className="px-1.5 min-w-4.5">
-                {activeFiltersCount}
-              </Badge>
-            )}
-          </Button>
-        </div>
+        </m.div>
       </div>
 
       {/* ========================================================
@@ -355,52 +388,72 @@ export function SearchBar({
           </TabsList>
         </Tabs>
 
-        <div className="flex flex-wrap items-center gap-1.5">
+        <m.div
+          role="group"
+          aria-label="Filtrar por origem do anúncio"
+          initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={
+            reduceMotion
+              ? { duration: 0 }
+              : { duration: 0.28, delay: 0.08, ease: [0.22, 1, 0.36, 1] }
+          }
+          className="inline-flex flex-wrap items-center gap-0.5 rounded-full border border-ondjo-border bg-white p-1 shadow-xs"
+        >
           {ORIGIN_OPTIONS.map((orig) => {
             const isSelected = currentOrigin === orig.id;
             const Icon = orig.icon;
+            const { activePillClass, activeTextClass, activeIconClass } =
+              getOriginButtonTokens(orig.id);
 
             return (
               <Button
                 key={orig.id}
                 type="button"
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 aria-pressed={isSelected}
                 onClick={() => set("origin", orig.id)}
                 className={cn(
-                  "rounded-full px-3 text-xs font-semibold",
+                  "relative h-8.5 rounded-full px-3.5 text-xs transition-colors duration-150",
                   isSelected
-                    ? orig.id === "verificados"
-                      ? "border-emerald-600/40 bg-emerald-50 text-emerald-900 font-bold hover:bg-emerald-100"
-                      : orig.id === "proprietario"
-                        ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold hover:bg-ondjo-blue-soft"
-                        : orig.id === "agentes"
-                          ? "border-indigo-500/40 bg-indigo-50 text-indigo-900 font-bold hover:bg-indigo-100"
-                          : "border-ondjo-blue bg-ondjo-blue text-white font-bold hover:bg-ondjo-blue-dark hover:text-white"
-                    : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50",
+                    ? cn("font-bold", activeTextClass)
+                    : "font-semibold text-ondjo-muted hover:bg-slate-100/80 hover:text-ondjo-navy",
                 )}
               >
-                <Icon
-                  size={14}
-                  aria-hidden="true"
-                  className={
-                    isSelected
-                      ? orig.id === "todos"
-                        ? "text-white"
-                        : orig.id === "verificados"
-                          ? "text-emerald-700"
-                          : orig.id === "proprietario"
-                            ? "text-ondjo-blue"
-                            : "text-indigo-700"
-                      : "text-slate-500"
-                  }
-                />
-                <span>{orig.shortLabel}</span>
+                {isSelected && (
+                  <m.span
+                    layoutId="searchbar-origin-pill"
+                    transition={
+                      reduceMotion
+                        ? { duration: 0 }
+                        : { type: "spring", stiffness: 440, damping: 34 }
+                    }
+                    aria-hidden="true"
+                    className={cn(
+                      "absolute inset-0 rounded-full",
+                      activePillClass,
+                    )}
+                  />
+                )}
+
+                <span className="relative z-10 inline-flex items-center gap-1.5">
+                  <Icon
+                    size={14}
+                    aria-hidden="true"
+                    className={cn(
+                      "shrink-0 transition-colors duration-150",
+                      isSelected
+                        ? activeIconClass
+                        : "text-slate-400 group-hover/button:text-ondjo-navy",
+                    )}
+                  />
+                  <span>{orig.shortLabel}</span>
+                </span>
               </Button>
             );
           })}
-        </div>
+        </m.div>
       </div>
 
       {/* ========================================================
@@ -906,9 +959,9 @@ export function SearchBar({
           variant="outline"
           onClick={() => setMobileModalOpen(true)}
           aria-label="Abrir filtros de pesquisa de imóveis"
-          className="flex h-auto min-h-14.5 w-full items-center justify-between gap-3 rounded-full border-ondjo-border bg-white p-2 pr-2.5 text-left whitespace-normal shadow-[0_12px_30px_rgba(16,42,67,0.12)] hover:border-ondjo-border-strong hover:bg-slate-50 active:scale-[0.99]"
+          className="flex h-auto min-h-15 w-full items-center justify-between gap-3 rounded-full border-ondjo-border bg-white p-2 pr-2.5 text-left whitespace-normal shadow-[0_12px_30px_rgba(16,42,67,0.12)] hover:border-ondjo-border-strong hover:bg-slate-50 active:scale-[0.99]"
         >
-          <span className="flex size-10.5 shrink-0 items-center justify-center rounded-full bg-ondjo-blue text-white shadow-xs">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-ondjo-blue text-white shadow-xs">
             <Search size={18} aria-hidden="true" />
           </span>
 
@@ -946,7 +999,7 @@ export function SearchBar({
             </span>
           </span>
 
-          <span className="relative flex size-10 shrink-0 items-center justify-center rounded-full bg-ondjo-blue-50 text-ondjo-blue">
+          <span className="relative flex size-10.5 shrink-0 items-center justify-center rounded-full bg-ondjo-blue-50 text-ondjo-blue">
             <SlidersHorizontal size={16} aria-hidden="true" />
             {activeFiltersCount > 0 && (
               <Badge
@@ -968,13 +1021,13 @@ export function SearchBar({
         <SheetContent
           side="bottom"
           showCloseButton={false}
-          className="max-h-[90dvh] w-full max-w-xl mx-auto flex flex-col overflow-hidden rounded-t-[28px] pb-safe"
+          className="max-h-[92dvh] w-full max-w-xl mx-auto flex flex-col overflow-hidden rounded-t-[28px]"
         >
           <div className="pt-3 pb-1 flex justify-center shrink-0">
             <div className="h-1 w-10 rounded-full bg-slate-300" />
           </div>
 
-          <SheetHeader className="flex-row items-center justify-between border-b border-slate-100 px-5 sm:px-6 py-3.5 shrink-0">
+          <SheetHeader className="flex-row items-center justify-between border-b border-slate-100 px-4 sm:px-6 py-3.5 shrink-0">
             <div>
               <SheetTitle className="text-base font-bold tracking-tight text-ondjo-navy">
                 Filtrar pesquisa
@@ -993,7 +1046,7 @@ export function SearchBar({
                   variant="ghost"
                   size="icon"
                   aria-label="Fechar filtros"
-                  className="size-10 rounded-full bg-slate-100 text-ondjo-ink hover:bg-slate-200"
+                  className="size-10.5 rounded-full bg-slate-100 text-ondjo-ink hover:bg-slate-200"
                 />
               }
             >
@@ -1001,7 +1054,7 @@ export function SearchBar({
             </SheetClose>
           </SheetHeader>
 
-          <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-5 space-y-6 overscroll-contain">
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 space-y-6 overscroll-contain">
             {/* 1. Modalidade */}
             <div>
               <span className="block text-xs font-bold text-ondjo-navy mb-2">
@@ -1161,7 +1214,7 @@ export function SearchBar({
               </span>
 
               <div className="divide-y divide-slate-100">
-                <div className="flex items-center justify-between py-2.5">
+                <div className="flex items-center justify-between py-3">
                   <span className="text-xs sm:text-sm font-medium text-ondjo-ink">
                     Quartos
                   </span>
@@ -1169,16 +1222,16 @@ export function SearchBar({
                     <Button
                       type="button"
                       variant="outline"
-                      size="icon-sm"
+                      size="icon"
                       onClick={() => {
                         const cur = parseInt(value.bedrooms || "0", 10);
                         const next = Math.max(0, cur - 1);
                         set("bedrooms", next === 0 ? "" : String(next));
                       }}
                       aria-label="Diminuir quartos"
-                      className="rounded-full"
+                      className="size-10 rounded-full"
                     >
-                      <Minus size={14} strokeWidth={2.2} />
+                      <Minus size={15} strokeWidth={2.2} />
                     </Button>
                     <span className="w-14 text-center text-xs font-bold text-ondjo-navy tabular-nums">
                       {value.bedrooms ? `T${value.bedrooms}` : "Qualquer"}
@@ -1186,20 +1239,20 @@ export function SearchBar({
                     <Button
                       type="button"
                       variant="outline"
-                      size="icon-sm"
+                      size="icon"
                       onClick={() => {
                         const cur = parseInt(value.bedrooms || "0", 10);
                         set("bedrooms", String(cur + 1));
                       }}
                       aria-label="Aumentar quartos"
-                      className="rounded-full"
+                      className="size-10 rounded-full"
                     >
-                      <Plus size={14} strokeWidth={2.2} />
+                      <Plus size={15} strokeWidth={2.2} />
                     </Button>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between py-2.5">
+                <div className="flex items-center justify-between py-3">
                   <span className="text-xs sm:text-sm font-medium text-ondjo-ink">
                     Casas de banho
                   </span>
@@ -1207,16 +1260,16 @@ export function SearchBar({
                     <Button
                       type="button"
                       variant="outline"
-                      size="icon-sm"
+                      size="icon"
                       onClick={() => {
                         const cur = parseInt(value.bathrooms || "0", 10);
                         const next = Math.max(0, cur - 1);
                         set("bathrooms", next === 0 ? "" : String(next));
                       }}
                       aria-label="Diminuir casas de banho"
-                      className="rounded-full"
+                      className="size-10 rounded-full"
                     >
-                      <Minus size={14} strokeWidth={2.2} />
+                      <Minus size={15} strokeWidth={2.2} />
                     </Button>
                     <span className="w-14 text-center text-xs font-bold text-ondjo-navy tabular-nums">
                       {value.bathrooms ? `${value.bathrooms}+` : "Qualquer"}
@@ -1224,20 +1277,20 @@ export function SearchBar({
                     <Button
                       type="button"
                       variant="outline"
-                      size="icon-sm"
+                      size="icon"
                       onClick={() => {
                         const cur = parseInt(value.bathrooms || "0", 10);
                         set("bathrooms", String(cur + 1));
                       }}
                       aria-label="Aumentar casas de banho"
-                      className="rounded-full"
+                      className="size-10 rounded-full"
                     >
-                      <Plus size={14} strokeWidth={2.2} />
+                      <Plus size={15} strokeWidth={2.2} />
                     </Button>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between py-2.5">
+                <div className="flex items-center justify-between py-3">
                   <span className="text-xs sm:text-sm font-medium text-ondjo-ink">
                     Estacionamento
                   </span>
@@ -1245,16 +1298,16 @@ export function SearchBar({
                     <Button
                       type="button"
                       variant="outline"
-                      size="icon-sm"
+                      size="icon"
                       onClick={() => {
                         const cur = parseInt(value.parking || "0", 10);
                         const next = Math.max(0, cur - 1);
                         set("parking", next === 0 ? "" : String(next));
                       }}
                       aria-label="Diminuir vagas"
-                      className="rounded-full"
+                      className="size-10 rounded-full"
                     >
-                      <Minus size={14} strokeWidth={2.2} />
+                      <Minus size={15} strokeWidth={2.2} />
                     </Button>
                     <span className="w-14 text-center text-xs font-bold text-ondjo-navy tabular-nums">
                       {value.parking ? `${value.parking}+` : "Qualquer"}
@@ -1262,15 +1315,15 @@ export function SearchBar({
                     <Button
                       type="button"
                       variant="outline"
-                      size="icon-sm"
+                      size="icon"
                       onClick={() => {
                         const cur = parseInt(value.parking || "0", 10);
                         set("parking", String(cur + 1));
                       }}
                       aria-label="Aumentar vagas"
-                      className="rounded-full"
+                      className="size-10 rounded-full"
                     >
-                      <Plus size={14} strokeWidth={2.2} />
+                      <Plus size={15} strokeWidth={2.2} />
                     </Button>
                   </div>
                 </div>
@@ -1310,7 +1363,7 @@ export function SearchBar({
             </div>
           </div>
 
-          <SheetFooter className="shrink-0 border-t border-slate-100 bg-white px-5 sm:px-6 py-4 flex-row items-center justify-between gap-3">
+          <SheetFooter className="shrink-0 border-t border-slate-100 bg-white px-4 sm:px-6 pt-3.5 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] flex-row items-center justify-between gap-3">
             <Button
               type="button"
               variant="ghost"

@@ -94,13 +94,13 @@ export function Home() {
           <div className="absolute inset-0 bg-linear-to-b from-ondjo-navy/75 via-ondjo-navy/90 to-ondjo-navy" />
         </div>
 
-        <div className="relative mx-auto w-full max-w-7xl px-4 pt-8 pb-10 sm:px-6 sm:pt-12 sm:pb-13 lg:px-8 lg:pt-14 lg:pb-16">
+        <div className="relative mx-auto w-full max-w-7xl px-4 pt-6 pb-8 sm:px-6 sm:pt-12 sm:pb-13 lg:px-8 lg:pt-14 lg:pb-16">
           <div className="mx-auto max-w-2xl text-center">
             <m.h1
               initial={reduceMotion ? false : { opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-              className="text-2xl font-bold tracking-tight text-white sm:text-4xl lg:text-[44px] leading-[1.15]"
+              className="text-[26px] leading-[1.15] font-bold tracking-tight text-balance text-white sm:text-4xl lg:text-[44px]"
             >
               Encontre o seu próximo imóvel em Angola
             </m.h1>
@@ -127,7 +127,7 @@ export function Home() {
               delay: 0.06,
               ease: [0.22, 1, 0.36, 1],
             }}
-            className="relative z-20 mx-auto mt-6 max-w-5xl sm:mt-8 w-full"
+            className="relative z-20 mx-auto mt-5 max-w-5xl sm:mt-8 w-full"
             tabIndex={-1}
           >
             <SearchBar
@@ -139,7 +139,7 @@ export function Home() {
         </div>
       </section>
 
-      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-14 flex-1 min-w-0">
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-7 sm:px-6 sm:py-12 lg:px-8 lg:py-14 flex-1 min-w-0">
         {/* =========================================================
             IMÓVEIS EM DESTAQUE
             ========================================================= */}
@@ -148,13 +148,18 @@ export function Home() {
           className="w-full max-w-full min-w-0"
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-4 sm:mb-6">
-            <div>
-              <h2
-                id="featured-properties-title"
-                className="text-xl sm:text-2xl font-bold tracking-tight text-ondjo-navy leading-tight"
-              >
-                Imóveis em destaque
-              </h2>
+            <div className="min-w-0">
+              <div className="flex items-baseline justify-between gap-3">
+                <h2
+                  id="featured-properties-title"
+                  className="text-xl sm:text-2xl font-bold tracking-tight text-ondjo-navy leading-tight"
+                >
+                  Imóveis em destaque
+                </h2>
+                <span className="shrink-0 text-xs font-semibold text-ondjo-blue sm:hidden tabular-nums">
+                  {featuredProperties.length} destaques
+                </span>
+              </div>
               <p className="mt-1 text-xs sm:text-sm text-ondjo-muted leading-relaxed">
                 Opções disponíveis agora nas principais zonas de Luanda.
               </p>
@@ -172,20 +177,14 @@ export function Home() {
             </div>
           </div>
 
-          <div className="flex items-center justify-end text-xs text-ondjo-muted sm:hidden mb-3">
-            <span className="font-semibold text-ondjo-blue">
-              {featuredProperties.length} imóveis em destaque
-            </span>
-          </div>
-
           <div
             ref={featuredScrollerRef}
-            className="flex w-full max-w-full min-w-0 overflow-x-auto snap-x snap-mandatory gap-3.5 pb-3 pt-1 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-6 sm:overflow-visible no-scrollbar overscroll-x-contain"
+            className="-mx-4 px-4 scroll-pl-4 sm:mx-0 sm:px-0 flex overflow-x-auto snap-x snap-mandatory gap-4 pb-3 pt-1 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-6 sm:overflow-visible no-scrollbar overscroll-x-contain"
           >
             {featuredProperties.map((property, index) => (
               <div
                 key={property.id}
-                className="w-[80vw] sm:w-auto max-w-77.5 sm:max-w-none shrink-0 snap-start sm:shrink min-w-0"
+                className="w-[78vw] sm:w-auto max-w-[300px] sm:max-w-none shrink-0 snap-start sm:shrink min-w-0"
               >
                 <PropertyCard property={property} index={index} />
               </div>
@@ -199,7 +198,7 @@ export function Home() {
             fullWidth
             onClick={() => navigate("pesquisar")}
             rightIcon={<ArrowRight size={16} aria-hidden="true" />}
-            className="mt-4 rounded-2xl text-ondjo-blue sm:hidden"
+            className="mt-4 h-12 rounded-full text-sm font-semibold sm:hidden"
           >
             Ver todos os {properties.length} imóveis
           </Button>
@@ -211,7 +210,7 @@ export function Home() {
         {activeZones.length > 0 && (
           <section
             aria-labelledby="zones-directory-title"
-            className="mt-12 sm:mt-16 w-full max-w-full min-w-0"
+            className="mt-10 sm:mt-16 w-full max-w-full min-w-0"
           >
             <div className="flex items-end justify-between gap-4 mb-4 sm:mb-6">
               <div>
@@ -227,7 +226,7 @@ export function Home() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 sm:gap-5">
+            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4 sm:gap-5">
               {activeZones.map((zone, index) => (
                 <m.a
                   key={zone.name}
@@ -244,7 +243,7 @@ export function Home() {
                   className="focus-ring group block rounded-2xl"
                 >
                   <Card className="h-full border-slate-200/80 bg-white py-0 shadow-[0_1px_2px_rgba(16,42,67,0.04)] transition-all duration-200 ease-out group-hover:-translate-y-1 group-hover:border-ondjo-blue/35 group-hover:shadow-[0_14px_28px_-10px_rgba(16,42,67,0.12)] group-active:translate-y-0">
-                    <CardContent className="flex h-full flex-col justify-between gap-5 p-5">
+                    <CardContent className="flex h-full flex-col justify-between gap-4 sm:gap-5 p-4 sm:p-5">
                       <div className="space-y-3.5">
                         <div className="flex items-center justify-between gap-3">
                           <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-ondjo-blue-50 text-ondjo-blue transition-colors duration-200 group-hover:bg-ondjo-blue group-hover:text-white">
@@ -308,7 +307,7 @@ export function Home() {
             ========================================================= */}
         <section
           aria-labelledby="owners-banner-title"
-          className="mt-12 sm:mt-16 w-full max-w-full min-w-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-ondjo-border-hairline bg-ondjo-navy p-6 sm:p-8 lg:p-10 text-white shadow-sm"
+          className="mt-10 sm:mt-16 w-full max-w-full min-w-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-ondjo-border-hairline bg-ondjo-navy p-5 sm:p-8 lg:p-10 text-white shadow-sm"
         >
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-xl min-w-0">
@@ -328,7 +327,7 @@ export function Home() {
                 href="#/login"
                 className={cn(
                   buttonVariants({ variant: "outline", size: "lg" }),
-                  "h-11 w-full sm:w-auto rounded-xl border-white bg-white px-5 text-sm font-bold text-ondjo-navy hover:bg-slate-100",
+                  "h-12 sm:h-11 w-full sm:w-auto rounded-xl border-white bg-white px-5 text-sm font-bold text-ondjo-navy hover:bg-slate-100",
                 )}
               >
                 <span>Publicar imóvel</span>
@@ -339,7 +338,7 @@ export function Home() {
                 href="#/pesquisar"
                 className={cn(
                   buttonVariants({ variant: "ghost", size: "lg" }),
-                  "h-11 w-full sm:w-auto rounded-xl border border-white/25 bg-transparent px-5 text-sm font-semibold text-white hover:bg-white/10 hover:text-white",
+                  "h-12 sm:h-11 w-full sm:w-auto rounded-xl border border-white/25 bg-transparent px-5 text-sm font-semibold text-white hover:bg-white/10 hover:text-white",
                 )}
               >
                 <span>Explorar mercado</span>

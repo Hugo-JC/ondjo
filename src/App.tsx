@@ -125,8 +125,8 @@ function AppShell({
     <div
       className={
         fixedContent
-          ? "h-dvh w-full max-w-full overflow-hidden bg-ondjo-bg flex flex-col pb-[calc(4.75rem+env(safe-area-inset-bottom,0px))] lg:pb-0"
-          : "min-h-dvh w-full max-w-full overflow-x-clip bg-ondjo-bg flex flex-col pb-24 lg:pb-0"
+          ? "h-dvh w-full max-w-full overflow-hidden bg-ondjo-bg flex flex-col pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] lg:pb-0"
+          : "min-h-dvh w-full max-w-full overflow-x-clip bg-ondjo-bg flex flex-col pb-[calc(6rem+env(safe-area-inset-bottom,0px))] lg:pb-0"
       }
     >
       <Sidebar expanded={sidebarExpanded} onExpandedChange={setSidebarExpanded} />

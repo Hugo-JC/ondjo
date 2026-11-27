@@ -310,7 +310,7 @@ export function SearchPage() {
   }
 
   return (
-    <main className="min-h-screen w-full bg-ondjo-bg pb-24 lg:pb-16">
+    <main className="min-h-screen w-full bg-ondjo-bg pb-12 lg:pb-16">
       {/* ===================================
            BARRA DE FILTROS RÁPIDOS (STICKY)
           =================================== */}
@@ -318,14 +318,14 @@ export function SearchPage() {
         aria-label="Filtros rápidos de pesquisa"
         className="sticky top-14 lg:top-16 z-40 w-full border-b border-ondjo-border bg-white shadow-[0_2px_10px_rgba(16,42,67,0.04)]"
       >
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2.5 sm:gap-3 px-3.5 sm:px-6 lg:px-8 py-2.5 sm:py-3">
-          {/* Scroll horizontal fluido no mobile */}
-          <div className="flex flex-1 min-w-0 items-center gap-2 overflow-x-auto md:overflow-visible no-scrollbar snap-x py-0.5">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2.5 sm:gap-3 px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3">
+          {/* Esquerda: Finalidade no mobile + Popovers completos no desktop */}
+          <div className="flex flex-1 min-w-0 items-center gap-2">
             {/* 1. Toggle Segmentado shadcn Tabs: Comprar / Arrendar */}
             <Tabs
               value={isArrendamento ? "arrendar" : "comprar"}
               onValueChange={(val) => setFilterField("purpose", String(val))}
-              className="shrink-0 snap-start"
+              className="shrink-0"
             >
               <TabsList
                 variant="pill"
@@ -334,268 +334,242 @@ export function SearchPage() {
               >
                 <TabsTrigger
                   value="comprar"
-                  className="h-8 px-3.5 sm:px-4 rounded-full text-xs font-bold data-active:bg-ondjo-navy data-active:text-white data-active:shadow-xs"
+                  className="h-9 sm:h-8 px-3.5 sm:px-4 rounded-full text-xs font-bold data-active:bg-ondjo-navy data-active:text-white data-active:shadow-xs"
                 >
                   Comprar
                 </TabsTrigger>
                 <TabsTrigger
                   value="arrendar"
-                  className="h-8 px-3.5 sm:px-4 rounded-full text-xs font-bold data-active:bg-ondjo-navy data-active:text-white data-active:shadow-xs"
+                  className="h-9 sm:h-8 px-3.5 sm:px-4 rounded-full text-xs font-bold data-active:bg-ondjo-navy data-active:text-white data-active:shadow-xs"
                 >
                   Arrendar
                 </TabsTrigger>
               </TabsList>
             </Tabs>
 
-            <Separator
-              orientation="vertical"
-              className="hidden sm:block h-5 bg-ondjo-border shrink-0"
-            />
-
-            {/* 2. Popover shadcn: Tipo de Imóvel */}
-            <Popover
-              open={activePopover === "type"}
-              onOpenChange={(open) => {
-                if (
-                  open &&
-                  typeof window !== "undefined" &&
-                  window.innerWidth < 768
-                ) {
-                  setMobileModalOpen(true);
-                  return;
-                }
-                setActivePopover(open ? "type" : null);
-              }}
-            >
-              <PopoverTrigger
-                render={
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className={cn(
-                      "shrink-0 snap-start rounded-full px-3.5 text-xs font-semibold",
-                      filters.type
-                        ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold hover:bg-ondjo-blue-soft"
-                        : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50",
-                    )}
-                  />
-                }
-              >
-                <span>{filters.type || "Tipo de imóvel"}</span>
-                <ChevronDown
-                  size={14}
-                  className={cn(
-                    "text-slate-500 transition-transform duration-150",
-                    activePopover === "type" && "rotate-180",
-                  )}
-                />
-              </PopoverTrigger>
-              <PopoverContent
-                align="start"
-                sideOffset={8}
-                className="w-56 p-2 rounded-2xl border-ondjo-border"
-              >
-                <div className="flex flex-col gap-1">
-                  {PROPERTY_TYPES.map((pt) => {
-                    const isSelected = filters.type === pt.value;
-                    return (
-                      <Button
-                        key={pt.value}
-                        type="button"
-                        variant={isSelected ? "secondary" : "ghost"}
-                        onClick={() => {
-                          setFilterField("type", pt.value);
-                          setActivePopover(null);
-                        }}
-                        className={cn(
-                          "justify-between rounded-xl px-3 py-2 text-xs font-semibold",
-                          isSelected
-                            ? "text-ondjo-blue font-bold"
-                            : "text-ondjo-ink hover:bg-slate-100",
-                        )}
-                      >
-                        <span>{pt.label}</span>
-                        {isSelected && (
-                          <Check size={14} className="text-ondjo-blue" />
-                        )}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </PopoverContent>
-            </Popover>
-
-            {/* 3. Popover shadcn: Tipologia (Quartos) */}
-            <Popover
-              open={activePopover === "bedrooms"}
-              onOpenChange={(open) => {
-                if (
-                  open &&
-                  typeof window !== "undefined" &&
-                  window.innerWidth < 768
-                ) {
-                  setMobileModalOpen(true);
-                  return;
-                }
-                setActivePopover(open ? "bedrooms" : null);
-              }}
-            >
-              <PopoverTrigger
-                render={
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className={cn(
-                      "shrink-0 snap-start rounded-full px-3.5 text-xs font-semibold",
-                      filters.bedrooms
-                        ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold hover:bg-ondjo-blue-soft"
-                        : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50",
-                    )}
-                  />
-                }
-              >
-                <span>
-                  {filters.bedrooms
-                    ? filters.bedrooms === "5"
-                      ? "T5+"
-                      : `T${filters.bedrooms}`
-                    : "Quartos"}
-                </span>
-                <ChevronDown
-                  size={14}
-                  className={cn(
-                    "text-slate-500 transition-transform duration-150",
-                    activePopover === "bedrooms" && "rotate-180",
-                  )}
-                />
-              </PopoverTrigger>
-              <PopoverContent
-                align="start"
-                sideOffset={8}
-                className="w-52 p-2 rounded-2xl border-ondjo-border"
-              >
-                <div className="flex flex-col gap-1">
-                  {BEDROOM_OPTIONS.map((bed) => {
-                    const isSelected = filters.bedrooms === bed.value;
-                    return (
-                      <Button
-                        key={bed.value}
-                        type="button"
-                        variant={isSelected ? "secondary" : "ghost"}
-                        onClick={() => {
-                          setFilterField("bedrooms", bed.value);
-                          setActivePopover(null);
-                        }}
-                        className={cn(
-                          "justify-between rounded-xl px-3 py-2 text-xs font-semibold",
-                          isSelected
-                            ? "text-ondjo-blue font-bold"
-                            : "text-ondjo-ink hover:bg-slate-100",
-                        )}
-                      >
-                        <span>{bed.label}</span>
-                        {isSelected && (
-                          <Check size={14} className="text-ondjo-blue" />
-                        )}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </PopoverContent>
-            </Popover>
-
-            {/* 4. Popover shadcn: Preço */}
-            <Popover
-              open={activePopover === "price"}
-              onOpenChange={(open) => {
-                if (
-                  open &&
-                  typeof window !== "undefined" &&
-                  window.innerWidth < 768
-                ) {
-                  setMobileModalOpen(true);
-                  return;
-                }
-                setActivePopover(open ? "price" : null);
-              }}
-            >
-              <PopoverTrigger
-                render={
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className={cn(
-                      "shrink-0 snap-start rounded-full px-3.5 text-xs font-semibold",
-                      filters.minPrice || filters.maxPrice
-                        ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold hover:bg-ondjo-blue-soft"
-                        : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50",
-                    )}
-                  />
-                }
-              >
-                <span>
-                  {filters.minPrice && filters.maxPrice
-                    ? `${formatCompactKz(Number(filters.minPrice)).replace(" Kz", "")} – ${formatCompactKz(Number(filters.maxPrice))}`
-                    : filters.minPrice
-                      ? `Desde ${formatCompactKz(Number(filters.minPrice))}`
-                      : filters.maxPrice
-                        ? `Até ${formatCompactKz(Number(filters.maxPrice))}`
-                        : "Preço"}
-                </span>
-                <ChevronDown
-                  size={14}
-                  className={cn(
-                    "text-slate-500 transition-transform duration-150",
-                    activePopover === "price" && "rotate-180",
-                  )}
-                />
-              </PopoverTrigger>
-              <PopoverContent
-                align="start"
-                sideOffset={8}
-                className="w-[22rem] sm:w-[25rem] max-w-[92vw] rounded-3xl border-ondjo-border p-5"
-              >
-                <PriceDualRangeSlider
-                  purpose={filters.purpose}
-                  minPrice={filters.minPrice}
-                  maxPrice={filters.maxPrice}
-                  onChangeMin={(val) => setFilterField("minPrice", val)}
-                  onChangeMax={(val) => setFilterField("maxPrice", val)}
-                />
-              </PopoverContent>
-            </Popover>
-
-            {/* 5. Chip Rápido: Verificados ONDJO */}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              aria-pressed={filters.origin === "verificados"}
-              onClick={() => {
-                const nextOrigin =
-                  filters.origin === "verificados" ? "todos" : "verificados";
-                setFilterField("origin", nextOrigin);
-              }}
-              className={cn(
-                "shrink-0 snap-start rounded-full px-3.5 text-xs font-semibold",
-                filters.origin === "verificados"
-                  ? "border-emerald-600/40 bg-emerald-50 text-emerald-900 font-bold hover:bg-emerald-100"
-                  : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50",
-              )}
-            >
-              <ShieldCheck
-                size={14}
-                className={
-                  filters.origin === "verificados"
-                    ? "text-emerald-700"
-                    : "text-slate-500"
-                }
+            <div className="hidden md:flex items-center gap-2 min-w-0">
+              <Separator
+                orientation="vertical"
+                className="h-5 bg-ondjo-border shrink-0"
               />
-              <span>Verificados</span>
-            </Button>
+
+              {/* 2. Popover shadcn: Tipo de Imóvel */}
+              <Popover
+                open={activePopover === "type"}
+                onOpenChange={(open) => setActivePopover(open ? "type" : null)}
+              >
+                <PopoverTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className={cn(
+                        "shrink-0 rounded-full px-3.5 text-xs font-semibold",
+                        filters.type
+                          ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold hover:bg-ondjo-blue-soft"
+                          : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50",
+                      )}
+                    />
+                  }
+                >
+                  <span>{filters.type || "Tipo de imóvel"}</span>
+                  <ChevronDown
+                    size={14}
+                    className={cn(
+                      "text-slate-500 transition-transform duration-150",
+                      activePopover === "type" && "rotate-180",
+                    )}
+                  />
+                </PopoverTrigger>
+                <PopoverContent
+                  align="start"
+                  sideOffset={8}
+                  className="w-56 p-2 rounded-2xl border-ondjo-border"
+                >
+                  <div className="flex flex-col gap-1">
+                    {PROPERTY_TYPES.map((pt) => {
+                      const isSelected = filters.type === pt.value;
+                      return (
+                        <Button
+                          key={pt.value}
+                          type="button"
+                          variant={isSelected ? "secondary" : "ghost"}
+                          onClick={() => {
+                            setFilterField("type", pt.value);
+                            setActivePopover(null);
+                          }}
+                          className={cn(
+                            "justify-between rounded-xl px-3 py-2 text-xs font-semibold",
+                            isSelected
+                              ? "text-ondjo-blue font-bold"
+                              : "text-ondjo-ink hover:bg-slate-100",
+                          )}
+                        >
+                          <span>{pt.label}</span>
+                          {isSelected && (
+                            <Check size={14} className="text-ondjo-blue" />
+                          )}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* 3. Popover shadcn: Tipologia (Quartos) */}
+              <Popover
+                open={activePopover === "bedrooms"}
+                onOpenChange={(open) =>
+                  setActivePopover(open ? "bedrooms" : null)
+                }
+              >
+                <PopoverTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className={cn(
+                        "shrink-0 rounded-full px-3.5 text-xs font-semibold",
+                        filters.bedrooms
+                          ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold hover:bg-ondjo-blue-soft"
+                          : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50",
+                      )}
+                    />
+                  }
+                >
+                  <span>
+                    {filters.bedrooms
+                      ? filters.bedrooms === "5"
+                        ? "T5+"
+                        : `T${filters.bedrooms}`
+                      : "Quartos"}
+                  </span>
+                  <ChevronDown
+                    size={14}
+                    className={cn(
+                      "text-slate-500 transition-transform duration-150",
+                      activePopover === "bedrooms" && "rotate-180",
+                    )}
+                  />
+                </PopoverTrigger>
+                <PopoverContent
+                  align="start"
+                  sideOffset={8}
+                  className="w-52 p-2 rounded-2xl border-ondjo-border"
+                >
+                  <div className="flex flex-col gap-1">
+                    {BEDROOM_OPTIONS.map((bed) => {
+                      const isSelected = filters.bedrooms === bed.value;
+                      return (
+                        <Button
+                          key={bed.value}
+                          type="button"
+                          variant={isSelected ? "secondary" : "ghost"}
+                          onClick={() => {
+                            setFilterField("bedrooms", bed.value);
+                            setActivePopover(null);
+                          }}
+                          className={cn(
+                            "justify-between rounded-xl px-3 py-2 text-xs font-semibold",
+                            isSelected
+                              ? "text-ondjo-blue font-bold"
+                              : "text-ondjo-ink hover:bg-slate-100",
+                          )}
+                        >
+                          <span>{bed.label}</span>
+                          {isSelected && (
+                            <Check size={14} className="text-ondjo-blue" />
+                          )}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* 4. Popover shadcn: Preço */}
+              <Popover
+                open={activePopover === "price"}
+                onOpenChange={(open) => setActivePopover(open ? "price" : null)}
+              >
+                <PopoverTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className={cn(
+                        "shrink-0 rounded-full px-3.5 text-xs font-semibold",
+                        filters.minPrice || filters.maxPrice
+                          ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold hover:bg-ondjo-blue-soft"
+                          : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50",
+                      )}
+                    />
+                  }
+                >
+                  <span>
+                    {filters.minPrice && filters.maxPrice
+                      ? `${formatCompactKz(Number(filters.minPrice)).replace(" Kz", "")} – ${formatCompactKz(Number(filters.maxPrice))}`
+                      : filters.minPrice
+                        ? `Desde ${formatCompactKz(Number(filters.minPrice))}`
+                        : filters.maxPrice
+                          ? `Até ${formatCompactKz(Number(filters.maxPrice))}`
+                          : "Preço"}
+                  </span>
+                  <ChevronDown
+                    size={14}
+                    className={cn(
+                      "text-slate-500 transition-transform duration-150",
+                      activePopover === "price" && "rotate-180",
+                    )}
+                  />
+                </PopoverTrigger>
+                <PopoverContent
+                  align="start"
+                  sideOffset={8}
+                  className="w-[22rem] sm:w-[25rem] max-w-[92vw] rounded-3xl border-ondjo-border p-5"
+                >
+                  <PriceDualRangeSlider
+                    purpose={filters.purpose}
+                    minPrice={filters.minPrice}
+                    maxPrice={filters.maxPrice}
+                    onChangeMin={(val) => setFilterField("minPrice", val)}
+                    onChangeMax={(val) => setFilterField("maxPrice", val)}
+                  />
+                </PopoverContent>
+              </Popover>
+
+              {/* 5. Chip Rápido: Verificados ONDJO */}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                aria-pressed={filters.origin === "verificados"}
+                onClick={() => {
+                  const nextOrigin =
+                    filters.origin === "verificados" ? "todos" : "verificados";
+                  setFilterField("origin", nextOrigin);
+                }}
+                className={cn(
+                  "shrink-0 rounded-full px-3.5 text-xs font-semibold",
+                  filters.origin === "verificados"
+                    ? "border-emerald-600/40 bg-emerald-50 text-emerald-900 font-bold hover:bg-emerald-100"
+                    : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50",
+                )}
+              >
+                <ShieldCheck
+                  size={14}
+                  className={
+                    filters.origin === "verificados"
+                      ? "text-emerald-700"
+                      : "text-slate-500"
+                  }
+                />
+                <span>Verificados</span>
+              </Button>
+            </div>
           </div>
 
           {/* Lado Direito: Botão "Mais filtros" + Limpar */}
@@ -609,7 +583,7 @@ export function SearchPage() {
                 <SlidersHorizontal size={14} className="text-ondjo-blue" />
               }
               aria-label="Abrir todos os filtros de pesquisa"
-              className="rounded-full border-ondjo-border bg-white text-ondjo-navy font-bold"
+              className="min-h-10.5 md:min-h-8.5 rounded-full border-ondjo-border bg-white px-3.5 text-ondjo-navy font-bold"
             >
               <span className="hidden sm:inline">Mais filtros</span>
               <span className="sm:hidden">Filtros</span>
@@ -640,7 +614,103 @@ export function SearchPage() {
       {/* =========================================================
           CONTEÚDO PRINCIPAL: RESULTADOS & ORDENAÇÃO
           ========================================================= */}
-      <div className="mx-auto max-w-7xl px-3.5 sm:px-6 lg:px-8 pt-4 sm:pt-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-3 md:pt-6">
+        {/* Filtros rápidos mobile fora do sticky header (full-bleed horizontal scroll) */}
+        <div
+          aria-label="Atalhos de filtro"
+          className="flex md:hidden items-center gap-2 -mx-4 px-4 pb-3 overflow-x-auto no-scrollbar"
+        >
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            aria-pressed={filters.origin === "verificados"}
+            onClick={() => {
+              const nextOrigin =
+                filters.origin === "verificados" ? "todos" : "verificados";
+              setFilterField("origin", nextOrigin);
+            }}
+            className={cn(
+              "min-h-10 shrink-0 rounded-full px-3.5 text-xs font-semibold",
+              filters.origin === "verificados"
+                ? "border-emerald-600/40 bg-emerald-50 text-emerald-900 font-bold hover:bg-emerald-100"
+                : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50",
+            )}
+          >
+            <ShieldCheck
+              size={14}
+              className={
+                filters.origin === "verificados"
+                  ? "text-emerald-700"
+                  : "text-slate-500"
+              }
+            />
+            <span>Verificados</span>
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setMobileModalOpen(true)}
+            className={cn(
+              "min-h-10 shrink-0 rounded-full px-3.5 text-xs font-semibold",
+              filters.type
+                ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold hover:bg-ondjo-blue-soft"
+                : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50",
+            )}
+          >
+            <span>{filters.type || "Tipo de imóvel"}</span>
+            <ChevronDown size={13} className="text-slate-500" />
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setMobileModalOpen(true)}
+            className={cn(
+              "min-h-10 shrink-0 rounded-full px-3.5 text-xs font-semibold",
+              filters.bedrooms
+                ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold hover:bg-ondjo-blue-soft"
+                : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50",
+            )}
+          >
+            <span>
+              {filters.bedrooms
+                ? filters.bedrooms === "5"
+                  ? "T5+"
+                  : `T${filters.bedrooms}`
+                : "Quartos"}
+            </span>
+            <ChevronDown size={13} className="text-slate-500" />
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setMobileModalOpen(true)}
+            className={cn(
+              "min-h-10 shrink-0 rounded-full px-3.5 text-xs font-semibold tabular-nums",
+              filters.minPrice || filters.maxPrice
+                ? "border-ondjo-blue bg-ondjo-blue-50 text-ondjo-blue font-bold hover:bg-ondjo-blue-soft"
+                : "border-ondjo-border bg-white text-ondjo-ink hover:bg-slate-50",
+            )}
+          >
+            <span>
+              {filters.minPrice && filters.maxPrice
+                ? `${formatCompactKz(Number(filters.minPrice)).replace(" Kz", "")} – ${formatCompactKz(Number(filters.maxPrice))}`
+                : filters.minPrice
+                  ? `Desde ${formatCompactKz(Number(filters.minPrice))}`
+                  : filters.maxPrice
+                    ? `Até ${formatCompactKz(Number(filters.maxPrice))}`
+                    : "Preço"}
+            </span>
+            <ChevronDown size={13} className="text-slate-500" />
+          </Button>
+        </div>
+
         {/* Cabeçalho de Resultados & Controlos */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-2.5 min-w-0">
@@ -670,7 +740,7 @@ export function SearchPage() {
 
           {/* Controlos compactos: Guardar pesquisa + Ordenar + Visualização */}
           <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-1 sm:flex-none items-center gap-2 min-w-0">
               {results.length > 0 && (
                 <Button
                   type="button"
@@ -692,7 +762,7 @@ export function SearchPage() {
                   }
                   title="Guardar pesquisa atual"
                   className={cn(
-                    "h-9.5 w-9.5 sm:w-auto sm:px-3 rounded-full p-0 text-xs font-semibold shadow-2xs shrink-0",
+                    "size-10.5 sm:h-9.5 sm:w-auto sm:px-3.5 rounded-full p-0 text-xs font-semibold shadow-2xs shrink-0",
                     savedSearchToast
                       ? "border-emerald-600/40 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
                       : "border-ondjo-border bg-white text-ondjo-ink hover:text-ondjo-blue",
@@ -700,12 +770,12 @@ export function SearchPage() {
                 >
                   {savedSearchToast ? (
                     <>
-                      <BookmarkCheck size={14} className="text-emerald-600 shrink-0" />
+                      <BookmarkCheck size={15} className="text-emerald-600 shrink-0" />
                       <span className="hidden sm:inline">Guardada</span>
                     </>
                   ) : (
                     <>
-                      <Bookmark size={14} className="text-ondjo-blue shrink-0" />
+                      <Bookmark size={15} className="text-ondjo-blue shrink-0" />
                       <span className="hidden sm:inline">Guardar</span>
                     </>
                   )}
@@ -720,7 +790,7 @@ export function SearchPage() {
               >
                 <SelectTrigger
                   aria-label="Ordenar resultados"
-                  className="min-h-9.5 h-9.5 w-auto rounded-full border-ondjo-border bg-white px-3.5 text-xs font-bold text-ondjo-ink shadow-2xs hover:bg-slate-50 gap-1.5 cursor-pointer"
+                  className="h-10.5 sm:h-9.5 flex-1 sm:flex-none min-w-0 w-auto rounded-full border-ondjo-border bg-white px-3.5 text-xs font-bold text-ondjo-ink shadow-2xs hover:bg-slate-50 gap-1.5 cursor-pointer"
                 >
                   <ArrowDownUp size={13} className="text-ondjo-blue shrink-0" />
                   <span className="hidden md:inline font-semibold text-ondjo-muted">
@@ -744,11 +814,11 @@ export function SearchPage() {
               <TabsList
                 variant="pill"
                 aria-label="Modo de visualização"
-                className="inline-grid grid-cols-2 border border-ondjo-border bg-slate-100 p-1"
+                className="inline-grid grid-cols-2 border border-ondjo-border bg-slate-100 p-1 shrink-0"
               >
                 <TabsTrigger
                   value="grid"
-                  className="size-8 p-0 rounded-full"
+                  className="size-9 sm:size-8 p-0 rounded-full"
                   aria-label="Visualização em grelha"
                   title="Grelha"
                 >
@@ -756,7 +826,7 @@ export function SearchPage() {
                 </TabsTrigger>
                 <TabsTrigger
                   value="list"
-                  className="size-8 p-0 rounded-full"
+                  className="size-9 sm:size-8 p-0 rounded-full"
                   aria-label="Visualização em lista"
                   title="Lista"
                 >
@@ -928,9 +998,9 @@ export function SearchPage() {
       <Dialog open={mobileModalOpen} onOpenChange={setMobileModalOpen}>
         <DialogContent
           showCloseButton={false}
-          className="max-h-[90dvh] w-full max-w-xl p-0 gap-0 overflow-hidden rounded-3xl flex flex-col"
+          className="max-h-[90dvh] w-full max-w-[calc(100%-1rem)] sm:max-w-xl p-0 gap-0 overflow-hidden rounded-3xl flex flex-col"
         >
-          <DialogHeader className="flex-row items-center justify-between border-b border-slate-100 px-5 sm:px-6 py-4 shrink-0">
+          <DialogHeader className="flex-row items-center justify-between border-b border-slate-100 px-4 sm:px-6 py-4 shrink-0">
             <div>
               <DialogTitle className="text-base font-bold tracking-tight text-ondjo-navy">
                 Filtrar pesquisa
@@ -949,7 +1019,7 @@ export function SearchPage() {
                   variant="ghost"
                   size="icon"
                   aria-label="Fechar filtros (Esc)"
-                  className="size-9.5 rounded-full bg-slate-100 text-ondjo-ink hover:bg-slate-200"
+                  className="size-10.5 rounded-full bg-slate-100 text-ondjo-ink hover:bg-slate-200"
                 />
               }
             >
@@ -958,7 +1028,7 @@ export function SearchPage() {
           </DialogHeader>
 
           {/* Corpo Rolável */}
-          <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-5 space-y-6 overscroll-contain">
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 space-y-6 overscroll-contain">
             {/* 1. Modalidade */}
             <div>
               <span className="block text-xs font-bold text-ondjo-navy mb-2">
@@ -1062,7 +1132,7 @@ export function SearchPage() {
                       aria-pressed={isSelected}
                       onClick={() => setFilterField("type", pt.value)}
                       className={cn(
-                        "min-h-10.5 rounded-xl px-3 py-2 text-xs font-semibold",
+                        "min-h-11 rounded-xl px-3 py-2 text-xs font-semibold",
                         isSelected
                           ? "ondjo-border-selected bg-ondjo-blue-50/75 text-ondjo-blue font-bold hover:bg-ondjo-blue-50"
                           : "bg-white text-ondjo-ink hover:bg-slate-50",
@@ -1120,7 +1190,7 @@ export function SearchPage() {
                         aria-pressed={isSelected}
                         onClick={() => setFilterField("bedrooms", bed.value)}
                         className={cn(
-                          "min-h-10 rounded-xl px-2 text-xs font-semibold",
+                          "min-h-11 rounded-xl px-2 text-xs font-semibold",
                           isSelected
                             ? "ondjo-border-selected bg-ondjo-blue-50/75 text-ondjo-blue font-bold hover:bg-ondjo-blue-50"
                             : "bg-white text-ondjo-ink hover:bg-slate-50",
@@ -1149,7 +1219,7 @@ export function SearchPage() {
                           aria-pressed={isSelected}
                           onClick={() => setFilterField("bathrooms", val)}
                           className={cn(
-                            "min-h-10 rounded-xl text-xs font-semibold",
+                            "min-h-11 rounded-xl text-xs font-semibold",
                             isSelected
                               ? "ondjo-border-selected bg-ondjo-blue-50/75 text-ondjo-blue font-bold hover:bg-ondjo-blue-50"
                               : "bg-white text-ondjo-ink hover:bg-slate-50",
@@ -1177,7 +1247,7 @@ export function SearchPage() {
                           aria-pressed={isSelected}
                           onClick={() => setFilterField("parking", val)}
                           className={cn(
-                            "min-h-10 rounded-xl text-xs font-semibold",
+                            "min-h-11 rounded-xl text-xs font-semibold",
                             isSelected
                               ? "ondjo-border-selected bg-ondjo-blue-50/75 text-ondjo-blue font-bold hover:bg-ondjo-blue-50"
                               : "bg-white text-ondjo-ink hover:bg-slate-50",
@@ -1237,7 +1307,7 @@ export function SearchPage() {
             </div>
           </div>
 
-          <DialogFooter className="mx-0 mb-0 shrink-0 rounded-b-3xl border-t border-slate-100 bg-white px-5 sm:px-6 py-4 flex-row items-center justify-between gap-3">
+          <DialogFooter className="mx-0 mb-0 shrink-0 rounded-b-3xl border-t border-slate-100 bg-white px-4 sm:px-6 pt-3.5 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] flex-row items-center justify-between gap-3">
             <Button
               type="button"
               variant="ghost"
@@ -1308,13 +1378,13 @@ function ListPropertyCard({
             e.stopPropagation();
             toggleFavorite(property.id);
           }}
-          className="focus-ring absolute right-3 top-3 z-20 flex size-8.5 items-center justify-center rounded-full bg-white/95 text-slate-700 shadow-sm transition-transform duration-150 hover:scale-110 active:scale-90 cursor-pointer"
+          className="focus-ring absolute right-2.5 top-2.5 z-20 flex size-10.5 items-center justify-center rounded-full bg-white/95 text-slate-700 shadow-sm transition-transform duration-150 hover:scale-105 active:scale-95 cursor-pointer"
           aria-label={
             favorite ? "Remover dos favoritos" : "Guardar nos favoritos"
           }
         >
           <Heart
-            size={16}
+            size={18}
             className={
               favorite ? "fill-ondjo-danger text-ondjo-danger" : "text-slate-600"
             }
@@ -1352,11 +1422,11 @@ function ListPropertyCard({
           </div>
         </div>
 
-        <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-          <span className="text-lg sm:text-xl font-extrabold text-ondjo-navy tracking-tight">
+        <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
+          <span className="text-lg sm:text-xl font-extrabold text-ondjo-navy tracking-tight tabular-nums">
             {formatKz(property.price, { perMonth: isArrendamento })}
           </span>
-          <span className="text-xs font-bold text-ondjo-blue bg-ondjo-blue-soft/60 group-hover:bg-ondjo-blue group-hover:text-white px-3 py-1.5 rounded-full transition-colors duration-150 inline-flex items-center gap-1">
+          <span className="inline-flex min-h-9 items-center gap-1 text-xs font-bold text-ondjo-blue bg-ondjo-blue-soft/60 group-hover:bg-ondjo-blue group-hover:text-white px-3.5 py-1.5 rounded-full transition-colors duration-150">
             Ver detalhes →
           </span>
         </div>

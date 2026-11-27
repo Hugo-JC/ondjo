@@ -51,7 +51,7 @@ export default function Header() {
             href="#/login"
             className={cn(
               buttonVariants({ variant: "outline", size: "sm" }),
-              "hidden sm:inline-flex font-bold text-ondjo-ink border-ondjo-border",
+              "hidden sm:inline-flex h-10 font-bold text-ondjo-ink border-ondjo-border",
             )}
           >
             <Plus size={16} className="text-ondjo-blue" aria-hidden="true" />
@@ -67,14 +67,14 @@ export default function Header() {
                   variant="outline"
                   size="sm"
                   aria-label="Menu da conta de utilizador"
-                  className="h-10 rounded-full border-ondjo-border bg-white pl-2.5 pr-1.5 gap-2 shadow-2xs hover:bg-slate-50"
+                  className="h-11 lg:h-10 rounded-full border-ondjo-border bg-white p-1.5 lg:pl-2.5 lg:pr-1.5 gap-2 shadow-2xs hover:bg-slate-50"
                 />
               }
             >
-              <Menu size={16} className="text-ondjo-muted" aria-hidden="true" />
-              <Avatar className="size-7 bg-ondjo-navy text-white">
+              <Menu size={16} className="hidden lg:block text-ondjo-muted" aria-hidden="true" />
+              <Avatar className="size-8 lg:size-7 bg-ondjo-navy text-white">
                 <AvatarFallback className="bg-ondjo-navy text-white">
-                  <UserRound size={14} aria-hidden="true" />
+                  <UserRound size={15} aria-hidden="true" />
                 </AvatarFallback>
               </Avatar>
             </DropdownMenuTrigger>
@@ -153,9 +153,9 @@ export default function Header() {
             data-sidebar-toggle
             onClick={handleOpenSidebar}
             aria-label="Abrir menu de navegação"
-            className="size-10 rounded-full border-ondjo-border bg-white text-ondjo-ink lg:hidden"
+            className="size-11 rounded-full border-ondjo-border bg-white text-ondjo-ink lg:hidden"
           >
-            <Menu size={18} aria-hidden="true" />
+            <Menu size={19} aria-hidden="true" />
           </Button>
         </div>
       </div>

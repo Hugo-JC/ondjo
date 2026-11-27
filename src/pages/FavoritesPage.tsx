@@ -178,9 +178,9 @@ export function FavoritesPage() {
     query.trim() !== "" || selectedType !== "Todos" || sort !== "saved";
 
   return (
-    <main className="mx-auto max-w-7xl px-4 pb-44 pt-4 sm:px-6 sm:pb-40 sm:pt-6 lg:px-8 lg:pb-28">
+    <main className="mx-auto max-w-7xl px-4 pb-32 pt-4 sm:px-6 sm:pb-36 sm:pt-6 lg:px-8 lg:pb-24">
       {/* Cabeçalho da página de Favoritos */}
-      <header className="rounded-2xl ondjo-border-surface bg-white p-5 sm:rounded-3xl sm:p-7 shadow-xs">
+      <header className="rounded-2xl ondjo-border-surface bg-white p-4 sm:rounded-3xl sm:p-7 shadow-xs">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
             <Badge
@@ -198,16 +198,16 @@ export function FavoritesPage() {
 
             {/* Métricas rápidas da seleção */}
             {stats && favoriteCount > 1 && (
-              <div className="mt-4 flex flex-wrap items-center gap-3 text-xs">
+              <div className="mt-4 flex flex-wrap items-center gap-2.5 sm:gap-3 text-xs">
                 <div className="ondjo-border-hairline flex items-center gap-2 rounded-xl bg-ondjo-bg px-3 py-1.5">
                   <TrendingUp size={14} className="text-ondjo-green" aria-hidden="true" />
                   <span className="text-ondjo-muted">Preço médio:</span>
-                  <strong className="font-bold text-ondjo-navy">{formatKz(stats.avgPrice)}</strong>
+                  <strong className="font-bold text-ondjo-navy tabular-nums">{formatKz(stats.avgPrice)}</strong>
                 </div>
                 <div className="ondjo-border-hairline flex items-center gap-2 rounded-xl bg-ondjo-bg px-3 py-1.5">
                   <Building2 size={14} className="text-ondjo-blue" aria-hidden="true" />
                   <span className="text-ondjo-muted">Área média:</span>
-                  <strong className="font-bold text-ondjo-navy">{stats.avgArea} m²</strong>
+                  <strong className="font-bold text-ondjo-navy tabular-nums">{stats.avgArea} m²</strong>
                 </div>
               </div>
             )}
@@ -221,7 +221,7 @@ export function FavoritesPage() {
                   <Heart size={20} fill="currentColor" />
                 </span>
                 <div>
-                  <strong className="block text-xl font-black leading-tight text-ondjo-navy sm:text-2xl">
+                  <strong className="block text-xl font-black leading-tight text-ondjo-navy sm:text-2xl tabular-nums">
                     {favoriteCount}
                   </strong>
                   <span className="text-xs font-medium text-ondjo-muted">
@@ -230,13 +230,13 @@ export function FavoritesPage() {
                 </div>
               </div>
 
-              <div className="flex flex-row sm:flex-col gap-2">
+              <div className="grid grid-cols-2 sm:flex sm:flex-col gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   leftIcon={<Download size={14} />}
                   onClick={exportCSV}
-                  className="flex-1 sm:flex-none cursor-pointer"
+                  className="min-h-10.5 sm:min-h-9 cursor-pointer"
                   title="Exportar a lista para ficheiro CSV"
                   aria-label="Exportar lista de favoritos para ficheiro CSV"
                 >
@@ -248,7 +248,7 @@ export function FavoritesPage() {
                   size="sm"
                   leftIcon={<Trash2 size={13} aria-hidden="true" />}
                   onClick={() => setConfirmClearOpen(true)}
-                  className="text-ondjo-danger hover:bg-ondjo-danger-soft hover:text-ondjo-danger"
+                  className="min-h-10.5 sm:min-h-9 text-ondjo-danger hover:bg-ondjo-danger-soft hover:text-ondjo-danger"
                   aria-haspopup="dialog"
                   aria-label="Limpar todos os imóveis guardados"
                 >
@@ -265,7 +265,7 @@ export function FavoritesPage() {
           {/* Barra de Filtros e Pesquisa */}
           <section
             aria-label="Filtros e ordenação dos imóveis guardados"
-            className="mt-4 rounded-2xl ondjo-border-surface bg-white p-3.5 sm:mt-6 sm:p-4 shadow-xs"
+            className="mt-4 rounded-2xl ondjo-border-surface bg-white p-4 sm:mt-6 shadow-xs"
           >
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               {/* Campo de Busca com shadcn Input */}
@@ -284,7 +284,7 @@ export function FavoritesPage() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Filtrar por nome, bairro, cidade..."
-                  className="bg-ondjo-bg/60 pl-10 pr-10 text-xs sm:text-sm focus-visible:bg-white"
+                  className="h-11 bg-ondjo-bg/60 pl-10 pr-10 text-xs sm:text-sm focus-visible:bg-white"
                   aria-label="Filtrar imóveis guardados por texto"
                 />
                 {query && (
@@ -308,7 +308,7 @@ export function FavoritesPage() {
                   <SelectTrigger
                     id={sortSelectId}
                     aria-label="Ordenar imóveis"
-                    className="ondjo-border-interactive h-11 rounded-xl bg-white px-3 text-xs font-semibold text-ondjo-ink"
+                    className="ondjo-border-interactive h-11 flex-1 sm:flex-none min-w-0 rounded-xl bg-white px-3 text-xs font-semibold text-ondjo-ink"
                   >
                     <ArrowUpDown size={14} className="text-ondjo-muted shrink-0" aria-hidden="true" />
                     <SelectValue>{SORT_LABELS[sort]}</SelectValue>
@@ -428,7 +428,7 @@ export function FavoritesPage() {
                       fullWidth
                       onClick={() => toggleCompare(property.id)}
                       disabled={isLimitReached}
-                      className={`h-10 justify-between rounded-2xl px-3.5 text-xs font-bold ${
+                      className={`h-11 sm:h-10 justify-between rounded-2xl px-3.5 text-xs font-bold ${
                         isSelected
                           ? "border-ondjo-blue shadow-xs"
                           : isLimitReached
@@ -494,15 +494,15 @@ export function FavoritesPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
                 transition={{ duration: 0.14, ease: "easeOut" }}
-                className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] inset-x-3.5 z-40 max-w-xl sm:left-1/2 sm:-translate-x-1/2 sm:inset-x-auto sm:w-full lg:bottom-6"
+                className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] inset-x-4 z-40 max-w-xl sm:left-1/2 sm:-translate-x-1/2 sm:inset-x-auto sm:w-full lg:bottom-6"
               >
-                <div className="flex items-center justify-between gap-2 rounded-2xl border border-ondjo-navy/15 bg-ondjo-navy p-2.5 text-white shadow-xl shadow-slate-950/25 sm:gap-3 sm:p-4">
-                  <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-                    <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/15 text-blue-200 sm:size-11" aria-hidden="true">
+                <div className="flex items-center justify-between gap-2.5 rounded-2xl border border-ondjo-navy/15 bg-ondjo-navy p-3 text-white shadow-xl shadow-slate-950/25 sm:gap-3 sm:p-4">
+                  <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+                    <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white/15 text-blue-200 sm:size-11" aria-hidden="true">
                       <Scale size={18} className="sm:size-5.5" />
                     </span>
                     <div className="min-w-0">
-                      <p className="truncate text-[11px] font-bold uppercase tracking-wider text-blue-200 sm:text-xs">
+                      <p className="truncate text-xs font-bold uppercase tracking-wider text-blue-200">
                         Comparar ({selectedForCompare.length}/3)
                       </p>
                       <p className="hidden truncate text-xs text-slate-300 sm:block">
@@ -513,13 +513,13 @@ export function FavoritesPage() {
                     </div>
                   </div>
 
-                  <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+                  <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
                     <Button
                       type="button"
                       variant="primary"
                       onClick={() => setShowComparisonModal(true)}
                       disabled={selectedForCompare.length < 2}
-                      className="h-9 rounded-xl px-3 text-xs font-bold sm:h-10 sm:px-3.5"
+                      className="h-10.5 rounded-xl px-3.5 text-xs font-bold sm:h-10"
                       aria-haspopup="dialog"
                       aria-label={
                         selectedForCompare.length < 2
@@ -527,7 +527,8 @@ export function FavoritesPage() {
                           : `Abrir comparador com ${selectedForCompare.length} imóveis selecionados`
                       }
                     >
-                      Ver comparação
+                      <span className="sm:hidden">Comparar</span>
+                      <span className="hidden sm:inline">Ver comparação</span>
                     </Button>
 
                     <Button
@@ -535,7 +536,7 @@ export function FavoritesPage() {
                       variant="ghost"
                       size="icon"
                       onClick={clearCompare}
-                      className="size-9 rounded-xl text-slate-300 hover:bg-white/15 hover:text-white sm:size-10"
+                      className="size-10.5 rounded-xl text-slate-300 hover:bg-white/15 hover:text-white sm:size-10"
                       title="Desmarcar seleção"
                       aria-label="Desmarcar todos os imóveis da comparação"
                     >

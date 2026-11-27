@@ -56,7 +56,7 @@ export default function AuthLayout({
           </p>
         </aside>
         <section className="flex min-h-dvh flex-col">
-          <div className="flex items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
+          <div className="flex items-center justify-between px-4 py-3.5 sm:px-8 sm:py-5 lg:px-10">
             <a
               href={backHref}
               className={cn(
@@ -72,24 +72,24 @@ export default function AuthLayout({
               aria-label="ONDJO — página inicial"
               className="focus-ring inline-flex items-center rounded-xl lg:hidden"
             >
-              <Logo height={32} decorative />
+              <Logo height={30} decorative />
             </a>
           </div>
           <m.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.16, ease: "easeOut" }}
-            className="mx-auto flex w-full max-w-2xl flex-1 items-start px-5 pb-10 pt-4 sm:px-8 sm:pt-8 lg:items-center lg:px-10 lg:pb-16"
+            className="mx-auto flex w-full max-w-2xl flex-1 items-start px-4 pb-10 pt-2 sm:px-8 sm:pt-8 lg:items-center lg:px-10 lg:pb-16"
           >
             <div className="w-full">
-              <div className="mb-8 max-w-xl">
-                <Badge variant="info" className="mb-3 font-bold">
+              <div className="mb-6 sm:mb-8 max-w-xl">
+                <Badge variant="info" className="mb-2.5 sm:mb-3 font-bold">
                   {eyebrow}
                 </Badge>
-                <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
+                <h1 className="text-2xl font-bold tracking-tight text-slate-950 sm:text-4xl">
                   {title}
                 </h1>
-                <p className="mt-3 text-sm leading-6 text-slate-500 sm:text-base">
+                <p className="mt-2 sm:mt-3 text-sm leading-6 text-slate-500 sm:text-base">
                   {description}
                 </p>
               </div>

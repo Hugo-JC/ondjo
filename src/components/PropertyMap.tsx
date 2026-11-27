@@ -83,7 +83,7 @@ export function PropertyMap({
   return (
     <section
       aria-labelledby="section-map-title"
-      className="mt-8 rounded-3xl border border-ondjo-border/80 bg-white p-5 sm:p-7 shadow-2xs"
+      className="mt-5 sm:mt-8 rounded-3xl border border-ondjo-border/80 bg-white p-4 sm:p-7 shadow-2xs"
     >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 pb-4 border-b border-slate-100">
         <div>
@@ -107,7 +107,7 @@ export function PropertyMap({
           href={directOsmUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="focus-ring inline-flex items-center gap-1.5 self-start sm:self-auto rounded-full border border-slate-100 bg-slate-50 px-3.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-ondjo-navy transition active:scale-95"
+          className="focus-ring inline-flex min-h-10 sm:min-h-0 items-center gap-1.5 self-start sm:self-auto rounded-full border border-slate-100 bg-slate-50 px-3.5 py-2 sm:py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-ondjo-navy transition active:scale-95"
         >
           <span>Abrir no OpenStreetMap</span>
           <ExternalLink size={12} />
@@ -115,7 +115,7 @@ export function PropertyMap({
       </div>
 
       {/* Caixa do Mapa Interativo OpenStreetMap */}
-      <div className="relative mt-5 h-72 sm:h-80 md:h-92 w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-inner">
+      <div className="relative mt-4 sm:mt-5 h-60 sm:h-80 md:h-92 w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-inner">
         {/* Skeleton de carregamento */}
         {!mapLoaded && (
           <div
@@ -145,7 +145,7 @@ export function PropertyMap({
             onClick={handleZoomIn}
             disabled={zoomLevel === 0}
             aria-label="Aproximar mapa"
-            className="focus-ring grid size-8 place-items-center rounded-xl bg-white text-slate-700 hover:bg-slate-100 active:scale-90 disabled:opacity-40 disabled:pointer-events-none transition cursor-pointer"
+            className="focus-ring grid size-10 sm:size-8.5 place-items-center rounded-xl bg-white text-slate-700 hover:bg-slate-100 active:scale-90 disabled:opacity-40 disabled:pointer-events-none transition cursor-pointer"
           >
             <Plus size={16} />
           </button>
@@ -155,7 +155,7 @@ export function PropertyMap({
             onClick={handleZoomOut}
             disabled={zoomLevel === deltas.length - 1}
             aria-label="Afastar mapa"
-            className="focus-ring grid size-8 place-items-center rounded-xl bg-white text-slate-700 hover:bg-slate-100 active:scale-90 disabled:opacity-40 disabled:pointer-events-none transition cursor-pointer"
+            className="focus-ring grid size-10 sm:size-8.5 place-items-center rounded-xl bg-white text-slate-700 hover:bg-slate-100 active:scale-90 disabled:opacity-40 disabled:pointer-events-none transition cursor-pointer"
           >
             <Minus size={16} />
           </button>
@@ -165,9 +165,9 @@ export function PropertyMap({
             onClick={handleReset}
             title="Recentrar no imóvel"
             aria-label="Recentrar visualização"
-            className="focus-ring grid size-8 place-items-center rounded-xl bg-white text-slate-700 hover:bg-slate-100 active:scale-90 transition cursor-pointer"
+            className="focus-ring grid size-10 sm:size-8.5 place-items-center rounded-xl bg-white text-slate-700 hover:bg-slate-100 active:scale-90 transition cursor-pointer"
           >
-            <RefreshCw size={13} />
+            <RefreshCw size={14} />
           </button>
         </div>
 

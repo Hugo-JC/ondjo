@@ -501,8 +501,8 @@ export function PropertyPage({ id }: { id: string }) {
   };
 
   return (
-    <main className="min-h-screen w-full bg-ondjo-bg pb-32 pt-4 sm:pt-6 lg:pb-24">
-      <div className="mx-auto max-w-7xl px-3.5 sm:px-6 lg:px-8">
+    <main className="min-h-screen w-full bg-ondjo-bg pb-36 pt-4 sm:pb-32 sm:pt-6 lg:pb-24">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* =========================================================
             AÇÕES SUPERIORES (VOLTAR, PARTILHAR, GUARDAR)
             ========================================================= */}
@@ -513,13 +513,13 @@ export function PropertyPage({ id }: { id: string }) {
             variant="outline"
             size="sm"
             onClick={() => navigate("pesquisar")}
-            className="h-10 rounded-full font-bold text-ondjo-blue shadow-2xs hover:bg-ondjo-blue-50"
+            className="h-10.5 rounded-full px-3.5 font-bold text-ondjo-blue shadow-2xs hover:bg-ondjo-blue-50"
           >
             <ArrowLeft size={14} />
             <span>Voltar</span>
           </Button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {/* Botão de Partilha */}
             <Button
               type="button"
@@ -527,12 +527,13 @@ export function PropertyPage({ id }: { id: string }) {
               size="sm"
               onClick={handleShare}
               aria-label={copiedLink ? "Link copiado" : "Partilhar este imóvel"}
-              className="h-10 rounded-full font-bold text-ondjo-ink shadow-2xs"
+              className="h-10.5 rounded-full px-3.5 font-bold text-ondjo-ink shadow-2xs"
             >
               {copiedLink ? (
                 <>
                   <Check size={14} className="text-emerald-600" />
-                  <span className="text-emerald-700">Link copiado!</span>
+                  <span className="text-emerald-700 sm:hidden">Copiado!</span>
+                  <span className="hidden text-emerald-700 sm:inline">Link copiado!</span>
                 </>
               ) : (
                 <>
@@ -551,7 +552,7 @@ export function PropertyPage({ id }: { id: string }) {
               aria-pressed={favorite}
               aria-label={favorite ? "Remover dos favoritos" : "Guardar nos favoritos"}
               className={cn(
-                "h-10 rounded-full font-bold shadow-2xs",
+                "h-10.5 rounded-full px-3.5 font-bold shadow-2xs",
                 favorite
                   ? "border-red-200 bg-red-50 text-red-600 hover:border-red-300 hover:bg-red-100"
                   : "text-ondjo-ink",
@@ -745,65 +746,65 @@ export function PropertyPage({ id }: { id: string }) {
         {/* =========================================================
             CORPO PRINCIPAL: CONTEÚDO (ESQUERDA) + CAIXA DE CONTACTO (DIREITA)
             ========================================================= */}
-        <div className="mt-8 sm:mt-10 grid gap-8 lg:grid-cols-[1fr_370px] lg:gap-12">
+        <div className="mt-6 sm:mt-10 grid gap-5 sm:gap-8 lg:grid-cols-[1fr_370px] lg:gap-12">
           {/* ==================== COLUNA PRINCIPAL ==================== */}
-          <div className="space-y-8 sm:space-y-10 min-w-0">
+          <div className="space-y-5 sm:space-y-8 min-w-0">
             {/* 1. Linha de Factos Essenciais (T2 · 2 WC · 80 m² · 1 vaga) */}
             <Card className="rounded-3xl ondjo-border-surface bg-white py-0 shadow-2xs">
               <section aria-label="Resumo das características principais">
-                <CardContent className="p-4 sm:p-5">
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
-                    <div className="flex items-center gap-3 p-2 sm:px-3">
-                      <div className="grid size-11 place-items-center rounded-2xl bg-ondjo-blue-50 text-ondjo-blue shrink-0">
+                <CardContent className="p-3.5 sm:p-5">
+                  <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-0 sm:divide-x sm:divide-slate-100">
+                    <div className="flex items-center gap-3 rounded-2xl bg-ondjo-bg/65 p-3 sm:rounded-none sm:bg-transparent sm:p-2 sm:px-3">
+                      <div className="grid size-10.5 sm:size-11 place-items-center rounded-2xl bg-ondjo-blue-50 text-ondjo-blue shrink-0">
                         <BedDouble size={20} />
                       </div>
-                      <div>
-                        <strong className="block text-base font-black text-ondjo-navy">
+                      <div className="min-w-0">
+                        <strong className="block text-base font-black text-ondjo-navy tabular-nums">
                           T{property.bedrooms}
                         </strong>
-                        <span className="text-xs font-semibold text-ondjo-muted">
+                        <span className="block truncate text-xs font-semibold text-ondjo-muted">
                           {property.bedrooms === 1 ? "Quarto" : "Quartos"}
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 p-2 sm:px-3 pt-3 sm:pt-2">
-                      <div className="grid size-11 place-items-center rounded-2xl bg-ondjo-blue-50 text-ondjo-blue shrink-0">
+                    <div className="flex items-center gap-3 rounded-2xl bg-ondjo-bg/65 p-3 sm:rounded-none sm:bg-transparent sm:p-2 sm:px-3">
+                      <div className="grid size-10.5 sm:size-11 place-items-center rounded-2xl bg-ondjo-blue-50 text-ondjo-blue shrink-0">
                         <ShowerHead size={20} />
                       </div>
-                      <div>
-                        <strong className="block text-base font-black text-ondjo-navy">
+                      <div className="min-w-0">
+                        <strong className="block text-base font-black text-ondjo-navy tabular-nums">
                           {property.bathrooms}
                         </strong>
-                        <span className="text-xs font-semibold text-ondjo-muted">
+                        <span className="block truncate text-xs font-semibold text-ondjo-muted">
                           {property.bathrooms === 1 ? "Banho" : "Casas de banho"}
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 p-2 sm:px-3 pt-3 sm:pt-2">
-                      <div className="grid size-11 place-items-center rounded-2xl bg-ondjo-blue-50 text-ondjo-blue shrink-0">
+                    <div className="flex items-center gap-3 rounded-2xl bg-ondjo-bg/65 p-3 sm:rounded-none sm:bg-transparent sm:p-2 sm:px-3">
+                      <div className="grid size-10.5 sm:size-11 place-items-center rounded-2xl bg-ondjo-blue-50 text-ondjo-blue shrink-0">
                         <Ruler size={20} />
                       </div>
-                      <div>
-                        <strong className="block text-base font-black text-ondjo-navy">
+                      <div className="min-w-0">
+                        <strong className="block text-base font-black text-ondjo-navy tabular-nums">
                           {property.area} m²
                         </strong>
-                        <span className="text-xs font-semibold text-ondjo-muted">
+                        <span className="block truncate text-xs font-semibold text-ondjo-muted">
                           Área útil
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 p-2 sm:px-3 pt-3 sm:pt-2">
-                      <div className="grid size-11 place-items-center rounded-2xl bg-ondjo-blue-50 text-ondjo-blue shrink-0">
+                    <div className="flex items-center gap-3 rounded-2xl bg-ondjo-bg/65 p-3 sm:rounded-none sm:bg-transparent sm:p-2 sm:px-3">
+                      <div className="grid size-10.5 sm:size-11 place-items-center rounded-2xl bg-ondjo-blue-50 text-ondjo-blue shrink-0">
                         <CarFront size={20} />
                       </div>
-                      <div>
-                        <strong className="block text-base font-black text-ondjo-navy">
+                      <div className="min-w-0">
+                        <strong className="block text-base font-black text-ondjo-navy tabular-nums">
                           {property.parking}
                         </strong>
-                        <span className="text-xs font-semibold text-ondjo-muted">
+                        <span className="block truncate text-xs font-semibold text-ondjo-muted">
                           {property.parking === 1 ? "Vaga privativa" : "Vagas"}
                         </span>
                       </div>
@@ -816,7 +817,7 @@ export function PropertyPage({ id }: { id: string }) {
             {/* 2. Descrição Completa do Imóvel */}
             <Card className="rounded-3xl ondjo-border-surface bg-white py-0 shadow-2xs">
               <section aria-labelledby="section-desc-title">
-                <CardContent className="p-6 sm:p-7">
+                <CardContent className="p-4 sm:p-7">
                   <h2
                     id="section-desc-title"
                     className="text-lg sm:text-xl font-black text-ondjo-navy"
@@ -847,7 +848,7 @@ export function PropertyPage({ id }: { id: string }) {
             {/* 3. O que este imóvel oferece (Comodidades compactas com ícones coloridos) */}
             <Card className="rounded-3xl ondjo-border-surface bg-white py-0 shadow-2xs">
               <section aria-labelledby="section-amenities-title">
-                <CardContent className="p-5 sm:p-6">
+                <CardContent className="p-4 sm:p-6">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <div>
                   <h2
@@ -862,7 +863,7 @@ export function PropertyPage({ id }: { id: string }) {
                 </div>
               </div>
 
-              <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-2.5">
+              <div className="mt-4 grid grid-cols-1 min-[380px]:grid-cols-2 md:grid-cols-3 gap-2.5">
                 {property.features.map((feature) => {
                   const visual = getFeatureVisual(feature);
                   return (
@@ -906,7 +907,7 @@ export function PropertyPage({ id }: { id: string }) {
             {/* 4. Localização & Enquadramento na Zona */}
             <Card className="rounded-3xl ondjo-border-surface bg-white py-0 shadow-2xs">
               <section aria-labelledby="section-location-title">
-                <CardContent className="p-6 sm:p-7">
+                <CardContent className="p-4 sm:p-7">
                   <h2
                     id="section-location-title"
                     className="text-lg sm:text-xl font-black text-ondjo-navy"
@@ -933,7 +934,7 @@ export function PropertyPage({ id }: { id: string }) {
                       href={`#/pesquisar?location=${encodeURIComponent(property.neighborhood)}`}
                       className={cn(
                         buttonVariants({ variant: "outline", size: "sm" }),
-                        "h-9 rounded-full ondjo-border-featured bg-white px-4 text-xs font-bold text-ondjo-blue shadow-2xs hover:bg-ondjo-blue-50 shrink-0",
+                        "h-10.5 sm:h-9 rounded-full ondjo-border-featured bg-white px-4 text-xs font-bold text-ondjo-blue shadow-2xs hover:bg-ondjo-blue-50 shrink-0",
                       )}
                     >
                       <span>Explorar {property.neighborhood}</span>
@@ -954,7 +955,7 @@ export function PropertyPage({ id }: { id: string }) {
             {/* 5. "Antes de Avançar" — Checklist de Segurança e Transparência ONDJO */}
             <Card className="rounded-3xl ondjo-border-surface bg-slate-50/80 py-0 shadow-2xs">
               <section aria-labelledby="safety-checklist-title">
-                <CardContent className="p-6 sm:p-7">
+                <CardContent className="p-4 sm:p-7">
                   <div className="flex items-center gap-2 text-ondjo-navy">
                     <ShieldAlert size={20} className="text-ondjo-blue shrink-0" />
                     <h2
@@ -1010,7 +1011,7 @@ export function PropertyPage({ id }: { id: string }) {
           {/* ==================== COLUNA LATERAL (STICKY 370PX) ==================== */}
           <aside className="lg:block">
             <Card className="sticky top-24 rounded-3xl ondjo-border-surface bg-white py-0 shadow-ondjo-card">
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
               {/* Preço Oficial em Kwanzas (Kz) */}
               <div className="border-b border-slate-100 pb-5">
                 <div className="flex items-center justify-between">
@@ -1020,7 +1021,7 @@ export function PropertyPage({ id }: { id: string }) {
                 </div>
 
                 <div className="mt-2 flex items-baseline gap-1.5 flex-wrap">
-                  <span className="text-2xl sm:text-3xl font-black tracking-tight text-ondjo-navy">
+                  <span className="text-2xl sm:text-3xl font-black tracking-tight text-ondjo-navy tabular-nums">
                     {formatKz(property.price, { perMonth: isArrendamento })}
                   </span>
                 </div>
@@ -1031,7 +1032,7 @@ export function PropertyPage({ id }: { id: string }) {
               </div>
 
               {/* Informação do Consultor / Anunciante Credenciado */}
-              <div className="mt-5 flex items-center gap-3.5">
+              <div className="mt-5 flex items-start gap-3.5">
                 <div className="relative grid size-12 place-items-center rounded-full bg-ondjo-navy font-bold text-white shadow-xs shrink-0">
                   <span>{property.advertiser?.name ? property.advertiser.name.slice(0, 2).toUpperCase() : "ON"}</span>
                   <span
@@ -1039,18 +1040,18 @@ export function PropertyPage({ id }: { id: string }) {
                     title="Disponível agora"
                   />
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <strong className="truncate text-sm font-black text-ondjo-navy">
                       {property.advertiser?.name || "Consultor ONDJO"}
                     </strong>
                     <ShieldCheck size={14} className="text-ondjo-blue shrink-0" aria-hidden="true" />
                   </div>
-                  <div className="mt-0.5 flex flex-col items-center gap-1 text-[11px] text-ondjo-muted">
+                  <div className="mt-0.5 flex w-full flex-col items-start gap-1 text-[11px] text-ondjo-muted">
                     <span>Contacto direto pelo WhatsApp e chat</span>
                     {property.advertiser?.phone && (
                       <div className="mt-1 flex w-full items-center justify-between gap-2 rounded-xl bg-ondjo-bg px-3 py-2">
-                        <span className="font-semibold text-sm text-ondjo-ink">
+                        <span className="font-semibold text-sm text-ondjo-ink tabular-nums">
                           {formatAngolanPhone(property.advertiser.phone)}
                         </span>
                         <Tooltip>
@@ -1209,14 +1210,14 @@ export function PropertyPage({ id }: { id: string }) {
       <div
         role="region"
         aria-label="Ações rápidas móveis"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-ondjo-border bg-white px-3.5 pt-2.5 pb-[calc(0.625rem+env(safe-area-inset-bottom,0px))] shadow-[0_-4px_20px_rgba(16,24,40,0.08)] lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-ondjo-border bg-white px-4 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] shadow-[0_-4px_20px_rgba(16,24,40,0.08)] lg:hidden"
       >
-        <div className="mx-auto flex max-w-lg flex-col gap-2">
+        <div className="mx-auto flex max-w-lg flex-col gap-1.5">
           <div className="flex items-baseline justify-between gap-2 min-w-0">
             <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 shrink-0">
               Preço oficial
             </span>
-            <strong className="truncate text-base font-black text-ondjo-navy">
+            <strong className="truncate text-base font-black text-ondjo-navy tabular-nums">
               {formatKz(property.price, { perMonth: isArrendamento })}
             </strong>
           </div>

@@ -187,7 +187,7 @@ export function PriceDualRangeSlider({
       </div>
 
       {/* Campos manuais limpos com espaço e unidade Kz */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-3">
         <label className="block">
           <span className="block text-[11px] font-semibold text-ondjo-muted mb-1">
             Mínimo
@@ -252,7 +252,7 @@ export function PriceDualRangeSlider({
                 }
               }}
               className={cn(
-                "focus-ring min-h-9.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold tabular-nums cursor-pointer whitespace-nowrap",
+                "focus-ring min-h-11 sm:min-h-10 rounded-xl px-2.5 py-2 text-xs font-semibold tabular-nums cursor-pointer whitespace-nowrap",
                 active
                   ? "ondjo-border-selected bg-ondjo-blue text-white shadow-2xs"
                   : "ondjo-border-interactive bg-slate-50/70 text-ondjo-ink hover:bg-slate-100",
@@ -283,7 +283,7 @@ export function OriginSelector({
       value={current}
       onValueChange={(val) => onChange(String(val) as SearchOrigin)}
       aria-label="Origem do anúncio"
-      className="grid grid-cols-2 gap-2"
+      className="grid grid-cols-2 gap-2.5"
     >
       {ORIGIN_OPTIONS.map((opt) => {
         const isSelected = current === opt.id;
@@ -293,7 +293,7 @@ export function OriginSelector({
           <label
             key={opt.id}
             className={cn(
-              "flex min-h-11 items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-semibold cursor-pointer select-none has-focus-visible:ring-3 has-focus-visible:ring-ondjo-blue/25 has-focus-visible:border-ondjo-blue",
+              "flex min-h-12 items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-semibold cursor-pointer select-none has-focus-visible:ring-3 has-focus-visible:ring-ondjo-blue/25 has-focus-visible:border-ondjo-blue",
               isSelected
                 ? "ondjo-border-selected bg-ondjo-blue-50/75 text-ondjo-navy font-bold"
                 : "ondjo-border-interactive bg-white text-ondjo-ink hover:bg-slate-50/80",
@@ -303,14 +303,15 @@ export function OriginSelector({
             <span
               aria-hidden="true"
               className={cn(
-                "grid size-6.5 shrink-0 place-items-center rounded-lg",
+                "grid size-7 shrink-0 place-items-center rounded-lg",
                 opt.bgSoftClass,
                 opt.colorClass,
               )}
             >
               <Icon size={14} strokeWidth={isSelected ? 2.4 : 2} />
             </span>
-            <span className="truncate">{opt.label}</span>
+            <span className="truncate sm:hidden">{opt.shortLabel}</span>
+            <span className="hidden truncate sm:inline">{opt.label}</span>
           </label>
         );
       })}
@@ -340,8 +341,8 @@ export function AmenitiesSelector({
   const remainingCount = AMENITY_OPTIONS.length - defaultVisibleCount;
 
   return (
-    <div className="space-y-2.5">
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+    <div className="space-y-3">
+      <div className="grid grid-cols-1 min-[370px]:grid-cols-2 sm:grid-cols-3 gap-2.5">
         {visibleOptions.map((item) => {
           const isSelected =
             selected.includes(item.id) || selected.includes(item.label);
@@ -354,7 +355,7 @@ export function AmenitiesSelector({
               onClick={() => onToggle(item.id)}
               aria-pressed={isSelected}
               className={cn(
-                "focus-ring group flex min-h-11 items-center gap-2 rounded-xl px-2.5 py-2 text-left text-xs font-semibold cursor-pointer select-none",
+                "focus-ring group flex min-h-11 items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-semibold cursor-pointer select-none",
                 isSelected
                   ? "ondjo-border-selected bg-ondjo-blue-50/70 text-ondjo-navy font-bold"
                   : "ondjo-border-interactive bg-white text-ondjo-ink hover:bg-slate-50/80",

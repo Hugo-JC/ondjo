@@ -55,7 +55,7 @@ export function MobileBottomNav() {
   }
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom,0px))] z-40 flex justify-center px-4 lg:hidden">
+    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.625rem+env(safe-area-inset-bottom,0px))] z-40 flex justify-center px-3.5 lg:hidden">
       <m.nav
         aria-label="Navegação móvel principal"
         initial={reduceMotion ? false : { opacity: 0, y: 12, scale: 0.97 }}
@@ -65,7 +65,7 @@ export function MobileBottomNav() {
             ? { duration: 0 }
             : { type: "spring", stiffness: 380, damping: 32, mass: 0.85 }
         }
-        className="pointer-events-auto grid w-full max-w-[332px] grid-cols-5 items-center gap-1 rounded-full border border-ondjo-border-strong bg-white p-1.5 shadow-[0_8px_28px_rgba(16,42,67,0.14)]"
+        className="pointer-events-auto grid w-full max-w-[356px] grid-cols-5 items-center gap-1 rounded-full border border-ondjo-border-strong bg-white p-1.5 shadow-[0_8px_28px_rgba(16,42,67,0.14)]"
       >
         {MOBILE_NAV_ITEMS.map((item) => {
           const Icon = item.icon;

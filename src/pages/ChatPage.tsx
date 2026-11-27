@@ -1348,7 +1348,7 @@ export function ChatPage() {
                   <TabsTrigger
                     key={tab.id}
                     value={tab.id}
-                    className="h-8.5 flex-none rounded-lg px-3 text-xs font-semibold data-active:bg-ondjo-navy data-active:text-white data-active:shadow-xs"
+                    className="h-9.5 sm:h-8.5 flex-none rounded-lg px-3 text-xs font-semibold data-active:bg-ondjo-navy data-active:text-white data-active:shadow-xs"
                   >
                     {tab.label}
                   </TabsTrigger>
@@ -1501,17 +1501,17 @@ export function ChatPage() {
           )}
         >
           {/* Cabeçalho do Interlocutor — Limpo, Visível e Sem Poluição */}
-          <header className="shrink-0 flex items-center justify-between gap-3 bg-white px-3.5 py-3 sm:px-6 border-b border-ondjo-border/50">
-            <div className="flex min-w-0 items-center gap-3">
+          <header className="shrink-0 flex items-center justify-between gap-2.5 sm:gap-3 bg-white px-3.5 py-2.5 sm:px-6 sm:py-3 border-b border-ondjo-border/50">
+            <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 onClick={() => setMobileView("list")}
-                className="h-10 rounded-xl bg-ondjo-bg px-2.5 text-xs font-bold text-ondjo-navy hover:bg-ondjo-blue-soft lg:hidden"
+                className="h-10.5 min-w-10.5 rounded-xl bg-ondjo-bg px-2.5 text-xs font-bold text-ondjo-navy hover:bg-ondjo-blue-soft lg:hidden"
                 aria-label="Voltar para a lista de conversas"
               >
-                <ArrowLeft size={16} />
+                <ArrowLeft size={17} />
                 {otherUnreadCount > 0 && (
                   <Badge variant="default" size="xs" className="h-4.5 min-w-4.5 px-1">
                     {otherUnreadCount}
@@ -1573,14 +1573,14 @@ export function ChatPage() {
                   variant="secondary"
                   size="sm"
                   onClick={() => setPropertySheetOpen(true)}
-                  className="h-10 gap-2 rounded-xl border-0 bg-ondjo-blue-50 px-2.5 sm:px-3.5 text-ondjo-navy hover:bg-ondjo-blue-soft"
+                  className="h-10.5 sm:h-10 gap-2 rounded-xl border-0 bg-ondjo-blue-50 px-2 sm:px-3.5 text-ondjo-navy hover:bg-ondjo-blue-soft"
                   aria-label={`Ver detalhes do imóvel: ${activeProperty.title}`}
                 >
                   <img
                     src={activeProperty.images[0]}
                     alt=""
                     aria-hidden="true"
-                    className="size-6.5 rounded-lg object-cover shrink-0"
+                    className="size-7 sm:size-6.5 rounded-lg object-cover shrink-0"
                   />
                   <div className="hidden sm:flex flex-col items-start text-left leading-tight">
                     <span className="max-w-36 truncate text-xs font-bold text-ondjo-navy">
@@ -1592,7 +1592,7 @@ export function ChatPage() {
                       })}
                     </span>
                   </div>
-                  <span className="sm:hidden text-xs font-bold text-ondjo-blue">
+                  <span className="hidden min-[390px]:inline sm:hidden text-xs font-bold text-ondjo-blue">
                     Imóvel
                   </span>
                   <ChevronRight
@@ -1719,7 +1719,7 @@ export function ChatPage() {
                                   size="sm"
                                   onClick={() => handleConfirmVisit(message.id)}
                                   leftIcon={<Check size={14} />}
-                                  className="h-9 rounded-xl px-3.5 font-bold"
+                                  className="h-10 sm:h-9 rounded-xl px-3.5 font-bold"
                                 >
                                   Confirmar visita
                                 </Button>
@@ -1732,7 +1732,7 @@ export function ChatPage() {
                                       "Gostaria de propor um horário alternativo para a visita. Seria possível no período da tarde?",
                                     )
                                   }
-                                  className="h-9 rounded-xl bg-white px-3 text-xs font-semibold text-ondjo-ink hover:bg-slate-100"
+                                  className="h-10 sm:h-9 rounded-xl bg-white px-3 text-xs font-semibold text-ondjo-ink hover:bg-slate-100"
                                 >
                                   Outro horário
                                 </Button>
@@ -1804,7 +1804,7 @@ export function ChatPage() {
           </div>
 
           {/* Barra de Composição Limpa e Moderna (Sem Sugestões nem Bordas Excessivas) */}
-          <div className="shrink-0 bg-white px-3.5 py-3 sm:px-6 sm:py-3.5 border-t border-ondjo-border/50">
+          <div className="shrink-0 bg-white px-3.5 py-2.5 sm:px-6 sm:py-3.5 border-t border-ondjo-border/50">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -1818,14 +1818,14 @@ export function ChatPage() {
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder={`Escreva uma mensagem para ${activeChat.contactName}...`}
-                className="h-10 flex-1 border-0 bg-transparent px-0 text-sm text-ondjo-ink shadow-none placeholder:text-ondjo-muted focus-visible:ring-0"
+                className="h-11 sm:h-10 flex-1 border-0 bg-transparent px-0 text-sm text-ondjo-ink shadow-none placeholder:text-ondjo-muted focus-visible:ring-0"
               />
 
               <Button
                 type="submit"
                 variant="primary"
                 disabled={!inputText.trim()}
-                className="h-10 min-w-10 shrink-0 rounded-xl px-4 text-sm font-bold"
+                className="size-11 sm:size-auto sm:h-10 shrink-0 rounded-xl sm:px-4 text-sm font-bold"
                 aria-label="Enviar mensagem"
               >
                 <Send size={16} aria-hidden="true" />

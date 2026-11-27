@@ -438,25 +438,25 @@ export default function RegisterPage() {
             className="space-y-4"
           >
             {/* Resumo visual dos dados */}
-            <div className="ondjo-border-surface rounded-2xl bg-ondjo-bg/70 p-5 space-y-3">
+            <div className="ondjo-border-surface rounded-2xl bg-ondjo-bg/70 p-4 sm:p-5 space-y-3">
               <p className="text-xs font-bold uppercase tracking-wider text-ondjo-muted">
                 Resumo do perfil a criar
               </p>
 
-              <div className="grid grid-cols-2 gap-3 pt-1 text-sm">
-                <div>
+              <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-3 pt-1 text-sm">
+                <div className="min-w-0">
                   <span className="block text-xs text-ondjo-muted">Perfil:</span>
                   <strong className="text-ondjo-navy capitalize">{role}</strong>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <span className="block text-xs text-ondjo-muted">Nome:</span>
-                  <strong className="text-ondjo-navy">{firstName} {lastName}</strong>
+                  <strong className="text-ondjo-navy truncate block">{firstName} {lastName}</strong>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <span className="block text-xs text-ondjo-muted">Telefone:</span>
-                  <strong className="text-ondjo-navy">{phone || "+244 ..."}</strong>
+                  <strong className="text-ondjo-navy tabular-nums">{phone || "+244 ..."}</strong>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <span className="block text-xs text-ondjo-muted">Email:</span>
                   <strong className="text-ondjo-navy truncate block">{email || "exemplo@email.com"}</strong>
                 </div>
